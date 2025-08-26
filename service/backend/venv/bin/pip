@@ -1,4 +1,4 @@
-#!/Users/ishanlahiru/Documents/work-with-darshana/safe-wave/service/backend/venv/bin/python
+#!/Users/ishanlahiru/Documents/work-with-darshana/safe-wave/service/backend/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
