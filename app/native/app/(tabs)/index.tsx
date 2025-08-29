@@ -1,47 +1,49 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useUser } from '@/contexts/UserContext';
+import ApiConnectionTest from '@/components/ApiConnectionTest';
+import apiService from '@/services/api';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const currentDate = new Date();
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-  const dayName = dayNames[currentDate.getDay()];
-  const monthName = monthNames[currentDate.getMonth()];
-  const date = currentDate.getDate();
-  const suffix = date === 1 ? 'st' : date === 2 ? 'nd' : date === 3 ? 'rd' : 'th';
+  const { user } = useUser();
+  const insets = useSafeAreaInsets();
 
   const handleStartCheckin = () => {
     router.push('/(tabs)/checkin');
   };
 
+  const handleOnboarding = () => {
+    router.push('/onboarding-questionnaire');
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      {/* Header Section */}
-      <ThemedView style={styles.header}>
-        <ThemedView style={styles.headerLeft}>
-          <ThemedView style={styles.logoContainer}>
-            <IconSymbol size={24} name="wave.3.right" color="#007AFF" />
-          </ThemedView>
-          <ThemedView style={styles.welcomeText}>
-            <ThemedText style={styles.welcomeBack}>Welcome back,</ThemedText>
-            <ThemedText type="title" style={styles.userName}>Ishan Lahiru</ThemedText>
-            <ThemedText style={styles.date}>{dayName}, {monthName} {date}{suffix}</ThemedText>
-          </ThemedView>
-        </ThemedView>
-        <ThemedView style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconButton}>
-            <IconSymbol size={20} name="sun.max.fill" color="#007AFF" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <IconSymbol size={20} name="arrow.right" color="#007AFF" />
-          </TouchableOpacity>
-        </ThemedView>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.scrollContent,
+        {
+          paddingTop: Math.max(insets.top + 20, 60), // Safe area + minimum padding
+        }
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Welcome Message */}
+      <ThemedView style={styles.welcomeCard}>
+        <ThemedText type="title" style={styles.welcomeTitle}>
+          Welcome back, {user?.name || 'User'}! 👋
+        </ThemedText>
+        <ThemedText style={styles.welcomeSubtitle}>
+          {user?.isOnboardingComplete
+            ? 'Ready for your daily check-in?'
+            : 'Let\'s get you set up with the app'
+          }
+        </ThemedText>
       </ThemedView>
 
       {/* Daily Check-in Card */}
@@ -51,9 +53,15 @@ export default function HomeScreen() {
         </ThemedView>
         <ThemedText type="title" style={styles.checkinTitle}>Daily Check-in</ThemedText>
         <ThemedText style={styles.checkinQuestion}>How are you feeling today?</ThemedText>
-        <TouchableOpacity style={styles.checkinButton} onPress={handleStartCheckin}>
-          <ThemedText style={styles.checkinButtonText}>Start Check-in</ThemedText>
-        </TouchableOpacity>
+        {user?.isOnboardingComplete ? (
+          <TouchableOpacity style={styles.checkinButton} onPress={handleStartCheckin}>
+            <ThemedText style={styles.checkinButtonText}>Start Check-in</ThemedText>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.onboardingButton} onPress={handleOnboarding}>
+            <ThemedText style={styles.onboardingButtonText}>Complete Onboarding</ThemedText>
+          </TouchableOpacity>
+        )}
       </ThemedView>
 
       {/* Statistics Cards */}
@@ -76,61 +84,110 @@ export default function HomeScreen() {
           <ThemedText style={styles.statLabel}>Trend</ThemedText>
         </ThemedView>
       </ThemedView>
-    </ThemedView>
+
+      {/* Token Status */}
+      <ThemedView style={styles.tokenStatusCard}>
+        <ThemedText type="title" style={styles.tokenStatusTitle}>
+          🔐 Token Status
+        </ThemedText>
+        <ThemedText style={styles.tokenStatusSubtitle}>
+          Monitor your authentication tokens
+        </ThemedText>
+        <TouchableOpacity
+          style={styles.tokenStatusButton}
+          onPress={async () => {
+            try {
+              const tokens = await apiService.getStoredTokens();
+              const message = `Access Token: ${tokens.accessToken ? '✅ Valid' : '❌ Missing'}\nRefresh Token: ${tokens.refreshToken ? '✅ Valid' : '❌ Missing'}`;
+              alert(message);
+            } catch (error) {
+              alert(`Error: ${error}`);
+            }
+          }}
+        >
+          <ThemedText style={styles.tokenStatusButtonText}>Check Tokens</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+
+      {/* API Connection Test */}
+      <ThemedView style={styles.apiTestCard}>
+        <ThemedText type="title" style={styles.apiTestTitle}>
+          🔌 API Connection Test
+        </ThemedText>
+        <ThemedText style={styles.apiTestSubtitle}>
+          Test your frontend-backend connection
+        </ThemedText>
+        <TouchableOpacity
+          style={styles.apiTestButton}
+          onPress={() => router.push('/api-test')}
+        >
+          <ThemedText style={styles.apiTestButtonText}>Test Connection</ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+
+      {/* Debug Section */}
+      <ThemedView style={styles.debugCard}>
+        <ThemedText type="title" style={styles.debugTitle}>
+          🐛 Debug Tools
+        </ThemedText>
+        <ThemedText style={styles.debugSubtitle}>
+          Development and testing utilities
+        </ThemedText>
+        <View style={styles.debugButtons}>
+          <TouchableOpacity
+            style={styles.debugButton}
+            onPress={async () => {
+              const { forceLogout } = useUser();
+              await forceLogout();
+            }}
+          >
+            <ThemedText style={styles.debugButtonText}>Force Logout</ThemedText>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.debugButton}
+            onPress={async () => {
+              const tokens = await apiService.getStoredTokens();
+              alert(`Access Token: ${tokens.accessToken ? '✅ Valid' : '❌ Missing'}\nRefresh Token: ${tokens.refreshToken ? '✅ Valid' : '❌ Missing'}`);
+            }}
+          >
+            <ThemedText style={styles.debugButtonText}>Check Tokens</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </ThemedView>
+
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 20,
-    paddingTop: 40,
+    paddingBottom: 120, // Increased to account for tab bar
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 30,
-  },
-  headerLeft: {
-    flexDirection: 'row',
+  welcomeCard: {
+    backgroundColor: 'rgba(88, 86, 214, 0.05)',
+    borderRadius: 20,
+    padding: 25,
     alignItems: 'center',
-    gap: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(88, 86, 214, 0.1)',
   },
-  logoContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  welcomeText: {
-    gap: 4,
-  },
-  welcomeBack: {
-    fontSize: 16,
-    opacity: 0.7,
-  },
-  userName: {
+  welcomeTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    color: '#5856D6',
   },
-  date: {
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  welcomeSubtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
+    lineHeight: 22,
   },
   checkinCard: {
     backgroundColor: 'rgba(0, 122, 255, 0.05)',
@@ -175,6 +232,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+  onboardingButton: {
+    backgroundColor: '#FF9500',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    minWidth: 200,
+  },
+  onboardingButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   statsContainer: {
     flexDirection: 'row',
     gap: 15,
@@ -197,5 +267,106 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.7,
     textAlign: 'center',
+  },
+  apiTestCard: {
+    backgroundColor: 'rgba(255, 149, 0, 0.05)',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 149, 0, 0.1)',
+  },
+  apiTestTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  apiTestSubtitle: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  apiTestButton: {
+    backgroundColor: '#FF9500',
+    paddingHorizontal: 25,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  apiTestButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tokenStatusCard: {
+    backgroundColor: 'rgba(52, 199, 89, 0.05)',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(52, 199, 89, 0.1)',
+  },
+  tokenStatusTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  tokenStatusSubtitle: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  tokenStatusButton: {
+    backgroundColor: '#34C759',
+    paddingHorizontal: 25,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  tokenStatusButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  debugCard: {
+    backgroundColor: 'rgba(255, 59, 48, 0.05)',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 59, 48, 0.1)',
+  },
+  debugTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+    color: '#FF3B30',
+  },
+  debugSubtitle: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  debugButtons: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  debugButton: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  debugButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,113 +1,145 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
+import React from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'zh', label: '中文 (Chinese)' },
-];
+import { useUser } from '@/contexts/UserContext';
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
-  const [darkMode, setDarkMode] = useState(colorScheme === 'dark');
-  const [language, setLanguage] = useState('en');
+  const { user, logout } = useUser();
+  const insets = useSafeAreaInsets();
+
+  const handleOnboardingQuestionnaire = () => {
+    router.push('/onboarding-questionnaire');
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Sign Out',
+          style: 'destructive',
+          onPress: () => {
+            console.log('Logout confirmed');
+            logout();
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: Math.max(insets.top + 20, 60), // Safe area + minimum padding
+          }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Profile Header */}
         <ThemedView style={styles.profileHeader}>
           <ThemedView style={styles.avatarContainer}>
             <IconSymbol size={60} name="person.fill" color="white" />
           </ThemedView>
           <ThemedView style={styles.profileInfo}>
-            <ThemedText type="title" style={styles.profileName}>Ishan Lahiru</ThemedText>
-            <ThemedText style={styles.profileEmail}>ishan.lahiru@email.com</ThemedText>
-            <ThemedText style={styles.profileRole}>Healthcare Provider</ThemedText>
+            <ThemedText type="title" style={styles.profileName}>{user?.name || 'User'}</ThemedText>
+            <ThemedText style={styles.profileEmail}>{user?.email || 'user@example.com'}</ThemedText>
+            <ThemedText style={styles.profileRole}>{user?.role === 'healthcare_provider' ? 'Healthcare Provider' : 'User'}</ThemedText>
           </ThemedView>
         </ThemedView>
 
-        {/* Quick Stats */}
-        <ThemedView style={styles.statsContainer}>
-          <ThemedView style={styles.statItem}>
-            <ThemedText type="title" style={styles.statNumber}>24</ThemedText>
-            <ThemedText style={styles.statLabel}>Check-ins</ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.statItem}>
-            <ThemedText type="title" style={styles.statNumber}>7</ThemedText>
-            <ThemedText style={styles.statLabel}>This Week</ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.statItem}>
-            <ThemedText type="title" style={styles.statNumber}>98%</ThemedText>
-            <ThemedText style={styles.statLabel}>Completion</ThemedText>
-          </ThemedView>
+        {/* User Status */}
+        <ThemedView style={styles.userStatusCard}>
+          <ThemedText type="subtitle" style={styles.userStatusTitle}>
+            {user?.isOnboardingComplete ? '✅ Onboarding Complete' : '⏳ Onboarding Pending'}
+          </ThemedText>
+          <ThemedText style={styles.userStatusSubtitle}>
+            {user?.isOnboardingComplete
+              ? 'You\'re all set up and ready to use the app!'
+              : 'Complete the onboarding questionnaire to get started'
+            }
+          </ThemedText>
         </ThemedView>
 
-        {/* Settings Section */}
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Preferences</ThemedText>
-
-          <ThemedView style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="moon.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Dark Mode</ThemedText>
+        {/* Emergency Contact Info */}
+        {user?.emergencyContact && (
+          <ThemedView style={styles.emergencyContactCard}>
+            <ThemedText type="subtitle" style={styles.emergencyContactTitle}>
+              🚨 Emergency Contact
+            </ThemedText>
+            <ThemedView style={styles.contactInfo}>
+              <ThemedText style={styles.contactLabel}>Name:</ThemedText>
+              <ThemedText style={styles.contactValue}>{user.emergencyContact.name}</ThemedText>
             </ThemedView>
-            <Switch
-              value={darkMode}
-              onValueChange={setDarkMode}
-              thumbColor={darkMode ? '#007AFF' : '#eee'}
-              trackColor={{ true: 'rgba(0, 122, 255, 0.3)', false: '#ccc' }}
-            />
-          </ThemedView>
-
-          <ThemedView style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="globe" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Language</ThemedText>
+            <ThemedView style={styles.contactInfo}>
+              <ThemedText style={styles.contactLabel}>Email:</ThemedText>
+              <ThemedText style={styles.contactValue}>{user.emergencyContact.email}</ThemedText>
             </ThemedView>
-            <ThemedView style={styles.languageSelector}>
-              {LANGUAGES.map(l => (
-                <TouchableOpacity
-                  key={l.code}
-                  style={[
-                    styles.languageButton,
-                    language === l.code && { backgroundColor: '#007AFF' }
-                  ]}
-                  onPress={() => setLanguage(l.code)}
-                >
-                  <ThemedText style={[
-                    styles.languageButtonText,
-                    language === l.code && { color: 'white' }
-                  ]}>
-                    {l.label}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
+            <ThemedView style={styles.contactInfo}>
+              <ThemedText style={styles.contactLabel}>Relationship:</ThemedText>
+              <ThemedText style={styles.contactValue}>{user.emergencyContact.relationship}</ThemedText>
             </ThemedView>
           </ThemedView>
-        </ThemedView>
+        )}
+
+        {/* Care Person Info */}
+        {user?.carePersonEmail && (
+          <ThemedView style={styles.carePersonCard}>
+            <ThemedText type="subtitle" style={styles.carePersonTitle}>
+              👥 Care Person
+            </ThemedText>
+            <ThemedText style={styles.carePersonEmail}>{user.carePersonEmail}</ThemedText>
+            <ThemedText style={styles.carePersonSubtitle}>
+              This person will be notified of your check-ins and any concerns
+            </ThemedText>
+          </ThemedView>
+        )}
+
+        {/* User Preferences */}
+        {user?.preferences && (
+          <ThemedView style={styles.preferencesCard}>
+            <ThemedText type="subtitle" style={styles.preferencesTitle}>
+              ⚙️ Preferences
+            </ThemedText>
+            <ThemedView style={styles.preferenceItem}>
+              <ThemedText style={styles.preferenceLabel}>Check-in Frequency:</ThemedText>
+              <ThemedText style={styles.preferenceValue}>{user.preferences.checkinFrequency}</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.preferenceItem}>
+              <ThemedText style={styles.preferenceLabel}>Dark Mode:</ThemedText>
+              <ThemedText style={styles.preferenceValue}>{user.preferences.darkMode ? 'Enabled' : 'Disabled'}</ThemedText>
+            </ThemedView>
+            <ThemedView style={styles.preferenceItem}>
+              <ThemedText style={styles.preferenceLabel}>Language:</ThemedText>
+              <ThemedText style={styles.preferenceValue}>{user.preferences.language.toUpperCase()}</ThemedText>
+            </ThemedView>
+          </ThemedView>
+        )}
 
         {/* Account Section */}
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>Account</ThemedText>
 
-          <TouchableOpacity style={styles.settingRow}>
+          <TouchableOpacity style={styles.settingRow} onPress={handleOnboardingQuestionnaire}>
             <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="person.circle.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Edit Profile</ThemedText>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.right" color="#999" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="bell.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Notifications</ThemedText>
+              <IconSymbol size={20} name="doc.text.fill" color="#007AFF" />
+              <ThemedText style={styles.settingLabel}>Onboarding Questionnaire</ThemedText>
             </ThemedView>
             <IconSymbol size={16} name="chevron.right" color="#999" />
           </TouchableOpacity>
@@ -151,7 +183,7 @@ export default function ProfileScreen() {
         </ThemedView>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <IconSymbol size={20} name="rectangle.portrait.and.arrow.right" color="#FF3B30" />
           <ThemedText style={styles.logoutText}>Log Out</ThemedText>
         </TouchableOpacity>
@@ -166,7 +198,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 120, // Increased to account for tab bar
   },
   profileHeader: {
     flexDirection: 'row',
@@ -204,29 +236,106 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     fontStyle: 'italic',
   },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 15,
-    marginBottom: 30,
-  },
-  statItem: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+  userStatusCard: {
+    backgroundColor: 'rgba(52, 199, 89, 0.05)',
     borderRadius: 15,
     padding: 20,
-    alignItems: 'center',
-    gap: 8,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderColor: 'rgba(52, 199, 89, 0.1)',
   },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  userStatusTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#34C759',
   },
-  statLabel: {
-    fontSize: 12,
+  userStatusSubtitle: {
+    fontSize: 14,
     opacity: 0.7,
-    textAlign: 'center',
+    lineHeight: 20,
+  },
+  emergencyContactCard: {
+    backgroundColor: 'rgba(255, 149, 0, 0.05)',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 149, 0, 0.1)',
+  },
+  emergencyContactTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: '#FF9500',
+  },
+  contactInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  contactLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  contactValue: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  carePersonCard: {
+    backgroundColor: 'rgba(88, 86, 214, 0.05)',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(88, 86, 214, 0.1)',
+  },
+  carePersonTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#5856D6',
+  },
+  carePersonEmail: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  carePersonSubtitle: {
+    fontSize: 14,
+    opacity: 0.7,
+    lineHeight: 20,
+  },
+  preferencesCard: {
+    backgroundColor: 'rgba(0, 122, 255, 0.05)',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  preferencesTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 15,
+    color: '#007AFF',
+  },
+  preferenceItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  preferenceLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  preferenceValue: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   section: {
     marginBottom: 25,
@@ -257,20 +366,6 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    fontWeight: '500',
-  },
-  languageSelector: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  languageButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-  },
-  languageButtonText: {
-    fontSize: 14,
     fontWeight: '500',
   },
   logoutButton: {

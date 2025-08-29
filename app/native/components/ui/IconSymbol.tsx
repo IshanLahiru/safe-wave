@@ -37,6 +37,22 @@ const MAPPING = {
   'exclamationmark.triangle.fill': 'warning',
   'target': 'gps-fixed',
   'globe': 'language',
+  'heart.fill': 'favorite',
+  'chevron.left': 'chevron-left',
+  'checkmark': 'check',
+  'doc.text.fill': 'description',
+  'person.circle.fill': 'account-circle',
+  'bell.fill': 'notifications',
+  'lock.fill': 'lock',
+  'questionmark.circle.fill': 'help',
+  'envelope.fill': 'email',
+  'info.circle.fill': 'info',
+  'rectangle.portrait.and.arrow.right': 'logout',
+  'waveform': 'graphic-eq',
+  'person.badge.plus': 'person-add',
+  'eye.fill': 'visibility',
+  'eye.slash.fill': 'visibility-off',
+  'xmark': 'close',
 } as IconMapping;
 
 /**
@@ -49,12 +65,14 @@ export function IconSymbol({
   size = 24,
   color,
   style,
+  onPress,
 }: {
   name: IconSymbolName;
   size?: number;
   color: string | OpaqueColorValue;
   style?: StyleProp<TextStyle>;
   weight?: SymbolWeight;
+  onPress?: () => void;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} onPress={onPress} />;
 }

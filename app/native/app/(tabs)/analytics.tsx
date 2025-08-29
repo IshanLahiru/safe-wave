@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useUser } from '@/contexts/UserContext';
 
 export default function AnalyticsScreen() {
+  const { user } = useUser();
+  const insets = useSafeAreaInsets();
   const [selectedPeriod, setSelectedPeriod] = useState('week');
 
   const periods = [
@@ -25,18 +29,25 @@ export default function AnalyticsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingTop: Math.max(insets.top + 20, 60), // Safe area + minimum padding
+          }
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <ThemedView style={styles.header}>
           <ThemedView style={styles.headerLeft}>
             <IconSymbol size={40} name="chart.line.uptrend.xyaxis" color="#007AFF" />
-            <ThemedText type="title" style={styles.title}>Analytics</ThemedText>
-          </ThemedView>
-          <ThemedView style={styles.headerRight}>
-            <TouchableOpacity style={styles.exportButton}>
-              <IconSymbol size={20} name="square.and.arrow.up" color="#007AFF" />
-              <ThemedText style={styles.exportButtonText}>Export</ThemedText>
-            </TouchableOpacity>
+            <ThemedView style={styles.titleContainer}>
+              <ThemedText type="title" style={styles.title}>Analytics</ThemedText>
+              <ThemedText style={styles.subtitle}>
+                {user?.name ? `${user.name}'s Progress` : 'Your Progress'}
+              </ThemedText>
+            </ThemedView>
           </ThemedView>
         </ThemedView>
 
@@ -177,7 +188,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 120, // Increased to account for tab bar
   },
   header: {
     flexDirection: 'row',
@@ -191,30 +202,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  titleContainer: {
+    gap: 4,
+  },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
   },
-  headerRight: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  exportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(0, 122, 255, 0.1)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.2)',
-  },
-  exportButtonText: {
-    color: '#007AFF',
-    fontWeight: '600',
+  subtitle: {
     fontSize: 14,
+    opacity: 0.7,
+    color: '#007AFF',
   },
+
   periodSelector: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0, 0, 0, 0.03)',
