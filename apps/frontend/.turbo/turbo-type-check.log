@@ -1,0 +1,17 @@
+
+> frontend@1.0.0 type-check
+> tsc --noEmit
+
+[96m../../node_modules/@types/babel__traverse/index.d.ts[0m:[93m361[0m:[93m104[0m - [91merror[0m[90m TS1005: [0m'}' expected.
+
+[7m361[0m     type: T extends Node ? T["type"] : T extends null | undefined ? undefined : Node["type"] | undefine
+[7m   [0m [91m                                                                                                       [0m
+
+
+Found 1 error in ../../node_modules/@types/babel__traverse/index.d.ts[90m:361[0m
+
+[37;40mnpm[0m [0m[31;40mERR![0m [0m[35mLifecycle script `type-check` failed with error:[0m 
+[0m[37;40mnpm[0m [0m[31;40mERR![0m [0m[35mError: command failed[0m 
+[0m[37;40mnpm[0m [0m[31;40mERR![0m [0m[35m  in workspace: frontend@1.0.0[0m 
+[0m[37;40mnpm[0m [0m[31;40mERR![0m [0m[35m  at location: /Users/ishanlahiru/Documents/work-with-darshana/safe-wave/apps/frontend[0m 
+[0m

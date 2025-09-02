@@ -21,7 +21,7 @@ export function ModernInput({
   secureTextEntry = false,
   style,
   error,
-  success
+  success,
 }: ModernInputProps) {
   const [isFocused, setIsFocused] = useState(false);
 

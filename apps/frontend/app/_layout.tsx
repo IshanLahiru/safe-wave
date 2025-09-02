@@ -88,13 +88,18 @@ function AppContent() {
     // Show loading screen while checking authentication
     return (
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.dark.background }}>
-          <ThemedText type="title" style={{ fontSize: 24, marginBottom: 20 }}>
+        <SafeAreaView
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: Colors.dark.background,
+          }}
+        >
+          <ThemedText type='title' style={{ fontSize: 24, marginBottom: 20 }}>
             🌊 Safe Wave
           </ThemedText>
-          <ThemedText style={{ fontSize: 16, opacity: 0.7 }}>
-            Loading...
-          </ThemedText>
+          <ThemedText style={{ fontSize: 16, opacity: 0.7 }}>Loading...</ThemedText>
           <ThemedText style={{ fontSize: 12, opacity: 0.5, marginTop: 20 }}>
             Checking authentication...
           </ThemedText>
@@ -107,13 +112,13 @@ function AppContent() {
     <ThemeProvider value={DarkTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {/* Always include all screens to prevent navigation errors */}
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="onboarding-questionnaire" />
-        <Stack.Screen name="auth/login" />
-        <Stack.Screen name="auth/signup" />
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen name='(tabs)' />
+        <Stack.Screen name='onboarding-questionnaire' />
+        <Stack.Screen name='auth/login' />
+        <Stack.Screen name='auth/signup' />
+        <Stack.Screen name='+not-found' />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar style='light' />
     </ThemeProvider>
   );
 }

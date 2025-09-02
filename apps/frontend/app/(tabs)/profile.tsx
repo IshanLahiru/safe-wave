@@ -20,24 +20,20 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: () => {
+          console.log('Logout confirmed');
+          logout();
         },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: () => {
-            console.log('Logout confirmed');
-            logout();
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
@@ -47,65 +43,79 @@ export default function ProfileScreen() {
           styles.scrollContent,
           {
             paddingTop: insets.top + 20, // Add safe area top padding
-          }
+          },
         ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
         <ThemedView style={styles.header}>
           <ThemedView style={styles.logoContainer}>
-            <IconSymbol size={60} name="person.fill" color={Colors.dark.primary} />
+            <IconSymbol size={60} name='person.fill' color={Colors.dark.primary} />
           </ThemedView>
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type='title' style={styles.title}>
             👤 Profile
           </ThemedText>
-          <ThemedText type="body" style={styles.subtitle}>
-            {user?.name || 'User'} • {user?.role === 'healthcare_provider' ? 'Healthcare Provider' : 'User'}
+          <ThemedText type='body' style={styles.subtitle}>
+            {user?.name || 'User'} •{' '}
+            {user?.role === 'healthcare_provider' ? 'Healthcare Provider' : 'User'}
           </ThemedText>
         </ThemedView>
 
         {/* User Status */}
-        <ModernCard variant="elevated" style={styles.userStatusCard}>
-          <ThemedText type="heading" style={styles.userStatusTitle}>
+        <ModernCard variant='elevated' style={styles.userStatusCard}>
+          <ThemedText type='heading' style={styles.userStatusTitle}>
             {user?.isOnboardingComplete ? '✅ Onboarding Complete' : '⏳ Onboarding Pending'}
           </ThemedText>
-          <ThemedText type="body" style={styles.userStatusSubtitle}>
+          <ThemedText type='body' style={styles.userStatusSubtitle}>
             {user?.isOnboardingComplete
-              ? 'You\'re all set up and ready to use the app!'
-              : 'Complete the onboarding questionnaire to get started'
-            }
+              ? "You're all set up and ready to use the app!"
+              : 'Complete the onboarding questionnaire to get started'}
           </ThemedText>
         </ModernCard>
 
         {/* Emergency Contact Info */}
         {user?.emergencyContact && (
-          <ModernCard variant="elevated" style={styles.emergencyContactCard}>
-            <ThemedText type="heading" style={styles.emergencyContactTitle}>
+          <ModernCard variant='elevated' style={styles.emergencyContactCard}>
+            <ThemedText type='heading' style={styles.emergencyContactTitle}>
               🚨 Emergency Contact
             </ThemedText>
             <View style={styles.contactInfo}>
-              <ThemedText type="body" style={styles.contactLabel}>Name:</ThemedText>
-              <ThemedText type="body" style={styles.contactValue}>{user.emergencyContact.name}</ThemedText>
+              <ThemedText type='body' style={styles.contactLabel}>
+                Name:
+              </ThemedText>
+              <ThemedText type='body' style={styles.contactValue}>
+                {user.emergencyContact.name}
+              </ThemedText>
             </View>
             <View style={styles.contactInfo}>
-              <ThemedText type="body" style={styles.contactLabel}>Email:</ThemedText>
-              <ThemedText type="body" style={styles.contactValue}>{user.emergencyContact.email}</ThemedText>
+              <ThemedText type='body' style={styles.contactLabel}>
+                Email:
+              </ThemedText>
+              <ThemedText type='body' style={styles.contactValue}>
+                {user.emergencyContact.email}
+              </ThemedText>
             </View>
             <View style={styles.contactInfo}>
-              <ThemedText type="body" style={styles.contactLabel}>Relationship:</ThemedText>
-              <ThemedText type="body" style={styles.contactValue}>{user.emergencyContact.relationship}</ThemedText>
+              <ThemedText type='body' style={styles.contactLabel}>
+                Relationship:
+              </ThemedText>
+              <ThemedText type='body' style={styles.contactValue}>
+                {user.emergencyContact.relationship}
+              </ThemedText>
             </View>
           </ModernCard>
         )}
 
         {/* Care Person Info */}
         {user?.carePersonEmail && (
-          <ModernCard variant="elevated" style={styles.carePersonCard}>
-            <ThemedText type="heading" style={styles.carePersonTitle}>
+          <ModernCard variant='elevated' style={styles.carePersonCard}>
+            <ThemedText type='heading' style={styles.carePersonTitle}>
               👥 Care Person
             </ThemedText>
-            <ThemedText type="body" style={styles.carePersonEmail}>{user.carePersonEmail}</ThemedText>
-            <ThemedText type="caption" style={styles.carePersonSubtitle}>
+            <ThemedText type='body' style={styles.carePersonEmail}>
+              {user.carePersonEmail}
+            </ThemedText>
+            <ThemedText type='caption' style={styles.carePersonSubtitle}>
               This person will be notified of your check-ins and any concerns
             </ThemedText>
           </ModernCard>
@@ -113,87 +123,121 @@ export default function ProfileScreen() {
 
         {/* User Preferences */}
         {user?.preferences && (
-          <ModernCard variant="elevated" style={styles.preferencesCard}>
-            <ThemedText type="heading" style={styles.preferencesTitle}>
+          <ModernCard variant='elevated' style={styles.preferencesCard}>
+            <ThemedText type='heading' style={styles.preferencesTitle}>
               ⚙️ Preferences
             </ThemedText>
             <View style={styles.preferenceItem}>
-              <ThemedText type="body" style={styles.preferenceLabel}>Check-in Frequency:</ThemedText>
-              <ThemedText type="body" style={styles.preferenceValue}>{user.preferences.checkinFrequency}</ThemedText>
+              <ThemedText type='body' style={styles.preferenceLabel}>
+                Check-in Frequency:
+              </ThemedText>
+              <ThemedText type='body' style={styles.preferenceValue}>
+                {user.preferences.checkinFrequency}
+              </ThemedText>
             </View>
             <View style={styles.preferenceItem}>
-              <ThemedText type="body" style={styles.preferenceLabel}>Dark Mode:</ThemedText>
-              <ThemedText type="body" style={styles.preferenceValue}>{user.preferences.darkMode ? 'Enabled' : 'Disabled'}</ThemedText>
+              <ThemedText type='body' style={styles.preferenceLabel}>
+                Dark Mode:
+              </ThemedText>
+              <ThemedText type='body' style={styles.preferenceValue}>
+                {user.preferences.darkMode ? 'Enabled' : 'Disabled'}
+              </ThemedText>
             </View>
             <View style={styles.preferenceItem}>
-              <ThemedText type="body" style={styles.preferenceLabel}>Language:</ThemedText>
-              <ThemedText type="body" style={styles.preferenceValue}>{user.preferences.language.toUpperCase()}</ThemedText>
+              <ThemedText type='body' style={styles.preferenceLabel}>
+                Language:
+              </ThemedText>
+              <ThemedText type='body' style={styles.preferenceValue}>
+                {user.preferences.language.toUpperCase()}
+              </ThemedText>
             </View>
           </ModernCard>
         )}
 
         {/* Account Section */}
-        <ModernCard variant="elevated" style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>Account</ThemedText>
+        <ModernCard variant='elevated' style={styles.section}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
+            Account
+          </ThemedText>
 
           <TouchableOpacity style={styles.settingRow} onPress={handleOnboardingQuestionnaire}>
             <View style={styles.settingLeft}>
-              <IconSymbol size={20} name="doc.text.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.settingLabel}>Onboarding Questionnaire</ThemedText>
+              <IconSymbol size={20} name='doc.text.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.settingLabel}>
+                Onboarding Questionnaire
+              </ThemedText>
             </View>
-            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
+            <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <IconSymbol size={20} name="lock.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.settingLabel}>Privacy & Security</ThemedText>
+              <IconSymbol size={20} name='lock.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.settingLabel}>
+                Privacy & Security
+              </ThemedText>
             </View>
-            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
+            <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
         </ModernCard>
 
         {/* Support Section */}
-        <ModernCard variant="elevated" style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>Support</ThemedText>
+        <ModernCard variant='elevated' style={styles.section}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
+            Support
+          </ThemedText>
 
           <TouchableOpacity style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <IconSymbol size={20} name="questionmark.circle.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.settingLabel}>Help & FAQ</ThemedText>
+              <IconSymbol size={20} name='questionmark.circle.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.settingLabel}>
+                Help & FAQ
+              </ThemedText>
             </View>
-            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
+            <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <IconSymbol size={20} name="envelope.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.settingLabel}>Send Feedback</ThemedText>
+              <IconSymbol size={20} name='envelope.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.settingLabel}>
+                Send Feedback
+              </ThemedText>
             </View>
-            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
+            <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <IconSymbol size={20} name="info.circle.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.settingLabel}>About</ThemedText>
+              <IconSymbol size={20} name='info.circle.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.settingLabel}>
+                About
+              </ThemedText>
             </View>
-            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
+            <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
         </ModernCard>
 
         {/* Onboarding Analysis Test Section */}
         {user?.isOnboardingComplete && user?.carePersonEmail && (
-          <ModernCard variant="elevated" style={styles.section}>
-            <ThemedText type="heading" style={styles.sectionTitle}>🧪 Testing & Development</ThemedText>
+          <ModernCard variant='elevated' style={styles.section}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
+              🧪 Testing & Development
+            </ThemedText>
             <OnboardingAnalysisTest />
           </ModernCard>
         )}
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <IconSymbol size={20} name="rectangle.portrait.and.arrow.right" color={Colors.dark.danger} />
-          <ThemedText type="body" style={styles.logoutText}>Log Out</ThemedText>
+          <IconSymbol
+            size={20}
+            name='rectangle.portrait.and.arrow.right'
+            color={Colors.dark.danger}
+          />
+          <ThemedText type='body' style={styles.logoutText}>
+            Log Out
+          </ThemedText>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

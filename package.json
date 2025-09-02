@@ -32,9 +32,5 @@
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "packageManager": "npm@10.2.4",
-  "dependencies": {
-    "is-arrayish": "^0.3.2",
-    "isexe": "^3.1.1"
-  }
+  "packageManager": "npm@10.2.4"
 }

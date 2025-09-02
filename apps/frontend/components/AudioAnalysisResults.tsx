@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
@@ -58,11 +53,11 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
+        <ThemedText type='title' style={styles.title}>
           🧠 Analysis Results
         </ThemedText>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <IconSymbol size={24} name="xmark" color="#687076" />
+          <IconSymbol size={24} name='xmark' color='#687076' />
         </TouchableOpacity>
       </View>
 
@@ -76,19 +71,21 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
                 name={getRiskLevelIcon(analysis.riskLevel)}
                 color={getRiskLevelColor(analysis.riskLevel)}
               />
-              <ThemedText type="title" style={styles.riskTitle}>
+              <ThemedText type='title' style={styles.riskTitle}>
                 Risk Level: {analysis.riskLevel.toUpperCase()}
               </ThemedText>
             </View>
             <View
               style={[
                 styles.riskIndicator,
-                { backgroundColor: getRiskLevelColor(analysis.riskLevel) + '20' }
+                { backgroundColor: getRiskLevelColor(analysis.riskLevel) + '20' },
               ]}
             >
               <ThemedText style={styles.riskDescription}>
-                {analysis.riskLevel === 'critical' && 'Immediate attention required. Care person has been notified.'}
-                {analysis.riskLevel === 'high' && 'High risk indicators detected. Consider reaching out for support.'}
+                {analysis.riskLevel === 'critical' &&
+                  'Immediate attention required. Care person has been notified.'}
+                {analysis.riskLevel === 'high' &&
+                  'High risk indicators detected. Consider reaching out for support.'}
                 {analysis.riskLevel === 'medium' && 'Some concerning indicators. Monitor closely.'}
                 {analysis.riskLevel === 'low' && 'Low risk. Continue with current support plan.'}
               </ThemedText>
@@ -99,13 +96,11 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
         {/* Transcription */}
         {analysis.transcription && (
           <View style={styles.section}>
-            <ThemedText type="title" style={styles.sectionTitle}>
+            <ThemedText type='title' style={styles.sectionTitle}>
               �� What You Said
             </ThemedText>
             <View style={styles.transcriptionBox}>
-              <ThemedText style={styles.transcriptionText}>
-                "{analysis.transcription}"
-              </ThemedText>
+              <ThemedText style={styles.transcriptionText}>"{analysis.transcription}"</ThemedText>
             </View>
           </View>
         )}
@@ -113,7 +108,7 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
         {/* Mental Health Indicators */}
         {analysis.mentalHealthIndicators && (
           <View style={styles.section}>
-            <ThemedText type="title" style={styles.sectionTitle}>
+            <ThemedText type='title' style={styles.sectionTitle}>
               🔍 Key Indicators
             </ThemedText>
             {Object.entries(analysis.mentalHealthIndicators).map(([key, value]) => (
@@ -121,9 +116,7 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
                 <ThemedText style={styles.indicatorKey}>
                   {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}:
                 </ThemedText>
-                <ThemedText style={styles.indicatorValue}>
-                  {String(value)}
-                </ThemedText>
+                <ThemedText style={styles.indicatorValue}>{String(value)}</ThemedText>
               </View>
             ))}
           </View>
@@ -132,13 +125,11 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
         {/* LLM Analysis Summary */}
         {analysis.llmAnalysis?.summary && (
           <View style={styles.section}>
-            <ThemedText type="title" style={styles.sectionTitle}>
+            <ThemedText type='title' style={styles.sectionTitle}>
               💡 AI Insights
             </ThemedText>
             <View style={styles.insightsBox}>
-              <ThemedText style={styles.insightsText}>
-                {analysis.llmAnalysis.summary}
-              </ThemedText>
+              <ThemedText style={styles.insightsText}>{analysis.llmAnalysis.summary}</ThemedText>
             </View>
           </View>
         )}
@@ -146,15 +137,13 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
         {/* Recommendations */}
         {analysis.llmAnalysis?.recommendations && (
           <View style={styles.section}>
-            <ThemedText type="title" style={styles.sectionTitle}>
+            <ThemedText type='title' style={styles.sectionTitle}>
               🎯 Recommendations
             </ThemedText>
             {analysis.llmAnalysis.recommendations.map((rec: string, index: number) => (
               <View key={index} style={styles.recommendationItem}>
-                <IconSymbol size={16} name="checkmark.circle.fill" color="#34C759" />
-                <ThemedText style={styles.recommendationText}>
-                  {rec}
-                </ThemedText>
+                <IconSymbol size={16} name='checkmark.circle.fill' color='#34C759' />
+                <ThemedText style={styles.recommendationText}>{rec}</ThemedText>
               </View>
             ))}
           </View>
@@ -171,15 +160,11 @@ export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysi
       {/* Action Buttons */}
       <View style={styles.actions}>
         <TouchableOpacity style={styles.primaryButton}>
-          <ThemedText style={styles.primaryButtonText}>
-            Save to Journal
-          </ThemedText>
+          <ThemedText style={styles.primaryButtonText}>Save to Journal</ThemedText>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.secondaryButton}>
-          <ThemedText style={styles.secondaryButtonText}>
-            Share with Care Team
-          </ThemedText>
+          <ThemedText style={styles.secondaryButtonText}>Share with Care Team</ThemedText>
         </TouchableOpacity>
       </View>
     </View>

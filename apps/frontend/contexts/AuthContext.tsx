@@ -39,7 +39,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function initializeAuth() {
     try {
       setIsLoading(true);
-      
+
       // Try to get current user (this will fail if not authenticated)
       const currentUser = await apiClient.getCurrentUser();
       setUser(currentUser);
@@ -104,11 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 /**
@@ -116,11 +112,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
  */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 }
 

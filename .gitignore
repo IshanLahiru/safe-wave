@@ -40,3 +40,4 @@ uploads/audio/*.webm
 uploads/documents/*
 !uploads/audio/.gitkeep
 !uploads/documents/.gitkeep
+node_modules

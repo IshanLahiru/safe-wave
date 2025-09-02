@@ -1,0 +1,68 @@
+
+> frontend@1.0.0 format
+> prettier --write "**/*.{ts,tsx,js,jsx,json,md}"
+
+.eslintrc.js[2K[1G.eslintrc.js 36ms
+.vscode/settings.json[2K[1G[90m.vscode/settings.json[39m 2ms (unchanged)
+app.json[2K[1G[90mapp.json[39m 2ms (unchanged)
+app/_layout.tsx[2K[1Gapp/_layout.tsx 51ms
+app/(tabs)/_layout.tsx[2K[1Gapp/(tabs)/_layout.tsx 7ms
+app/(tabs)/analytics.tsx[2K[1Gapp/(tabs)/analytics.tsx 80ms
+app/(tabs)/checkin.tsx[2K[1Gapp/(tabs)/checkin.tsx 102ms
+app/(tabs)/index.tsx[2K[1Gapp/(tabs)/index.tsx 107ms
+app/(tabs)/profile.tsx[2K[1Gapp/(tabs)/profile.tsx 14ms
+app/+not-found.tsx[2K[1Gapp/+not-found.tsx 2ms
+app/api-test.tsx[2K[1Gapp/api-test.tsx 2ms
+app/auth-test.tsx[2K[1G[90mapp/auth-test.tsx[39m 2ms (unchanged)
+app/auth/login.tsx[2K[1Gapp/auth/login.tsx 23ms
+app/auth/signup.tsx[2K[1Gapp/auth/signup.tsx 9ms
+app/onboarding-questionnaire.tsx[2K[1G[90mapp/onboarding-questionnaire.tsx[39m 1ms (unchanged)
+AUDIO_ANALYSIS_IMPLEMENTATION.md[2K[1GAUDIO_ANALYSIS_IMPLEMENTATION.md 44ms
+CHECKIN_UI_DEMO.md[2K[1GCHECKIN_UI_DEMO.md 0ms
+checkin.tsx[2K[1Gcheckin.tsx 1ms
+components/ApiConnectionTest.tsx[2K[1Gcomponents/ApiConnectionTest.tsx 9ms
+components/AudioAnalysisResults.tsx[2K[1Gcomponents/AudioAnalysisResults.tsx 12ms
+components/AudioPlayer.tsx[2K[1Gcomponents/AudioPlayer.tsx 0ms
+components/AudioRecorder.tsx[2K[1Gcomponents/AudioRecorder.tsx 12ms
+components/AuthTest.tsx[2K[1Gcomponents/AuthTest.tsx 3ms
+components/Collapsible.tsx[2K[1Gcomponents/Collapsible.tsx 3ms
+components/ConnectionTest.tsx[2K[1Gcomponents/ConnectionTest.tsx 0ms
+components/ExternalLink.tsx[2K[1Gcomponents/ExternalLink.tsx 2ms
+components/HapticTab.tsx[2K[1Gcomponents/HapticTab.tsx 3ms
+components/HelloWave.tsx[2K[1G[90mcomponents/HelloWave.tsx[39m 2ms (unchanged)
+components/NetworkStatus.tsx[2K[1Gcomponents/NetworkStatus.tsx 10ms
+components/NetworkTest.tsx[2K[1Gcomponents/NetworkTest.tsx 4ms
+components/OnboardingAnalysisTest.tsx[2K[1Gcomponents/OnboardingAnalysisTest.tsx 10ms
+components/OnboardingQuestionnaire.tsx[2K[1Gcomponents/OnboardingQuestionnaire.tsx 42ms
+components/ParallaxScrollView.tsx[2K[1Gcomponents/ParallaxScrollView.tsx 3ms
+components/RecordingVisualizer.tsx[2K[1Gcomponents/RecordingVisualizer.tsx 0ms
+components/screens/LoginScreen.tsx[2K[1Gcomponents/screens/LoginScreen.tsx 6ms
+components/screens/RegisterScreen.tsx[2K[1Gcomponents/screens/RegisterScreen.tsx 7ms
+components/ThemedText.tsx[2K[1Gcomponents/ThemedText.tsx 2ms
+components/ThemedView.tsx[2K[1G[90mcomponents/ThemedView.tsx[39m 2ms (unchanged)
+components/TokenStorageTest.tsx[2K[1Gcomponents/TokenStorageTest.tsx 3ms
+components/ui/GradientButton.tsx[2K[1Gcomponents/ui/GradientButton.tsx 7ms
+components/ui/IconSymbol.ios.tsx[2K[1Gcomponents/ui/IconSymbol.ios.tsx 3ms
+components/ui/IconSymbol.tsx[2K[1Gcomponents/ui/IconSymbol.tsx 3ms
+components/ui/ModernCard.tsx[2K[1Gcomponents/ui/ModernCard.tsx 2ms
+components/ui/ModernInput.tsx[2K[1Gcomponents/ui/ModernInput.tsx 3ms
+components/ui/TabBarBackground.ios.tsx[2K[1Gcomponents/ui/TabBarBackground.ios.tsx 1ms
+components/ui/TabBarBackground.tsx[2K[1G[90mcomponents/ui/TabBarBackground.tsx[39m 1ms (unchanged)
+constants/Colors.ts[2K[1G[90mconstants/Colors.ts[39m 2ms (unchanged)
+contexts/AuthContext.tsx[2K[1Gcontexts/AuthContext.tsx 6ms
+contexts/UserContext.tsx[2K[1Gcontexts/UserContext.tsx 17ms
+eslint.config.js[2K[1G[90meslint.config.js[39m 2ms (unchanged)
+hooks/useColorScheme.ts[2K[1G[90mhooks/useColorScheme.ts[39m 1ms (unchanged)
+hooks/useColorScheme.web.ts[2K[1G[90mhooks/useColorScheme.web.ts[39m 1ms (unchanged)
+hooks/useThemeColor.ts[2K[1G[90mhooks/useThemeColor.ts[39m 1ms (unchanged)
+package-lock.json[2K[1G[90mpackage-lock.json[39m 59ms (unchanged)
+package.json[2K[1G[90mpackage.json[39m 1ms (unchanged)
+PERFORMANCE_OPTIMIZATIONS.md[2K[1GPERFORMANCE_OPTIMIZATIONS.md 29ms
+README.md[2K[1GREADME.md 5ms
+scripts/reset-project.js[2K[1Gscripts/reset-project.js 9ms
+scripts/update-ip.js[2K[1Gscripts/update-ip.js 8ms
+services/api-client.ts[2K[1Gservices/api-client.ts 14ms
+services/api.ts[2K[1Gservices/api.ts 51ms
+services/config.ts[2K[1Gservices/config.ts 5ms
+tsconfig.json[2K[1Gtsconfig.json 4ms
+utils/error-handler.ts[2K[1Gutils/error-handler.ts 4ms

@@ -27,34 +27,34 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { register } = useAuth();
 
   function validateForm(): string | null {
     if (!name.trim()) {
       return 'Please enter your full name';
     }
-    
+
     if (!email.trim()) {
       return 'Please enter your email address';
     }
-    
+
     if (!email.includes('@')) {
       return 'Please enter a valid email address';
     }
-    
+
     if (!password.trim()) {
       return 'Please enter a password';
     }
-    
+
     if (password.length < 6) {
       return 'Password must be at least 6 characters long';
     }
-    
+
     if (password !== confirmPassword) {
       return 'Passwords do not match';
     }
-    
+
     return null;
   }
 
@@ -77,8 +77,8 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -97,8 +97,8 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
                 style={styles.input}
                 value={name}
                 onChangeText={setName}
-                placeholder="Enter your full name"
-                autoCapitalize="words"
+                placeholder='Enter your full name'
+                autoCapitalize='words'
                 autoCorrect={false}
                 editable={!isLoading}
               />
@@ -110,9 +110,9 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
                 style={styles.input}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="Enter your email"
-                keyboardType="email-address"
-                autoCapitalize="none"
+                placeholder='Enter your email'
+                keyboardType='email-address'
+                autoCapitalize='none'
                 autoCorrect={false}
                 editable={!isLoading}
               />
@@ -124,9 +124,9 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Create a password (min 6 characters)"
+                placeholder='Create a password (min 6 characters)'
                 secureTextEntry
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
                 editable={!isLoading}
               />
@@ -138,9 +138,9 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
                 style={styles.input}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                placeholder="Confirm your password"
+                placeholder='Confirm your password'
                 secureTextEntry
-                autoCapitalize="none"
+                autoCapitalize='none'
                 autoCorrect={false}
                 editable={!isLoading}
               />
@@ -152,7 +152,7 @@ export function RegisterScreen({ onSwitchToLogin }: RegisterScreenProps) {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color='#fff' />
               ) : (
                 <Text style={styles.registerButtonText}>Create Account</Text>
               )}

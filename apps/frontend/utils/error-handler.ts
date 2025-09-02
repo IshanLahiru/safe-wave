@@ -11,7 +11,7 @@ import { ApiError } from '../services/api-client';
  */
 export function showError(error: ApiError | Error | string, title: string = 'Oops!'): void {
   let message: string;
-  
+
   if (typeof error === 'string') {
     message = error;
   } else if (error instanceof Error) {
@@ -19,7 +19,7 @@ export function showError(error: ApiError | Error | string, title: string = 'Oop
   } else {
     message = error.message || 'Something went wrong. Please try again.';
   }
-  
+
   Alert.alert(title, message, [{ text: 'OK' }]);
 }
 
@@ -38,14 +38,10 @@ export function showConfirmation(
   onConfirm: () => void,
   title: string = 'Confirm'
 ): void {
-  Alert.alert(
-    title,
-    message,
-    [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'OK', onPress: onConfirm },
-    ]
-  );
+  Alert.alert(title, message, [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'OK', onPress: onConfirm },
+  ]);
 }
 
 /**
@@ -55,19 +51,19 @@ export function getErrorMessage(error: any): string {
   if (typeof error === 'string') {
     return error;
   }
-  
+
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   if (error?.message) {
     return error.message;
   }
-  
+
   if (error?.detail) {
     return error.detail;
   }
-  
+
   return 'Something went wrong. Please try again.';
 }
 

@@ -1,0 +1,5 @@
+
+> backend@1.0.0 lint
+> echo 'Python linting skipped - install flake8 for full linting'
+
+Python linting skipped - install flake8 for full linting

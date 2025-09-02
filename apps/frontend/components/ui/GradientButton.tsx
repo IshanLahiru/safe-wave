@@ -18,7 +18,7 @@ export function GradientButton({
   variant = 'primary',
   size = 'medium',
   style,
-  disabled = false
+  disabled = false,
 }: GradientButtonProps) {
   const getButtonStyle = () => {
     if (disabled) {

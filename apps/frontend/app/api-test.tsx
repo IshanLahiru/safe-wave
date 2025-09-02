@@ -15,12 +15,12 @@ export default function ApiTestScreen() {
       <ThemedView style={styles.header}>
         <IconSymbol
           size={24}
-          name="chevron.left"
-          color="#007AFF"
+          name='chevron.left'
+          color='#007AFF'
           style={styles.backButton}
           onPress={() => router.back()}
         />
-        <ThemedText type="title" style={styles.headerTitle}>
+        <ThemedText type='title' style={styles.headerTitle}>
           🔌 API Connection Test
         </ThemedText>
         <View style={styles.placeholder} />

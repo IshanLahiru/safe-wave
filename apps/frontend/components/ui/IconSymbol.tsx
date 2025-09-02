@@ -30,16 +30,16 @@ const MAPPING = {
   'sun.max.fill': 'wb-sunny',
   'arrow.right': 'arrow-forward',
   'message.fill': 'chat',
-  'calendar': 'calendar-today',
+  calendar: 'calendar-today',
   'square.and.arrow.up': 'share',
   'arrow.up.right': 'trending-up',
   'star.fill': 'star',
   'exclamationmark.triangle.fill': 'warning',
-  'target': 'gps-fixed',
-  'globe': 'language',
+  target: 'gps-fixed',
+  globe: 'language',
   'heart.fill': 'favorite',
   'chevron.left': 'chevron-left',
-  'checkmark': 'check',
+  checkmark: 'check',
   'doc.text.fill': 'description',
   'person.circle.fill': 'account-circle',
   'bell.fill': 'notifications',
@@ -48,11 +48,11 @@ const MAPPING = {
   'envelope.fill': 'email',
   'info.circle.fill': 'info',
   'rectangle.portrait.and.arrow.right': 'logout',
-  'waveform': 'graphic-eq',
+  waveform: 'graphic-eq',
   'person.badge.plus': 'person-add',
   'eye.fill': 'visibility',
   'eye.slash.fill': 'visibility-off',
-  'xmark': 'close',
+  xmark: 'close',
   'arrow.up.doc': 'file-upload',
   'doc.text': 'description',
 } as IconMapping;
@@ -76,5 +76,7 @@ export function IconSymbol({
   weight?: SymbolWeight;
   onPress?: () => void;
 }) {
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} onPress={onPress} />;
+  return (
+    <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} onPress={onPress} />
+  );
 }

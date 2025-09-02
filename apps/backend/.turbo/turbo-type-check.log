@@ -1,0 +1,5 @@
+
+> backend@1.0.0 type-check
+> echo 'Python type checking skipped - install mypy for full type checking'
+
+Python type checking skipped - install mypy for full type checking

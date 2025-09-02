@@ -5,10 +5,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "echo 'Shared types build skipped due to dependency issues'",
-    "dev": "echo 'Shared types dev mode'",
+    "build": "tsc",
+    "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "type-check": "echo 'Type check skipped'"
+    "type-check": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.3.0"

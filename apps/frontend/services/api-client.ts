@@ -7,8 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 // Configuration
-const API_BASE_URL = __DEV__ 
-  ? (Platform.OS === 'web' ? 'http://localhost:9000' : 'http://192.168.31.123:9000')
+const API_BASE_URL = __DEV__
+  ? Platform.OS === 'web'
+    ? 'http://localhost:9000'
+    : 'http://192.168.31.123:9000'
   : 'https://your-production-api.com';
 
 const STORAGE_KEYS = {
@@ -44,7 +46,7 @@ export interface ApiError {
  */
 class ApiClient {
   private baseUrl: string;
-  
+
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
   }
@@ -52,20 +54,17 @@ class ApiClient {
   /**
    * Make an authenticated API request
    */
-  private async request<T>(
-    endpoint: string, 
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     try {
       // Get access token
       const token = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      
+
       // Prepare headers
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
         ...options.headers,
       };
-      
+
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
@@ -98,20 +97,20 @@ class ApiClient {
       if (error.message.includes('fetch')) {
         return {
           message: "Can't connect to the server. Please check your internet connection.",
-          code: 'NETWORK_ERROR'
+          code: 'NETWORK_ERROR',
         };
       }
-      
+
       // API errors
       return {
         message: error.message || 'Something went wrong. Please try again.',
-        code: 'API_ERROR'
+        code: 'API_ERROR',
       };
     }
-    
+
     return {
       message: 'An unexpected error occurred. Please try again.',
-      code: 'UNKNOWN_ERROR'
+      code: 'UNKNOWN_ERROR',
     };
   }
 
@@ -136,7 +135,7 @@ class ApiClient {
   }
 
   // Authentication methods
-  
+
   /**
    * Login user with email and password
    */
@@ -197,7 +196,7 @@ class ApiClient {
     formData.append('file', audioFile, filename);
 
     const token = await AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    
+
     const response = await fetch(`${this.baseUrl}/audio/upload`, {
       method: 'POST',
       headers: {

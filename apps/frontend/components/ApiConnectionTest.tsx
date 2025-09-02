@@ -14,12 +14,12 @@ export default function ApiConnectionTest() {
       const result = await testFn();
       setResults(prev => ({ ...prev, [name]: { success: true, data: result } }));
     } catch (error: any) {
-      setResults(prev => ({ 
-        ...prev, 
-        [name]: { 
-          success: false, 
-          error: error.message || 'Unknown error' 
-        } 
+      setResults(prev => ({
+        ...prev,
+        [name]: {
+          success: false,
+          error: error.message || 'Unknown error',
+        },
       }));
     } finally {
       setIsLoading(false);
@@ -27,8 +27,14 @@ export default function ApiConnectionTest() {
   };
 
   const testHealthCheck = () => testEndpoint('Health Check', () => apiService.healthCheck());
-  const testLogin = () => testEndpoint('Login', () => apiService.login({ email: 'test@example.com', password: 'password' }));
-  const testSignup = () => testEndpoint('Signup', () => apiService.signup({ email: 'test@example.com', name: 'Test User', password: 'password' }));
+  const testLogin = () =>
+    testEndpoint('Login', () =>
+      apiService.login({ email: 'test@example.com', password: 'password' })
+    );
+  const testSignup = () =>
+    testEndpoint('Signup', () =>
+      apiService.signup({ email: 'test@example.com', name: 'Test User', password: 'password' })
+    );
   const testGetUser = () => testEndpoint('Get User', () => apiService.getCurrentUser());
 
   const renderResult = (name: string) => {
@@ -41,13 +47,9 @@ export default function ApiConnectionTest() {
           {name}: {result.success ? '✅ Success' : '❌ Failed'}
         </ThemedText>
         {result.success ? (
-          <ThemedText style={styles.resultData}>
-            {JSON.stringify(result.data, null, 2)}
-          </ThemedText>
+          <ThemedText style={styles.resultData}>{JSON.stringify(result.data, null, 2)}</ThemedText>
         ) : (
-          <ThemedText style={styles.resultError}>
-            Error: {result.error}
-          </ThemedText>
+          <ThemedText style={styles.resultError}>Error: {result.error}</ThemedText>
         )}
       </View>
     );
@@ -55,44 +57,28 @@ export default function ApiConnectionTest() {
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
+      <ThemedText type='title' style={styles.title}>
         🔌 API Connection Test
       </ThemedText>
-      
+
       <ThemedText style={styles.description}>
         Test your frontend-backend connection by clicking the buttons below.
       </ThemedText>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.testButton} 
-          onPress={testHealthCheck}
-          disabled={isLoading}
-        >
+        <TouchableOpacity style={styles.testButton} onPress={testHealthCheck} disabled={isLoading}>
           <ThemedText style={styles.buttonText}>🏥 Health Check</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.testButton} 
-          onPress={testLogin}
-          disabled={isLoading}
-        >
+        <TouchableOpacity style={styles.testButton} onPress={testLogin} disabled={isLoading}>
           <ThemedText style={styles.buttonText}>🔐 Test Login</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.testButton} 
-          onPress={testSignup}
-          disabled={isLoading}
-        >
+        <TouchableOpacity style={styles.testButton} onPress={testSignup} disabled={isLoading}>
           <ThemedText style={styles.buttonText}>📝 Test Signup</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.testButton} 
-          onPress={testGetUser}
-          disabled={isLoading}
-        >
+        <TouchableOpacity style={styles.testButton} onPress={testGetUser} disabled={isLoading}>
           <ThemedText style={styles.buttonText}>👤 Test Get User</ThemedText>
         </TouchableOpacity>
       </View>

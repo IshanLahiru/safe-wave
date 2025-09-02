@@ -24,7 +24,7 @@ export function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
 
   async function handleLogin() {
@@ -33,7 +33,7 @@ export function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
       showError('Please enter your email address');
       return;
     }
-    
+
     if (!password.trim()) {
       showError('Please enter your password');
       return;
@@ -51,8 +51,8 @@ export function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
   }
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
@@ -70,9 +70,9 @@ export function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
               style={styles.input}
               value={email}
               onChangeText={setEmail}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
+              placeholder='Enter your email'
+              keyboardType='email-address'
+              autoCapitalize='none'
               autoCorrect={false}
               editable={!isLoading}
             />
@@ -84,9 +84,9 @@ export function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
               style={styles.input}
               value={password}
               onChangeText={setPassword}
-              placeholder="Enter your password"
+              placeholder='Enter your password'
               secureTextEntry
-              autoCapitalize="none"
+              autoCapitalize='none'
               autoCorrect={false}
               editable={!isLoading}
             />
@@ -98,7 +98,7 @@ export function LoginScreen({ onSwitchToRegister }: LoginScreenProps) {
             disabled={isLoading}
           >
             {isLoading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color='#fff' />
             ) : (
               <Text style={styles.loginButtonText}>Sign In</Text>
             )}

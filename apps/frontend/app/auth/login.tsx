@@ -71,7 +71,9 @@ export default function LoginScreen() {
         console.log('✅ Backend is reachable');
       } catch (healthError) {
         console.error('❌ Backend connectivity test failed:', healthError);
-        setErrorMessage('Cannot connect to server. Please check if the backend is running and accessible.');
+        setErrorMessage(
+          'Cannot connect to server. Please check if the backend is running and accessible.'
+        );
         return;
       }
 
@@ -97,7 +99,8 @@ export default function LoginScreen() {
 
       if (error instanceof Error) {
         if (error.message.includes('Network request failed')) {
-          errorMsg = 'Cannot connect to server. Please check your internet connection and if the backend is running.';
+          errorMsg =
+            'Cannot connect to server. Please check your internet connection and if the backend is running.';
         } else if (error.message.includes('timeout')) {
           errorMsg = 'Request timed out. The server might be slow or overloaded.';
         } else if (error.message.includes('401')) {
@@ -119,36 +122,40 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <ThemedView style={styles.header}>
           <ThemedView style={styles.logoContainer}>
-            <IconSymbol size={60} name="waveform" color={Colors.dark.primary} />
+            <IconSymbol size={60} name='waveform' color={Colors.dark.primary} />
           </ThemedView>
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type='title' style={styles.title}>
             🌊 Welcome Back
           </ThemedText>
-          <ThemedText type="body" style={styles.subtitle}>
+          <ThemedText type='body' style={styles.subtitle}>
             Sign in to continue your safe journey
           </ThemedText>
 
           {/* Backend Status Indicator */}
           <View style={styles.backendStatusContainer}>
-            <View style={[
-              styles.backendStatusDot,
-              {
-                backgroundColor: backendStatus === 'online' ? Colors.dark.success :
-                  backendStatus === 'offline' ? Colors.dark.danger :
-                    Colors.dark.warning
-              }
-            ]} />
-            <ThemedText type="caption" style={styles.backendStatusText}>
-              {backendStatus === 'online' ? 'Backend Online' :
-                backendStatus === 'offline' ? 'Backend Offline' :
-                  'Checking Backend...'}
+            <View
+              style={[
+                styles.backendStatusDot,
+                {
+                  backgroundColor:
+                    backendStatus === 'online'
+                      ? Colors.dark.success
+                      : backendStatus === 'offline'
+                        ? Colors.dark.danger
+                        : Colors.dark.warning,
+                },
+              ]}
+            />
+            <ThemedText type='caption' style={styles.backendStatusText}>
+              {backendStatus === 'online'
+                ? 'Backend Online'
+                : backendStatus === 'offline'
+                  ? 'Backend Offline'
+                  : 'Checking Backend...'}
             </ThemedText>
           </View>
         </ThemedView>
@@ -156,8 +163,8 @@ export default function LoginScreen() {
         {/* Form */}
         <ThemedView style={styles.form}>
           <ModernInput
-            label="Email Address"
-            placeholder="Enter your email"
+            label='Email Address'
+            placeholder='Enter your email'
             value={email}
             onChangeText={setEmail}
             style={styles.input}
@@ -165,8 +172,8 @@ export default function LoginScreen() {
 
           <View style={styles.passwordContainer}>
             <ModernInput
-              label="Password"
-              placeholder="Enter your password"
+              label='Password'
+              placeholder='Enter your password'
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -178,7 +185,7 @@ export default function LoginScreen() {
             >
               <IconSymbol
                 size={20}
-                name={showPassword ? "eye.slash.fill" : "eye.fill"}
+                name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
                 color={Colors.dark.primary}
               />
             </TouchableOpacity>
@@ -213,7 +220,7 @@ export default function LoginScreen() {
                   const loginResponse = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password }),
                   });
 
                   console.log('🔐 Login endpoint status:', loginResponse.status);
@@ -221,23 +228,32 @@ export default function LoginScreen() {
                   if (loginResponse.ok) {
                     const loginData = await loginResponse.json();
                     console.log('✅ Login endpoint response:', loginData);
-                    Alert.alert('✅ Debug Login', 'Login endpoint is working! Check console for details.');
+                    Alert.alert(
+                      '✅ Debug Login',
+                      'Login endpoint is working! Check console for details.'
+                    );
                   } else {
                     const errorData = await loginResponse.json().catch(() => ({}));
                     console.log('❌ Login endpoint error:', errorData);
-                    Alert.alert('❌ Debug Login', `Login endpoint failed: ${loginResponse.status}\n${errorData.detail || 'Unknown error'}`);
+                    Alert.alert(
+                      '❌ Debug Login',
+                      `Login endpoint failed: ${loginResponse.status}\n${errorData.detail || 'Unknown error'}`
+                    );
                   }
                 } else {
                   Alert.alert('❌ Backend Offline', 'Backend health check failed');
                 }
               } catch (error) {
                 console.error('❌ Debug login failed:', error);
-                Alert.alert('❌ Debug Error', error instanceof Error ? error.message : 'Unknown error');
+                Alert.alert(
+                  '❌ Debug Error',
+                  error instanceof Error ? error.message : 'Unknown error'
+                );
               }
             }}
           >
-            <IconSymbol size={20} name="ladybug.fill" color={Colors.dark.primary} />
-            <ThemedText type="caption" style={styles.debugButtonText}>
+            <IconSymbol size={20} name='ladybug.fill' color={Colors.dark.primary} />
+            <ThemedText type='caption' style={styles.debugButtonText}>
               Debug Login
             </ThemedText>
           </TouchableOpacity>
@@ -245,7 +261,7 @@ export default function LoginScreen() {
           {/* Error Message */}
           {errorMessage ? (
             <View style={styles.errorContainer}>
-              <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#FF3B30" />
+              <IconSymbol size={16} name='exclamationmark.triangle.fill' color='#FF3B30' />
               <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
             </View>
           ) : null}
@@ -257,20 +273,18 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-            <ThemedText style={styles.signupButtonText}>
-              Create New Account
-            </ThemedText>
+            <ThemedText style={styles.signupButtonText}>Create New Account</ThemedText>
           </TouchableOpacity>
 
           {/* Debug Information */}
-          <ModernCard variant="outlined" style={styles.debugCard}>
-            <ThemedText type="heading" style={styles.debugTitle}>
+          <ModernCard variant='outlined' style={styles.debugCard}>
+            <ThemedText type='heading' style={styles.debugTitle}>
               🔍 Debug Info
             </ThemedText>
-            <ThemedText type="body" style={styles.debugText}>
+            <ThemedText type='body' style={styles.debugText}>
               User: {user ? 'Logged In' : 'Not Logged In'}
             </ThemedText>
-            <ThemedText type="body" style={styles.debugText}>
+            <ThemedText type='body' style={styles.debugText}>
               Onboarding: {user?.isOnboardingComplete ? 'Complete' : 'Incomplete'}
             </ThemedText>
           </ModernCard>
@@ -284,13 +298,14 @@ export default function LoginScreen() {
                 const data = await response.json();
                 Alert.alert('Network Test', `Backend connected: ${data.message}`);
               } catch (error) {
-                Alert.alert('Network Test', `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                Alert.alert(
+                  'Network Test',
+                  `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
               }
             }}
           >
-            <ThemedText style={styles.networkTestButtonText}>
-              🔧 Test Network Connection
-            </ThemedText>
+            <ThemedText style={styles.networkTestButtonText}>🔧 Test Network Connection</ThemedText>
           </TouchableOpacity>
 
           {/* Token Status Debug Button */}
@@ -302,13 +317,14 @@ export default function LoginScreen() {
                 const statusText = JSON.stringify(tokenStatus, null, 2);
                 Alert.alert('Token Status', statusText);
               } catch (error) {
-                Alert.alert('Token Status Error', error instanceof Error ? error.message : 'Unknown error');
+                Alert.alert(
+                  'Token Status Error',
+                  error instanceof Error ? error.message : 'Unknown error'
+                );
               }
             }}
           >
-            <ThemedText style={styles.tokenDebugButtonText}>
-              🔍 Check Token Status
-            </ThemedText>
+            <ThemedText style={styles.tokenDebugButtonText}>🔍 Check Token Status</ThemedText>
           </TouchableOpacity>
 
           {/* Manual Token Refresh Button */}
@@ -317,15 +333,19 @@ export default function LoginScreen() {
             onPress={async () => {
               try {
                 const success = await apiService.manualRefreshToken();
-                Alert.alert('Token Refresh', success ? 'Token refreshed successfully!' : 'Token refresh failed');
+                Alert.alert(
+                  'Token Refresh',
+                  success ? 'Token refreshed successfully!' : 'Token refresh failed'
+                );
               } catch (error) {
-                Alert.alert('Token Refresh Error', error instanceof Error ? error.message : 'Unknown error');
+                Alert.alert(
+                  'Token Refresh Error',
+                  error instanceof Error ? error.message : 'Unknown error'
+                );
               }
             }}
           >
-            <ThemedText style={styles.tokenDebugButtonText}>
-              🔄 Manual Token Refresh
-            </ThemedText>
+            <ThemedText style={styles.tokenDebugButtonText}>🔄 Manual Token Refresh</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ScrollView>

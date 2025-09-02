@@ -9,7 +9,7 @@ import {
   Dimensions,
   Image,
   Alert,
-  Linking
+  Linking,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
@@ -110,7 +110,7 @@ export default function HomeScreen() {
     sleep_hours: 7,
     exercise_minutes: 30,
     meditation_minutes: 15,
-    notes: ''
+    notes: '',
   });
   const [progressSubmitting, setProgressSubmitting] = useState(false);
   const [progressHistory, setProgressHistory] = useState<any[]>([]);
@@ -217,7 +217,7 @@ export default function HomeScreen() {
         sleep_hours: homeContent.user_progress.sleep_hours || 7,
         exercise_minutes: homeContent.user_progress.exercise_minutes || 30,
         meditation_minutes: homeContent.user_progress.meditation_minutes || 15,
-        notes: homeContent.user_progress.notes || ''
+        notes: homeContent.user_progress.notes || '',
       });
     }
     setShowProgressModal(true);
@@ -231,7 +231,7 @@ export default function HomeScreen() {
       sleep_hours: 7,
       exercise_minutes: 30,
       meditation_minutes: 15,
-      notes: ''
+      notes: '',
     });
   };
 
@@ -242,7 +242,7 @@ export default function HomeScreen() {
       // Use the public progress endpoint
       const response = await apiService.request('/content/progress/public', {
         method: 'POST',
-        body: JSON.stringify(progressForm)
+        body: JSON.stringify(progressForm),
       });
 
       console.log('Progress updated:', response);
@@ -253,8 +253,8 @@ export default function HomeScreen() {
           ...homeContent,
           user_progress: {
             ...homeContent.user_progress,
-            ...response.progress
-          }
+            ...response.progress,
+          },
         };
         setHomeContent(updatedContent);
       }
@@ -272,7 +272,7 @@ export default function HomeScreen() {
   const handleProgressChange = (field: string, value: any) => {
     setProgressForm(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -288,7 +288,7 @@ export default function HomeScreen() {
           stress_level: 3,
           sleep_hours: 7.5,
           exercise_minutes: 45,
-          meditation_minutes: 20
+          meditation_minutes: 20,
         },
         {
           date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -296,7 +296,7 @@ export default function HomeScreen() {
           stress_level: 5,
           sleep_hours: 6.5,
           exercise_minutes: 30,
-          meditation_minutes: 15
+          meditation_minutes: 15,
         },
         {
           date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -304,8 +304,8 @@ export default function HomeScreen() {
           stress_level: 2,
           sleep_hours: 8.0,
           exercise_minutes: 60,
-          meditation_minutes: 30
-        }
+          meditation_minutes: 30,
+        },
       ];
       setProgressHistory(mockHistory);
     } catch (err) {
@@ -377,7 +377,7 @@ export default function HomeScreen() {
   if (loading && !homeContent) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.dark.primary} />
+        <ActivityIndicator size='large' color={Colors.dark.primary} />
         <ThemedText style={styles.loadingText}>Loading your wellness content...</ThemedText>
       </SafeAreaView>
     );
@@ -386,14 +386,9 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: insets.top + 20 }
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Welcome Header */}
         <LinearGradient
@@ -401,12 +396,12 @@ export default function HomeScreen() {
           style={styles.welcomeHeader}
         >
           <View style={styles.welcomeContent}>
-            <IconSymbol size={40} name="heart.fill" color={Colors.dark.background} />
+            <IconSymbol size={40} name='heart.fill' color={Colors.dark.background} />
             <View style={styles.welcomeText}>
-              <ThemedText type="title" style={styles.welcomeTitle}>
+              <ThemedText type='title' style={styles.welcomeTitle}>
                 Welcome back, {user?.name?.split(' ')[0] || 'Friend'}! 🌟
               </ThemedText>
-              <ThemedText type="body" style={styles.welcomeSubtitle}>
+              <ThemedText type='body' style={styles.welcomeSubtitle}>
                 Let's make today a peaceful one
               </ThemedText>
             </View>
@@ -414,7 +409,7 @@ export default function HomeScreen() {
         </LinearGradient>
 
         {error && (
-          <ModernCard variant="outlined" style={styles.errorCard}>
+          <ModernCard variant='outlined' style={styles.errorCard}>
             <ThemedText style={styles.errorText}>{error}</ThemedText>
             <TouchableOpacity style={styles.retryButton} onPress={fetchHomeContent}>
               <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
@@ -424,25 +419,25 @@ export default function HomeScreen() {
 
         {/* Daily Quote - Dynamic from API */}
         {homeContent?.daily_quote ? (
-          <ModernCard variant="elevated" style={styles.quoteCard}>
+          <ModernCard variant='elevated' style={styles.quoteCard}>
             <View style={styles.quoteContent}>
-              <IconSymbol size={24} name="quote.bubble.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.quoteText}>
+              <IconSymbol size={24} name='quote.bubble.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.quoteText}>
                 "{homeContent.daily_quote.text}"
               </ThemedText>
-              <ThemedText type="caption" style={styles.quoteAuthor}>
+              <ThemedText type='caption' style={styles.quoteAuthor}>
                 — {homeContent.daily_quote.author}
               </ThemedText>
             </View>
           </ModernCard>
         ) : (
-          <ModernCard variant="elevated" style={styles.quoteCard}>
+          <ModernCard variant='elevated' style={styles.quoteCard}>
             <View style={styles.quoteContent}>
-              <IconSymbol size={24} name="quote.bubble.fill" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.quoteText}>
+              <IconSymbol size={24} name='quote.bubble.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.quoteText}>
                 "Peace comes from within. Do not seek it without."
               </ThemedText>
-              <ThemedText type="caption" style={styles.quoteAuthor}>
+              <ThemedText type='caption' style={styles.quoteAuthor}>
                 — Buddha
               </ThemedText>
             </View>
@@ -452,13 +447,13 @@ export default function HomeScreen() {
         {/* Quick Wellness Check */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText type="heading" style={styles.sectionTitle}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
               How are you feeling today?
             </ThemedText>
             <View style={styles.wellnessActions}>
               <View style={styles.streakIndicator}>
-                <IconSymbol size={16} name="flame.fill" color={Colors.dark.warning} />
-                <ThemedText type="caption" style={styles.streakText}>
+                <IconSymbol size={16} name='flame.fill' color={Colors.dark.warning} />
+                <ThemedText type='caption' style={styles.streakText}>
                   {homeContent?.user_progress ? '3' : '0'} day streak
                 </ThemedText>
               </View>
@@ -469,22 +464,25 @@ export default function HomeScreen() {
                   setShowProgressHistory(true);
                 }}
               >
-                <IconSymbol size={16} name="chart.line.uptrend.xyaxis" color={Colors.dark.secondary} />
+                <IconSymbol
+                  size={16}
+                  name='chart.line.uptrend.xyaxis'
+                  color={Colors.dark.secondary}
+                />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.updateProgressButton}
-                onPress={openProgressModal}
-              >
-                <IconSymbol size={16} name="plus.circle" color={Colors.dark.primary} />
+              <TouchableOpacity style={styles.updateProgressButton} onPress={openProgressModal}>
+                <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
               </TouchableOpacity>
             </View>
           </View>
-          <ModernCard variant="elevated" style={styles.wellnessCard}>
+          <ModernCard variant='elevated' style={styles.wellnessCard}>
             <View style={styles.wellnessGrid}>
               <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name="heart.fill" color={Colors.dark.success} />
-                <ThemedText type="caption" style={styles.wellnessLabel}>Mood</ThemedText>
-                <ThemedText type="body" style={styles.wellnessValue}>
+                <IconSymbol size={32} name='heart.fill' color={Colors.dark.success} />
+                <ThemedText type='caption' style={styles.wellnessLabel}>
+                  Mood
+                </ThemedText>
+                <ThemedText type='body' style={styles.wellnessValue}>
                   {homeContent?.user_progress?.mood_rating
                     ? getMoodEmoji(homeContent.user_progress.mood_rating)
                     : '—'}
@@ -492,17 +490,25 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name="brain.head.profile" color={getStressLevelColor(homeContent?.user_progress?.stress_level || 5)} />
-                <ThemedText type="caption" style={styles.wellnessLabel}>Stress</ThemedText>
-                <ThemedText type="body" style={styles.wellnessValue}>
+                <IconSymbol
+                  size={32}
+                  name='brain.head.profile'
+                  color={getStressLevelColor(homeContent?.user_progress?.stress_level || 5)}
+                />
+                <ThemedText type='caption' style={styles.wellnessLabel}>
+                  Stress
+                </ThemedText>
+                <ThemedText type='body' style={styles.wellnessValue}>
                   {homeContent?.user_progress?.stress_level || '—'}
                 </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name="bed.double.fill" color={Colors.dark.primary} />
-                <ThemedText type="caption" style={styles.wellnessLabel}>Sleep</ThemedText>
-                <ThemedText type="body" style={styles.wellnessValue}>
+                <IconSymbol size={32} name='bed.double.fill' color={Colors.dark.primary} />
+                <ThemedText type='caption' style={styles.wellnessLabel}>
+                  Sleep
+                </ThemedText>
+                <ThemedText type='body' style={styles.wellnessValue}>
                   {homeContent?.user_progress?.sleep_hours
                     ? `${homeContent.user_progress.sleep_hours}h`
                     : '—'}
@@ -510,9 +516,11 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name="figure.walk" color={Colors.dark.warning} />
-                <ThemedText type="caption" style={styles.wellnessLabel}>Exercise</ThemedText>
-                <ThemedText type="body" style={styles.wellnessValue}>
+                <IconSymbol size={32} name='figure.walk' color={Colors.dark.warning} />
+                <ThemedText type='caption' style={styles.wellnessLabel}>
+                  Exercise
+                </ThemedText>
+                <ThemedText type='body' style={styles.wellnessValue}>
                   {homeContent?.user_progress?.exercise_minutes
                     ? `${homeContent.user_progress.exercise_minutes}m`
                     : '—'}
@@ -525,25 +533,25 @@ export default function HomeScreen() {
               <View style={styles.progressSummary}>
                 <View style={styles.progressStats}>
                   <View style={styles.progressStat}>
-                    <IconSymbol size={16} name="bed.double.fill" color={Colors.dark.primary} />
-                    <ThemedText type="caption" style={styles.progressStatText}>
+                    <IconSymbol size={16} name='bed.double.fill' color={Colors.dark.primary} />
+                    <ThemedText type='caption' style={styles.progressStatText}>
                       {homeContent.user_progress.sleep_hours || 0}h sleep
                     </ThemedText>
                   </View>
                   <View style={styles.progressStat}>
-                    <IconSymbol size={16} name="figure.walk" color={Colors.dark.warning} />
-                    <ThemedText type="caption" style={styles.progressStatText}>
+                    <IconSymbol size={16} name='figure.walk' color={Colors.dark.warning} />
+                    <ThemedText type='caption' style={styles.progressStatText}>
                       {homeContent.user_progress.exercise_minutes || 0}m exercise
                     </ThemedText>
                   </View>
                   <View style={styles.progressStat}>
-                    <IconSymbol size={16} name="brain.head.profile" color={Colors.dark.secondary} />
-                    <ThemedText type="caption" style={styles.progressStatText}>
+                    <IconSymbol size={16} name='brain.head.profile' color={Colors.dark.secondary} />
+                    <ThemedText type='caption' style={styles.progressStatText}>
                       {homeContent.user_progress.meditation_minutes || 0}m meditation
                     </ThemedText>
                   </View>
                 </View>
-                <ThemedText type="caption" style={styles.progressSummaryText}>
+                <ThemedText type='caption' style={styles.progressSummaryText}>
                   Track your daily wellness to see patterns over time
                 </ThemedText>
               </View>
@@ -554,19 +562,19 @@ export default function HomeScreen() {
         {/* Featured Videos - Dynamic from API */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText type="heading" style={styles.sectionTitle}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
               Relaxing Videos 🎬
             </ThemedText>
             <TouchableOpacity
               style={styles.viewAllButton}
               onPress={() => setShowAllVideos(!showAllVideos)}
             >
-              <ThemedText type="caption" style={styles.viewAllButtonText}>
+              <ThemedText type='caption' style={styles.viewAllButtonText}>
                 {showAllVideos ? 'Show Less' : 'View All'}
               </ThemedText>
               <IconSymbol
                 size={16}
-                name={showAllVideos ? "chevron.up" : "chevron.right"}
+                name={showAllVideos ? 'chevron.up' : 'chevron.right'}
                 color={Colors.dark.primary}
               />
             </TouchableOpacity>
@@ -580,7 +588,7 @@ export default function HomeScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.horizontalScroll}
               >
-                {homeContent.featured_videos.map((video) => (
+                {homeContent.featured_videos.map(video => (
                   <TouchableOpacity
                     key={video.id}
                     style={styles.videoCard}
@@ -588,31 +596,39 @@ export default function HomeScreen() {
                   >
                     <View style={styles.videoThumbnail}>
                       <Image
-                        source={{ uri: video.thumbnail_url || 'https://via.placeholder.com/300x120/4A90E2/FFFFFF?text=Video' }}
+                        source={{
+                          uri:
+                            video.thumbnail_url ||
+                            'https://via.placeholder.com/300x120/4A90E2/FFFFFF?text=Video',
+                        }}
                         style={styles.thumbnailImage}
-                        resizeMode="cover"
-                        defaultSource={{ uri: 'https://via.placeholder.com/300x120/4A90E2/FFFFFF?text=Video' }}
+                        resizeMode='cover'
+                        defaultSource={{
+                          uri: 'https://via.placeholder.com/300x120/4A90E2/FFFFFF?text=Video',
+                        }}
                       />
                       <View style={styles.videoOverlay}>
-                        <IconSymbol size={24} name="play.fill" color={Colors.dark.background} />
+                        <IconSymbol size={24} name='play.fill' color={Colors.dark.background} />
                       </View>
                       <View style={styles.videoDuration}>
-                        <ThemedText type="caption" style={styles.durationText}>
+                        <ThemedText type='caption' style={styles.durationText}>
                           {formatDuration(video.duration)}
                         </ThemedText>
                       </View>
                     </View>
                     <View style={styles.videoInfo}>
-                      <ThemedText type="body" style={styles.videoTitle} numberOfLines={2}>
+                      <ThemedText type='body' style={styles.videoTitle} numberOfLines={2}>
                         {video.title}
                       </ThemedText>
                       <View style={styles.videoMeta}>
-                        <View style={[styles.stressLevel, { backgroundColor: video.category.color }]}>
-                          <ThemedText type="caption" style={styles.stressLevelText}>
+                        <View
+                          style={[styles.stressLevel, { backgroundColor: video.category.color }]}
+                        >
+                          <ThemedText type='caption' style={styles.stressLevelText}>
                             {video.stress_level}
                           </ThemedText>
                         </View>
-                        <ThemedText type="caption" style={styles.moodBoost}>
+                        <ThemedText type='caption' style={styles.moodBoost}>
                           😊 +{video.mood_boost}
                         </ThemedText>
                       </View>
@@ -624,11 +640,11 @@ export default function HomeScreen() {
               {/* Expanded videos view */}
               {showAllVideos && (
                 <View style={styles.expandedSection}>
-                  <ThemedText type="body" style={styles.expandedTitle}>
+                  <ThemedText type='body' style={styles.expandedTitle}>
                     All Videos
                   </ThemedText>
                   <View style={styles.videoGrid}>
-                    {homeContent.featured_videos.map((video) => (
+                    {homeContent.featured_videos.map(video => (
                       <TouchableOpacity
                         key={`expanded-${video.id}`}
                         style={styles.expandedVideoCard}
@@ -636,25 +652,38 @@ export default function HomeScreen() {
                       >
                         <View style={styles.expandedVideoThumbnail}>
                           <Image
-                            source={{ uri: video.thumbnail_url || 'https://via.placeholder.com/200x120/4A90E2/FFFFFF?text=Video' }}
+                            source={{
+                              uri:
+                                video.thumbnail_url ||
+                                'https://via.placeholder.com/200x120/4A90E2/FFFFFF?text=Video',
+                            }}
                             style={styles.expandedThumbnailImage}
-                            resizeMode="cover"
+                            resizeMode='cover'
                           />
                           <View style={styles.videoOverlay}>
-                            <IconSymbol size={20} name="play.fill" color={Colors.dark.background} />
+                            <IconSymbol size={20} name='play.fill' color={Colors.dark.background} />
                           </View>
                         </View>
                         <View style={styles.expandedVideoInfo}>
-                          <ThemedText type="caption" style={styles.expandedVideoTitle} numberOfLines={2}>
+                          <ThemedText
+                            type='caption'
+                            style={styles.expandedVideoTitle}
+                            numberOfLines={2}
+                          >
                             {video.title}
                           </ThemedText>
                           <View style={styles.expandedVideoMeta}>
-                            <View style={[styles.stressLevel, { backgroundColor: video.category.color }]}>
-                              <ThemedText type="caption" style={styles.stressLevelText}>
+                            <View
+                              style={[
+                                styles.stressLevel,
+                                { backgroundColor: video.category.color },
+                              ]}
+                            >
+                              <ThemedText type='caption' style={styles.stressLevelText}>
                                 {video.stress_level}
                               </ThemedText>
                             </View>
-                            <ThemedText type="caption" style={styles.moodBoost}>
+                            <ThemedText type='caption' style={styles.moodBoost}>
                               😊 +{video.mood_boost}
                             </ThemedText>
                           </View>
@@ -668,8 +697,8 @@ export default function HomeScreen() {
                     style={styles.loadMoreButton}
                     onPress={() => loadMoreContent('videos')}
                   >
-                    <IconSymbol size={16} name="plus.circle" color={Colors.dark.primary} />
-                    <ThemedText type="caption" style={styles.loadMoreButtonText}>
+                    <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
+                    <ThemedText type='caption' style={styles.loadMoreButtonText}>
                       Load More Videos
                     </ThemedText>
                   </TouchableOpacity>
@@ -677,8 +706,8 @@ export default function HomeScreen() {
               )}
             </>
           ) : (
-            <ModernCard variant="elevated" style={styles.placeholderCard}>
-              <ThemedText type="body" style={styles.placeholderText}>
+            <ModernCard variant='elevated' style={styles.placeholderCard}>
+              <ThemedText type='body' style={styles.placeholderText}>
                 {error ? 'Failed to load videos' : 'Loading videos...'}
               </ThemedText>
               {error && (
@@ -694,50 +723,56 @@ export default function HomeScreen() {
         {homeContent?.featured_meal_plans && homeContent.featured_meal_plans.length > 0 ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText type="heading" style={styles.sectionTitle}>
+              <ThemedText type='heading' style={styles.sectionTitle}>
                 Nourishing Meals 🍽️
               </ThemedText>
               <TouchableOpacity
                 style={styles.viewAllButton}
                 onPress={() => setShowAllMealPlans(!showAllMealPlans)}
               >
-                <ThemedText type="caption" style={styles.viewAllButtonText}>
+                <ThemedText type='caption' style={styles.viewAllButtonText}>
                   {showAllMealPlans ? 'Show Less' : 'View All'}
                 </ThemedText>
                 <IconSymbol
                   size={16}
-                  name={showAllMealPlans ? "chevron.up" : "chevron.right"}
+                  name={showAllMealPlans ? 'chevron.up' : 'chevron.right'}
                   color={Colors.dark.primary}
                 />
               </TouchableOpacity>
             </View>
-            {homeContent.featured_meal_plans.map((meal) => (
-              <ModernCard key={meal.id} variant="elevated" style={styles.mealCard}>
+            {homeContent.featured_meal_plans.map(meal => (
+              <ModernCard key={meal.id} variant='elevated' style={styles.mealCard}>
                 <View style={styles.mealContent}>
                   <View style={styles.mealImageContainer}>
                     <Image
-                      source={{ uri: meal.image_url || 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal' }}
+                      source={{
+                        uri:
+                          meal.image_url ||
+                          'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal',
+                      }}
                       style={styles.mealImage}
-                      resizeMode="cover"
-                      defaultSource={{ uri: 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal' }}
+                      resizeMode='cover'
+                      defaultSource={{
+                        uri: 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal',
+                      }}
                     />
                   </View>
                   <View style={styles.mealInfo}>
-                    <ThemedText type="body" style={styles.mealTitle}>
+                    <ThemedText type='body' style={styles.mealTitle}>
                       {meal.title}
                     </ThemedText>
-                    <ThemedText type="caption" style={styles.mealDescription} numberOfLines={2}>
+                    <ThemedText type='caption' style={styles.mealDescription} numberOfLines={2}>
                       {meal.description}
                     </ThemedText>
                     <View style={styles.mealMeta}>
                       <View style={[styles.difficulty, { backgroundColor: meal.category.color }]}>
-                        <ThemedText type="caption" style={styles.difficultyText}>
+                        <ThemedText type='caption' style={styles.difficultyText}>
                           {meal.difficulty}
                         </ThemedText>
                       </View>
                       <View style={styles.prepTime}>
-                        <IconSymbol size={16} name="clock" color={Colors.dark.muted} />
-                        <ThemedText type="caption" style={styles.prepTimeText}>
+                        <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                        <ThemedText type='caption' style={styles.prepTimeText}>
                           {meal.prep_time}m
                         </ThemedText>
                       </View>
@@ -750,36 +785,50 @@ export default function HomeScreen() {
             {/* Expanded meal plans view */}
             {showAllMealPlans && (
               <View style={styles.expandedSection}>
-                <ThemedText type="body" style={styles.expandedTitle}>
+                <ThemedText type='body' style={styles.expandedTitle}>
                   All Meal Plans
                 </ThemedText>
                 <View style={styles.mealGrid}>
-                  {homeContent.featured_meal_plans.map((meal) => (
-                    <ModernCard key={`expanded-${meal.id}`} variant="elevated" style={styles.expandedMealCard}>
+                  {homeContent.featured_meal_plans.map(meal => (
+                    <ModernCard
+                      key={`expanded-${meal.id}`}
+                      variant='elevated'
+                      style={styles.expandedMealCard}
+                    >
                       <View style={styles.expandedMealContent}>
                         <View style={styles.expandedMealImageContainer}>
                           <Image
-                            source={{ uri: meal.image_url || 'https://via.placeholder.com/120x80/4CAF50/FFFFFF?text=Meal' }}
+                            source={{
+                              uri:
+                                meal.image_url ||
+                                'https://via.placeholder.com/120x80/4CAF50/FFFFFF?text=Meal',
+                            }}
                             style={styles.expandedMealImage}
-                            resizeMode="cover"
+                            resizeMode='cover'
                           />
                         </View>
                         <View style={styles.expandedMealInfo}>
-                          <ThemedText type="body" style={styles.expandedMealTitle}>
+                          <ThemedText type='body' style={styles.expandedMealTitle}>
                             {meal.title}
                           </ThemedText>
-                          <ThemedText type="caption" style={styles.expandedMealDescription} numberOfLines={2}>
+                          <ThemedText
+                            type='caption'
+                            style={styles.expandedMealDescription}
+                            numberOfLines={2}
+                          >
                             {meal.description}
                           </ThemedText>
                           <View style={styles.expandedMealMeta}>
-                            <View style={[styles.difficulty, { backgroundColor: meal.category.color }]}>
-                              <ThemedText type="caption" style={styles.difficultyText}>
+                            <View
+                              style={[styles.difficulty, { backgroundColor: meal.category.color }]}
+                            >
+                              <ThemedText type='caption' style={styles.difficultyText}>
                                 {meal.difficulty}
                               </ThemedText>
                             </View>
                             <View style={styles.prepTime}>
-                              <IconSymbol size={16} name="clock" color={Colors.dark.muted} />
-                              <ThemedText type="caption" style={styles.prepTimeText}>
+                              <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                              <ThemedText type='caption' style={styles.prepTimeText}>
                                 {meal.prep_time}m
                               </ThemedText>
                             </View>
@@ -795,8 +844,8 @@ export default function HomeScreen() {
                   style={styles.loadMoreButton}
                   onPress={() => loadMoreContent('mealPlans')}
                 >
-                  <IconSymbol size={16} name="plus.circle" color={Colors.dark.primary} />
-                  <ThemedText type="caption" style={styles.loadMoreButtonText}>
+                  <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
+                  <ThemedText type='caption' style={styles.loadMoreButtonText}>
                     Load More Meal Plans
                   </ThemedText>
                 </TouchableOpacity>
@@ -805,11 +854,11 @@ export default function HomeScreen() {
           </View>
         ) : (
           <View style={styles.section}>
-            <ThemedText type="heading" style={styles.sectionTitle}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
               Nourishing Meals 🍽️
             </ThemedText>
-            <ModernCard variant="elevated" style={styles.placeholderCard}>
-              <ThemedText type="body" style={styles.placeholderText}>
+            <ModernCard variant='elevated' style={styles.placeholderCard}>
+              <ThemedText type='body' style={styles.placeholderText}>
                 Loading meal plans...
               </ThemedText>
             </ModernCard>
@@ -820,50 +869,56 @@ export default function HomeScreen() {
         {homeContent?.featured_articles && homeContent.featured_articles.length > 0 ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <ThemedText type="heading" style={styles.sectionTitle}>
+              <ThemedText type='heading' style={styles.sectionTitle}>
                 Wellness Tips 📚
               </ThemedText>
               <TouchableOpacity
                 style={styles.viewAllButton}
                 onPress={() => setShowAllArticles(!showAllArticles)}
               >
-                <ThemedText type="caption" style={styles.viewAllButtonText}>
+                <ThemedText type='caption' style={styles.viewAllButtonText}>
                   {showAllArticles ? 'Show Less' : 'View All'}
                 </ThemedText>
                 <IconSymbol
                   size={16}
-                  name={showAllArticles ? "chevron.up" : "chevron.right"}
+                  name={showAllArticles ? 'chevron.up' : 'chevron.right'}
                   color={Colors.dark.primary}
                 />
               </TouchableOpacity>
             </View>
-            {homeContent.featured_articles.map((article) => (
-              <ModernCard key={article.id} variant="elevated" style={styles.articleCard}>
+            {homeContent.featured_articles.map(article => (
+              <ModernCard key={article.id} variant='elevated' style={styles.articleCard}>
                 <View style={styles.articleContent}>
                   <View style={styles.articleImageContainer}>
                     <Image
-                      source={{ uri: article.image_url || 'https://via.placeholder.com/80x80/FF9800/FFFFFF?text=Article' }}
+                      source={{
+                        uri:
+                          article.image_url ||
+                          'https://via.placeholder.com/80x80/FF9800/FFFFFF?text=Article',
+                      }}
                       style={styles.articleImage}
-                      resizeMode="cover"
-                      defaultSource={{ uri: 'https://via.placeholder.com/80x120/FF9800/FFFFFF?text=Article' }}
+                      resizeMode='cover'
+                      defaultSource={{
+                        uri: 'https://via.placeholder.com/80x120/FF9800/FFFFFF?text=Article',
+                      }}
                     />
                   </View>
                   <View style={styles.articleInfo}>
-                    <ThemedText type="body" style={styles.articleTitle}>
+                    <ThemedText type='body' style={styles.articleTitle}>
                       {article.title}
                     </ThemedText>
-                    <ThemedText type="caption" style={styles.articleExcerpt} numberOfLines={3}>
+                    <ThemedText type='caption' style={styles.articleExcerpt} numberOfLines={3}>
                       {article.excerpt}
                     </ThemedText>
                     <View style={styles.articleMeta}>
                       <View style={[styles.category, { backgroundColor: article.category.color }]}>
-                        <ThemedText type="caption" style={styles.categoryText}>
+                        <ThemedText type='caption' style={styles.categoryText}>
                           {article.category.name}
                         </ThemedText>
                       </View>
                       <View style={styles.readTime}>
-                        <IconSymbol size={16} name="clock" color={Colors.dark.muted} />
-                        <ThemedText type="caption" style={styles.readTimeText}>
+                        <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                        <ThemedText type='caption' style={styles.readTimeText}>
                           {article.read_time}m read
                         </ThemedText>
                       </View>
@@ -876,36 +931,50 @@ export default function HomeScreen() {
             {/* Expanded articles view */}
             {showAllArticles && (
               <View style={styles.expandedSection}>
-                <ThemedText type="body" style={styles.expandedTitle}>
+                <ThemedText type='body' style={styles.expandedTitle}>
                   All Articles
                 </ThemedText>
                 <View style={styles.articleGrid}>
-                  {homeContent.featured_articles.map((article) => (
-                    <ModernCard key={`expanded-${article.id}`} variant="elevated" style={styles.expandedArticleCard}>
+                  {homeContent.featured_articles.map(article => (
+                    <ModernCard
+                      key={`expanded-${article.id}`}
+                      variant='elevated'
+                      style={styles.expandedArticleCard}
+                    >
                       <View style={styles.expandedArticleContent}>
                         <View style={styles.expandedArticleImageContainer}>
                           <Image
-                            source={{ uri: article.image_url || 'https://via.placeholder.com/120x80/FF9800/FFFFFF?text=Article' }}
+                            source={{
+                              uri:
+                                article.image_url ||
+                                'https://via.placeholder.com/120x80/FF9800/FFFFFF?text=Article',
+                            }}
                             style={styles.expandedArticleImage}
-                            resizeMode="cover"
+                            resizeMode='cover'
                           />
                         </View>
                         <View style={styles.expandedArticleInfo}>
-                          <ThemedText type="body" style={styles.expandedArticleTitle}>
+                          <ThemedText type='body' style={styles.expandedArticleTitle}>
                             {article.title}
                           </ThemedText>
-                          <ThemedText type="caption" style={styles.expandedArticleExcerpt} numberOfLines={2}>
+                          <ThemedText
+                            type='caption'
+                            style={styles.expandedArticleExcerpt}
+                            numberOfLines={2}
+                          >
                             {article.excerpt}
                           </ThemedText>
                           <View style={styles.expandedArticleMeta}>
-                            <View style={[styles.category, { backgroundColor: article.category.color }]}>
-                              <ThemedText type="caption" style={styles.categoryText}>
+                            <View
+                              style={[styles.category, { backgroundColor: article.category.color }]}
+                            >
+                              <ThemedText type='caption' style={styles.categoryText}>
                                 {article.category.name}
                               </ThemedText>
                             </View>
                             <View style={styles.readTime}>
-                              <IconSymbol size={16} name="clock" color={Colors.dark.muted} />
-                              <ThemedText type="caption" style={styles.readTimeText}>
+                              <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                              <ThemedText type='caption' style={styles.readTimeText}>
                                 {article.read_time}m read
                               </ThemedText>
                             </View>
@@ -921,8 +990,8 @@ export default function HomeScreen() {
                   style={styles.loadMoreButton}
                   onPress={() => loadMoreContent('articles')}
                 >
-                  <IconSymbol size={16} name="plus.circle" color={Colors.dark.primary} />
-                  <ThemedText type="caption" style={styles.loadMoreButtonText}>
+                  <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
+                  <ThemedText type='caption' style={styles.loadMoreButtonText}>
                     Load More Articles
                   </ThemedText>
                 </TouchableOpacity>
@@ -931,11 +1000,11 @@ export default function HomeScreen() {
           </View>
         ) : (
           <View style={styles.section}>
-            <ThemedText type="heading" style={styles.sectionTitle}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
               Wellness Tips 📚
             </ThemedText>
-            <ModernCard variant="elevated" style={styles.placeholderCard}>
-              <ThemedText type="body" style={styles.placeholderText}>
+            <ModernCard variant='elevated' style={styles.placeholderCard}>
+              <ThemedText type='body' style={styles.placeholderText}>
                 Loading articles...
               </ThemedText>
             </ModernCard>
@@ -945,7 +1014,7 @@ export default function HomeScreen() {
         {/* User Documents */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <ThemedText type="heading" style={styles.sectionTitle}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
               Your Documents 📄
             </ThemedText>
             <View style={styles.documentActions}>
@@ -955,49 +1024,43 @@ export default function HomeScreen() {
                   Alert.alert('Search', 'Document search feature coming soon!');
                 }}
               >
-                <IconSymbol size={16} name="magnifyingglass" color={Colors.dark.primary} />
+                <IconSymbol size={16} name='magnifyingglass' color={Colors.dark.primary} />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={fetchUserDocuments}
-              >
-                <IconSymbol size={16} name="arrow.clockwise" color={Colors.dark.primary} />
+              <TouchableOpacity style={styles.viewAllButton} onPress={fetchUserDocuments}>
+                <IconSymbol size={16} name='arrow.clockwise' color={Colors.dark.primary} />
               </TouchableOpacity>
             </View>
           </View>
 
           {documentsLoading ? (
-            <ModernCard variant="elevated" style={styles.placeholderCard}>
-              <ActivityIndicator size="small" color={Colors.dark.primary} />
-              <ThemedText type="body" style={styles.placeholderText}>
+            <ModernCard variant='elevated' style={styles.placeholderCard}>
+              <ActivityIndicator size='small' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.placeholderText}>
                 Loading documents...
               </ThemedText>
             </ModernCard>
           ) : userDocuments.length > 0 ? (
-            userDocuments.slice(0, 3).map((doc) => (
-              <ModernCard key={doc.id} variant="elevated" style={styles.documentCard}>
-                <TouchableOpacity
-                  style={styles.documentContent}
-                  onPress={() => openDocument(doc)}
-                >
+            userDocuments.slice(0, 3).map(doc => (
+              <ModernCard key={doc.id} variant='elevated' style={styles.documentCard}>
+                <TouchableOpacity style={styles.documentContent} onPress={() => openDocument(doc)}>
                   <View style={styles.documentIcon}>
-                    <IconSymbol size={24} name="doc.text" color={Colors.dark.primary} />
+                    <IconSymbol size={24} name='doc.text' color={Colors.dark.primary} />
                   </View>
                   <View style={styles.documentInfo}>
-                    <ThemedText type="body" style={styles.documentTitle}>
+                    <ThemedText type='body' style={styles.documentTitle}>
                       {doc.filename}
                     </ThemedText>
-                    <ThemedText type="caption" style={styles.documentMeta}>
+                    <ThemedText type='caption' style={styles.documentMeta}>
                       {doc.category} • {Math.round(doc.fileSize / 1024)}KB
                     </ThemedText>
                   </View>
-                  <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
+                  <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
                 </TouchableOpacity>
               </ModernCard>
             ))
           ) : (
-            <ModernCard variant="elevated" style={styles.placeholderCard}>
-              <ThemedText type="body" style={styles.placeholderText}>
+            <ModernCard variant='elevated' style={styles.placeholderCard}>
+              <ThemedText type='body' style={styles.placeholderText}>
                 No documents uploaded yet
               </ThemedText>
             </ModernCard>
@@ -1006,28 +1069,36 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
             Quick Actions
           </ThemedText>
           <View style={styles.quickActions}>
             <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name="mic.fill" color={Colors.dark.primary} />
-              <ThemedText type="caption" style={styles.actionText}>Voice Check-in</ThemedText>
+              <IconSymbol size={32} name='mic.fill' color={Colors.dark.primary} />
+              <ThemedText type='caption' style={styles.actionText}>
+                Voice Check-in
+              </ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name="brain.head.profile" color={Colors.dark.warning} />
-              <ThemedText type="caption" style={styles.actionText}>Meditation</ThemedText>
+              <IconSymbol size={32} name='brain.head.profile' color={Colors.dark.warning} />
+              <ThemedText type='caption' style={styles.actionText}>
+                Meditation
+              </ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name="figure.walk" color={Colors.dark.success} />
-              <ThemedText type="caption" style={styles.actionText}>Exercise</ThemedText>
+              <IconSymbol size={32} name='figure.walk' color={Colors.dark.success} />
+              <ThemedText type='caption' style={styles.actionText}>
+                Exercise
+              </ThemedText>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name="bed.double.fill" color={Colors.dark.secondary} />
-              <ThemedText type="caption" style={styles.actionText}>Sleep</ThemedText>
+              <IconSymbol size={32} name='bed.double.fill' color={Colors.dark.secondary} />
+              <ThemedText type='caption' style={styles.actionText}>
+                Sleep
+              </ThemedText>
             </TouchableOpacity>
           </View>
         </View>
@@ -1038,34 +1109,37 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <ThemedText type="heading" style={styles.modalTitle}>
+              <ThemedText type='heading' style={styles.modalTitle}>
                 {selectedDocument.filename}
               </ThemedText>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={closeDocumentViewer}
-              >
-                <IconSymbol size={24} name="xmark" color={Colors.dark.text} />
+              <TouchableOpacity style={styles.closeButton} onPress={closeDocumentViewer}>
+                <IconSymbol size={24} name='xmark' color={Colors.dark.text} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
               <View style={styles.documentDetails}>
                 <View style={styles.detailRow}>
-                  <ThemedText type="caption" style={styles.detailLabel}>Category:</ThemedText>
-                  <ThemedText type="body" style={styles.detailValue}>
+                  <ThemedText type='caption' style={styles.detailLabel}>
+                    Category:
+                  </ThemedText>
+                  <ThemedText type='body' style={styles.detailValue}>
                     {selectedDocument.category}
                   </ThemedText>
                 </View>
                 <View style={styles.detailRow}>
-                  <ThemedText type="caption" style={styles.detailLabel}>Size:</ThemedText>
-                  <ThemedText type="body" style={styles.detailValue}>
+                  <ThemedText type='caption' style={styles.detailLabel}>
+                    Size:
+                  </ThemedText>
+                  <ThemedText type='body' style={styles.detailValue}>
                     {Math.round(selectedDocument.fileSize / 1024)}KB
                   </ThemedText>
                 </View>
                 <View style={styles.detailRow}>
-                  <ThemedText type="caption" style={styles.detailLabel}>Uploaded:</ThemedText>
-                  <ThemedText type="body" style={styles.detailValue}>
+                  <ThemedText type='caption' style={styles.detailLabel}>
+                    Uploaded:
+                  </ThemedText>
+                  <ThemedText type='body' style={styles.detailValue}>
                     {new Date(selectedDocument.createdAt).toLocaleDateString()}
                   </ThemedText>
                 </View>
@@ -1073,10 +1147,10 @@ export default function HomeScreen() {
 
               {selectedDocument.content && (
                 <View style={styles.contentSection}>
-                  <ThemedText type="heading" style={styles.contentTitle}>
+                  <ThemedText type='heading' style={styles.contentTitle}>
                     Content
                   </ThemedText>
-                  <ThemedText type="body" style={styles.contentText}>
+                  <ThemedText type='body' style={styles.contentText}>
                     {selectedDocument.content}
                   </ThemedText>
                 </View>
@@ -1084,10 +1158,10 @@ export default function HomeScreen() {
 
               {selectedDocument.summary && (
                 <View style={styles.contentSection}>
-                  <ThemedText type="heading" style={styles.contentTitle}>
+                  <ThemedText type='heading' style={styles.contentTitle}>
                     Summary
                   </ThemedText>
-                  <ThemedText type="body" style={styles.summaryText}>
+                  <ThemedText type='body' style={styles.summaryText}>
                     {selectedDocument.summary}
                   </ThemedText>
                 </View>
@@ -1095,10 +1169,7 @@ export default function HomeScreen() {
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={closeDocumentViewer}
-              >
+              <TouchableOpacity style={styles.modalButton} onPress={closeDocumentViewer}>
                 <ThemedText style={styles.modalButtonText}>Close</ThemedText>
               </TouchableOpacity>
             </View>
@@ -1111,56 +1182,55 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <ThemedText type="heading" style={styles.modalTitle}>
+              <ThemedText type='heading' style={styles.modalTitle}>
                 Update Your Progress
               </ThemedText>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={closeProgressModal}
-              >
-                <IconSymbol size={24} name="xmark" color={Colors.dark.muted} />
+              <TouchableOpacity style={styles.closeButton} onPress={closeProgressModal}>
+                <IconSymbol size={24} name='xmark' color={Colors.dark.muted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {/* Mood Rating */}
               <View style={styles.formSection}>
-                <ThemedText type="body" style={styles.formLabel}>
+                <ThemedText type='body' style={styles.formLabel}>
                   How's your mood today? {getMoodEmoji(progressForm.mood_rating)}
                 </ThemedText>
                 <View style={styles.ratingContainer}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rating) => (
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(rating => (
                     <TouchableOpacity
                       key={rating}
                       style={[
                         styles.ratingButton,
-                        progressForm.mood_rating === rating && styles.ratingButtonActive
+                        progressForm.mood_rating === rating && styles.ratingButtonActive,
                       ]}
                       onPress={() => handleProgressChange('mood_rating', rating)}
                     >
-                      <ThemedText style={[
-                        styles.ratingText,
-                        progressForm.mood_rating === rating && styles.ratingTextActive
-                      ]}>
+                      <ThemedText
+                        style={[
+                          styles.ratingText,
+                          progressForm.mood_rating === rating && styles.ratingTextActive,
+                        ]}
+                      >
                         {rating}
                       </ThemedText>
                     </TouchableOpacity>
                   ))}
                 </View>
-                <ThemedText type="caption" style={styles.ratingHint}>
+                <ThemedText type='caption' style={styles.ratingHint}>
                   1 = Very Poor, 10 = Excellent
                 </ThemedText>
               </View>
 
               {/* Stress Level */}
               <View style={styles.formSection}>
-                <ThemedText type="body" style={styles.formLabel}>
+                <ThemedText type='body' style={styles.formLabel}>
                   Stress Level: {progressForm.stress_level}/10
                 </ThemedText>
                 <View style={styles.sliderContainer}>
                   <TouchableOpacity
                     style={styles.sliderTrack}
-                    onPress={(e) => {
+                    onPress={e => {
                       // Simple slider implementation
                       const { locationX } = e.nativeEvent;
                       const percentage = Math.max(0, Math.min(1, locationX / 200));
@@ -1172,108 +1242,141 @@ export default function HomeScreen() {
                       <View
                         style={[
                           styles.sliderThumb,
-                          { left: `${(progressForm.stress_level / 10) * 100}%` }
+                          { left: `${(progressForm.stress_level / 10) * 100}%` },
                         ]}
                       />
                     </View>
                   </TouchableOpacity>
                 </View>
-                <ThemedText type="caption" style={styles.ratingHint}>
+                <ThemedText type='caption' style={styles.ratingHint}>
                   Low (1-3) • Medium (4-7) • High (8-10)
                 </ThemedText>
               </View>
 
               {/* Sleep Hours */}
               <View style={styles.formSection}>
-                <ThemedText type="body" style={styles.formLabel}>
+                <ThemedText type='body' style={styles.formLabel}>
                   How many hours did you sleep? 💤
                 </ThemedText>
                 <View style={styles.numberInputContainer}>
                   <TouchableOpacity
                     style={styles.numberButton}
-                    onPress={() => handleProgressChange('sleep_hours', Math.max(0, progressForm.sleep_hours - 0.5))}
+                    onPress={() =>
+                      handleProgressChange(
+                        'sleep_hours',
+                        Math.max(0, progressForm.sleep_hours - 0.5)
+                      )
+                    }
                   >
-                    <IconSymbol size={20} name="minus" color={Colors.dark.primary} />
+                    <IconSymbol size={20} name='minus' color={Colors.dark.primary} />
                   </TouchableOpacity>
                   <View style={styles.numberDisplay}>
-                    <ThemedText type="title" style={styles.numberValue}>
+                    <ThemedText type='title' style={styles.numberValue}>
                       {progressForm.sleep_hours}
                     </ThemedText>
-                    <ThemedText type="caption" style={styles.numberUnit}>hours</ThemedText>
+                    <ThemedText type='caption' style={styles.numberUnit}>
+                      hours
+                    </ThemedText>
                   </View>
                   <TouchableOpacity
                     style={styles.numberButton}
-                    onPress={() => handleProgressChange('sleep_hours', Math.min(24, progressForm.sleep_hours + 0.5))}
+                    onPress={() =>
+                      handleProgressChange(
+                        'sleep_hours',
+                        Math.min(24, progressForm.sleep_hours + 0.5)
+                      )
+                    }
                   >
-                    <IconSymbol size={20} name="plus" color={Colors.dark.primary} />
+                    <IconSymbol size={20} name='plus' color={Colors.dark.primary} />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Exercise Minutes */}
               <View style={styles.formSection}>
-                <ThemedText type="body" style={styles.formLabel}>
+                <ThemedText type='body' style={styles.formLabel}>
                   Exercise minutes today 🏃‍♂️
                 </ThemedText>
                 <View style={styles.numberInputContainer}>
                   <TouchableOpacity
                     style={styles.numberButton}
-                    onPress={() => handleProgressChange('exercise_minutes', Math.max(0, progressForm.exercise_minutes - 5))}
+                    onPress={() =>
+                      handleProgressChange(
+                        'exercise_minutes',
+                        Math.max(0, progressForm.exercise_minutes - 5)
+                      )
+                    }
                   >
-                    <IconSymbol size={20} name="minus" color={Colors.dark.primary} />
+                    <IconSymbol size={20} name='minus' color={Colors.dark.primary} />
                   </TouchableOpacity>
                   <View style={styles.numberDisplay}>
-                    <ThemedText type="title" style={styles.numberValue}>
+                    <ThemedText type='title' style={styles.numberValue}>
                       {progressForm.exercise_minutes}
                     </ThemedText>
-                    <ThemedText type="caption" style={styles.numberUnit}>minutes</ThemedText>
+                    <ThemedText type='caption' style={styles.numberUnit}>
+                      minutes
+                    </ThemedText>
                   </View>
                   <TouchableOpacity
                     style={styles.numberButton}
-                    onPress={() => handleProgressChange('exercise_minutes', progressForm.exercise_minutes + 5)}
+                    onPress={() =>
+                      handleProgressChange('exercise_minutes', progressForm.exercise_minutes + 5)
+                    }
                   >
-                    <IconSymbol size={20} name="plus" color={Colors.dark.primary} />
+                    <IconSymbol size={20} name='plus' color={Colors.dark.primary} />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Meditation Minutes */}
               <View style={styles.formSection}>
-                <ThemedText type="body" style={styles.formLabel}>
+                <ThemedText type='body' style={styles.formLabel}>
                   Meditation minutes today 🧘‍♀️
                 </ThemedText>
                 <View style={styles.numberInputContainer}>
                   <TouchableOpacity
                     style={styles.numberButton}
-                    onPress={() => handleProgressChange('meditation_minutes', Math.max(0, progressForm.meditation_minutes - 5))}
+                    onPress={() =>
+                      handleProgressChange(
+                        'meditation_minutes',
+                        Math.max(0, progressForm.meditation_minutes - 5)
+                      )
+                    }
                   >
-                    <IconSymbol size={20} name="minus" color={Colors.dark.primary} />
+                    <IconSymbol size={20} name='minus' color={Colors.dark.primary} />
                   </TouchableOpacity>
                   <View style={styles.numberDisplay}>
-                    <ThemedText type="title" style={styles.numberValue}>
+                    <ThemedText type='title' style={styles.numberValue}>
                       {progressForm.meditation_minutes}
                     </ThemedText>
-                    <ThemedText type="caption" style={styles.numberUnit}>minutes</ThemedText>
+                    <ThemedText type='caption' style={styles.numberUnit}>
+                      minutes
+                    </ThemedText>
                   </View>
                   <TouchableOpacity
                     style={styles.numberButton}
-                    onPress={() => handleProgressChange('meditation_minutes', progressForm.meditation_minutes + 5)}
+                    onPress={() =>
+                      handleProgressChange(
+                        'meditation_minutes',
+                        progressForm.meditation_minutes + 5
+                      )
+                    }
                   >
-                    <IconSymbol size={20} name="plus" color={Colors.dark.primary} />
+                    <IconSymbol size={20} name='plus' color={Colors.dark.primary} />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Notes */}
               <View style={styles.formSection}>
-                <ThemedText type="body" style={styles.formLabel}>
+                <ThemedText type='body' style={styles.formLabel}>
                   Any notes for today? 📝
                 </ThemedText>
                 <View style={styles.notesContainer}>
                   <ThemedText
                     style={styles.notesInput}
-                    onTextInput={(e) => handleProgressChange('notes', e.nativeEvent.text)}
-                    placeholder="How are you feeling? Any achievements or challenges?"
+                    onTextInput={e => handleProgressChange('notes', e.nativeEvent.text)}
+                    placeholder='How are you feeling? Any achievements or challenges?'
                     placeholderTextColor={Colors.dark.muted}
                     multiline
                     numberOfLines={3}
@@ -1297,7 +1400,7 @@ export default function HomeScreen() {
                 disabled={progressSubmitting}
               >
                 {progressSubmitting ? (
-                  <ActivityIndicator size="small" color={Colors.dark.background} />
+                  <ActivityIndicator size='small' color={Colors.dark.background} />
                 ) : (
                   <ThemedText style={styles.modalButtonPrimaryText}>Save Progress</ThemedText>
                 )}
@@ -1312,22 +1415,22 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <ThemedText type="heading" style={styles.modalTitle}>
+              <ThemedText type='heading' style={styles.modalTitle}>
                 Your Progress History
               </ThemedText>
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowProgressHistory(false)}
               >
-                <IconSymbol size={24} name="xmark" color={Colors.dark.muted} />
+                <IconSymbol size={24} name='xmark' color={Colors.dark.muted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {historyLoading ? (
                 <View style={styles.historyLoading}>
-                  <ActivityIndicator size="large" color={Colors.dark.primary} />
-                  <ThemedText type="body" style={styles.historyLoadingText}>
+                  <ActivityIndicator size='large' color={Colors.dark.primary} />
+                  <ThemedText type='body' style={styles.historyLoadingText}>
                     Loading your progress history...
                   </ThemedText>
                 </View>
@@ -1335,42 +1438,50 @@ export default function HomeScreen() {
                 progressHistory.map((entry, index) => (
                   <View key={index} style={styles.historyEntry}>
                     <View style={styles.historyDate}>
-                      <ThemedText type="body" style={styles.historyDateText}>
+                      <ThemedText type='body' style={styles.historyDateText}>
                         {new Date(entry.date).toLocaleDateString('en-US', {
                           weekday: 'short',
                           month: 'short',
-                          day: 'numeric'
+                          day: 'numeric',
                         })}
                       </ThemedText>
                     </View>
                     <View style={styles.historyMetrics}>
                       <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name="heart.fill" color={Colors.dark.success} />
-                        <ThemedText type="caption" style={styles.historyMetricText}>
+                        <IconSymbol size={16} name='heart.fill' color={Colors.dark.success} />
+                        <ThemedText type='caption' style={styles.historyMetricText}>
                           Mood: {entry.mood_rating}/10
                         </ThemedText>
                       </View>
                       <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name="brain.head.profile" color={getStressLevelColor(entry.stress_level)} />
-                        <ThemedText type="caption" style={styles.historyMetricText}>
+                        <IconSymbol
+                          size={16}
+                          name='brain.head.profile'
+                          color={getStressLevelColor(entry.stress_level)}
+                        />
+                        <ThemedText type='caption' style={styles.historyMetricText}>
                           Stress: {entry.stress_level}/10
                         </ThemedText>
                       </View>
                       <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name="bed.double.fill" color={Colors.dark.primary} />
-                        <ThemedText type="caption" style={styles.historyMetricText}>
+                        <IconSymbol size={16} name='bed.double.fill' color={Colors.dark.primary} />
+                        <ThemedText type='caption' style={styles.historyMetricText}>
                           Sleep: {entry.sleep_hours}h
                         </ThemedText>
                       </View>
                       <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name="figure.walk" color={Colors.dark.warning} />
-                        <ThemedText type="caption" style={styles.historyMetricText}>
+                        <IconSymbol size={16} name='figure.walk' color={Colors.dark.warning} />
+                        <ThemedText type='caption' style={styles.historyMetricText}>
                           Exercise: {entry.exercise_minutes}m
                         </ThemedText>
                       </View>
                       <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name="brain.head.profile" color={Colors.dark.secondary} />
-                        <ThemedText type="caption" style={styles.historyMetricText}>
+                        <IconSymbol
+                          size={16}
+                          name='brain.head.profile'
+                          color={Colors.dark.secondary}
+                        />
+                        <ThemedText type='caption' style={styles.historyMetricText}>
                           Meditation: {entry.meditation_minutes}m
                         </ThemedText>
                       </View>
@@ -1379,11 +1490,15 @@ export default function HomeScreen() {
                 ))
               ) : (
                 <View style={styles.historyEmpty}>
-                  <IconSymbol size={48} name="chart.line.uptrend.xyaxis" color={Colors.dark.muted} />
-                  <ThemedText type="body" style={styles.historyEmptyText}>
+                  <IconSymbol
+                    size={48}
+                    name='chart.line.uptrend.xyaxis'
+                    color={Colors.dark.muted}
+                  />
+                  <ThemedText type='body' style={styles.historyEmptyText}>
                     No progress history yet
                   </ThemedText>
-                  <ThemedText type="caption" style={styles.historyEmptySubtext}>
+                  <ThemedText type='caption' style={styles.historyEmptySubtext}>
                     Start tracking your daily wellness to see your progress over time
                   </ThemedText>
                 </View>
