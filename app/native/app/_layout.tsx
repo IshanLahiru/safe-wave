@@ -1,18 +1,18 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import { useEffect } from 'react';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { UserProvider, useUser } from '@/contexts/UserContext';
 import { ThemedText } from '@/components/ThemedText';
+import { Colors } from '@/constants/Colors';
 
 function AppContent() {
   const { user, isLoading, shouldRedirectToLogin, validateTokens } = useUser();
-  const colorScheme = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
   const [loaded] = useFonts({
@@ -87,22 +87,24 @@ function AppContent() {
   if (isLoading) {
     // Show loading screen while checking authentication
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' }}>
-        <ThemedText type="title" style={{ fontSize: 24, marginBottom: 20 }}>
-          🌊 Safe Wave
-        </ThemedText>
-        <ThemedText style={{ fontSize: 16, opacity: 0.7 }}>
-          Loading...
-        </ThemedText>
-        <ThemedText style={{ fontSize: 12, opacity: 0.5, marginTop: 20 }}>
-          Checking authentication...
-        </ThemedText>
-      </View>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.dark.background }}>
+          <ThemedText type="title" style={{ fontSize: 24, marginBottom: 20 }}>
+            🌊 Safe Wave
+          </ThemedText>
+          <ThemedText style={{ fontSize: 16, opacity: 0.7 }}>
+            Loading...
+          </ThemedText>
+          <ThemedText style={{ fontSize: 12, opacity: 0.5, marginTop: 20 }}>
+            Checking authentication...
+          </ThemedText>
+        </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DarkTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         {/* Always include all screens to prevent navigation errors */}
         <Stack.Screen name="(tabs)" />
@@ -111,15 +113,17 @@ function AppContent() {
         <Stack.Screen name="auth/signup" />
         <Stack.Screen name="+not-found" />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </ThemeProvider>
   );
 }
 
 export default function RootLayout() {
   return (
-    <UserProvider>
-      <AppContent />
-    </UserProvider>
+    <SafeAreaProvider>
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
+    </SafeAreaProvider>
   );
 }

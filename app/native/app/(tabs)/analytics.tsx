@@ -1,15 +1,57 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, View, RefreshControl, ActivityIndicator } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUser } from '@/contexts/UserContext';
+import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
+import { apiService } from '@/services/api';
+
+interface AnalyticsData {
+  period: string;
+  metrics: {
+    total_checkins: number;
+    period_checkins: number;
+    completion_rate: number;
+    period_completion_rate: number;
+    avg_duration: number;
+    checkin_trend: string;
+    completion_trend: string;
+  };
+  risk_distribution: Record<string, number>;
+  daily_pattern: Record<string, number>;
+  weekly_trend: Array<{
+    week: string;
+    checkins: number;
+    completed: number;
+  }>;
+  recent_activity: Array<{
+    id: string;
+    type: string;
+    status: string;
+    risk_level?: string;
+    duration?: number;
+    timestamp: string;
+    time_ago: string;
+  }>;
+  insights: Array<{
+    type: string;
+    title: string;
+    value: string;
+    description: string;
+  }>;
+}
 
 export default function AnalyticsScreen() {
   const { user } = useUser();
   const insets = useSafeAreaInsets();
   const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const periods = [
     { id: 'week', label: 'Week', active: selectedPeriod === 'week' },
@@ -18,41 +60,115 @@ export default function AnalyticsScreen() {
     { id: 'year', label: 'Year', active: selectedPeriod === 'year' },
   ];
 
-  const mockData = {
-    week: { checkins: 7, completion: 85, trend: '+12%' },
-    month: { checkins: 28, completion: 92, trend: '+8%' },
-    quarter: { checkins: 84, completion: 89, trend: '+15%' },
-    year: { checkins: 336, completion: 91, trend: '+22%' },
+  const fetchAnalytics = async (period: string = selectedPeriod) => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Fetching analytics for period:', period);
+
+      // Use real analytics endpoint with period parameter
+      const response = await apiService.request<AnalyticsData>(`/api/v1/analytics/dashboard?period=${period}`);
+      console.log('Analytics data:', response);
+      setAnalyticsData(response);
+    } catch (err) {
+      console.error('Failed to fetch analytics:', err);
+      setError(`Failed to load analytics data: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const currentData = mockData[selectedPeriod as keyof typeof mockData];
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchAnalytics();
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  useEffect(() => {
+    fetchAnalytics(selectedPeriod);
+  }, [selectedPeriod]);
+
+  const getRiskLevelColor = (riskLevel: string) => {
+    switch (riskLevel?.toLowerCase()) {
+      case 'critical': return '#ff4444';
+      case 'high': return '#ff8800';
+      case 'medium': return '#ffaa00';
+      case 'low': return '#4CAF50';
+      default: return Colors.dark.text;
+    }
+  };
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'positive': return 'star.fill';
+      case 'warning': return 'exclamationmark.triangle.fill';
+      case 'alert': return 'exclamationmark.octagon.fill';
+      case 'success': return 'checkmark.circle.fill';
+      default: return 'info.circle.fill';
+    }
+  };
+
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case 'positive': return '#FFD700';
+      case 'warning': return Colors.dark.warning;
+      case 'alert': return '#ff4444';
+      case 'success': return Colors.dark.success;
+      default: return Colors.dark.primary;
+    }
+  };
+
+  if (loading && !analyticsData) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={Colors.dark.primary} />
+        <ThemedText style={styles.loadingText}>Loading analytics...</ThemedText>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <ThemedView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: Math.max(insets.top + 20, 60), // Safe area + minimum padding
+            paddingTop: insets.top + 20, // Add safe area top padding
           }
         ]}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       >
         {/* Header */}
         <ThemedView style={styles.header}>
-          <ThemedView style={styles.headerLeft}>
-            <IconSymbol size={40} name="chart.line.uptrend.xyaxis" color="#007AFF" />
-            <ThemedView style={styles.titleContainer}>
-              <ThemedText type="title" style={styles.title}>Analytics</ThemedText>
-              <ThemedText style={styles.subtitle}>
-                {user?.name ? `${user.name}'s Progress` : 'Your Progress'}
-              </ThemedText>
-            </ThemedView>
+          <ThemedView style={styles.logoContainer}>
+            <IconSymbol size={60} name="chart.line.uptrend.xyaxis" color={Colors.dark.primary} />
           </ThemedView>
+          <ThemedText type="title" style={styles.title}>
+            📊 Analytics Dashboard
+          </ThemedText>
+          <ThemedText type="body" style={styles.subtitle}>
+            {user?.name ? `${user.name}'s Progress` : 'Your Progress'}
+          </ThemedText>
         </ThemedView>
 
+        {error && (
+          <ModernCard variant="outlined" style={styles.errorCard}>
+            <ThemedText style={styles.errorText}>{error}</ThemedText>
+            <TouchableOpacity style={styles.retryButton} onPress={() => fetchAnalytics()}>
+              <ThemedText style={styles.retryButtonText}>Retry</ThemedText>
+            </TouchableOpacity>
+          </ModernCard>
+        )}
+
         {/* Period Selector */}
-        <ThemedView style={styles.periodSelector}>
+        <ModernCard variant="outlined" style={styles.periodSelector}>
           {periods.map((period) => (
             <TouchableOpacity
               key={period.id}
@@ -70,305 +186,420 @@ export default function AnalyticsScreen() {
               </ThemedText>
             </TouchableOpacity>
           ))}
-        </ThemedView>
+        </ModernCard>
 
-        {/* Key Metrics */}
-        <ThemedView style={styles.metricsContainer}>
-          <ThemedView style={styles.metricCard}>
-            <ThemedView style={styles.metricHeader}>
-              <IconSymbol size={24} name="mic.fill" color="#34C759" />
-              <ThemedText style={styles.metricLabel}>Total Check-ins</ThemedText>
-            </ThemedView>
-            <ThemedText type="title" style={styles.metricValue}>{currentData.checkins}</ThemedText>
-            <ThemedView style={styles.metricTrend}>
-              <IconSymbol size={16} name="arrow.up.right" color="#34C759" />
-              <ThemedText style={styles.trendText}>{currentData.trend}</ThemedText>
-            </ThemedView>
-          </ThemedView>
+        {analyticsData && (
+          <>
+            {/* Key Metrics */}
+            <View style={styles.metricsContainer}>
+              <ModernCard variant="elevated" style={styles.metricCard}>
+                <View style={styles.metricHeader}>
+                  <IconSymbol size={20} name="mic.fill" color={Colors.dark.success} />
+                  <ThemedText type="caption" style={styles.metricLabel}>Total Check-ins</ThemedText>
+                </View>
+                <ThemedText type="title" style={styles.metricValue}>
+                  {analyticsData.metrics.total_checkins}
+                </ThemedText>
+                <View style={styles.metricTrend}>
+                  <IconSymbol
+                    size={14}
+                    name={analyticsData.metrics.checkin_trend.startsWith('+') ? "arrow.up.right" : "arrow.down.right"}
+                    color={analyticsData.metrics.checkin_trend.startsWith('+') ? Colors.dark.success : Colors.dark.danger}
+                  />
+                  <ThemedText type="caption" style={styles.trendText}>
+                    {analyticsData.metrics.checkin_trend}
+                  </ThemedText>
+                </View>
+              </ModernCard>
 
-          <ThemedView style={styles.metricCard}>
-            <ThemedView style={styles.metricHeader}>
-              <IconSymbol size={24} name="checkmark.circle.fill" color="#007AFF" />
-              <ThemedText style={styles.metricLabel}>Completion Rate</ThemedText>
-            </ThemedView>
-            <ThemedText type="title" style={styles.metricValue}>{currentData.completion}%</ThemedText>
-            <ThemedView style={styles.metricTrend}>
-              <IconSymbol size={16} name="arrow.up.right" color="#007AFF" />
-              <ThemedText style={styles.trendText}>+5%</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
+              <ModernCard variant="elevated" style={styles.metricCard}>
+                <View style={styles.metricHeader}>
+                  <IconSymbol size={20} name="checkmark.circle.fill" color={Colors.dark.primary} />
+                  <ThemedText type="caption" style={styles.metricLabel}>Completion Rate</ThemedText>
+                </View>
+                <ThemedText type="title" style={styles.metricValue}>
+                  {analyticsData.metrics.completion_rate}%
+                </ThemedText>
+                <View style={styles.metricTrend}>
+                  <IconSymbol
+                    size={14}
+                    name={analyticsData.metrics.completion_trend.startsWith('+') ? "arrow.up.right" : "arrow.down.right"}
+                    color={analyticsData.metrics.completion_trend.startsWith('+') ? Colors.dark.success : Colors.dark.danger}
+                  />
+                  <ThemedText type="caption" style={styles.trendText}>
+                    {analyticsData.metrics.completion_trend}
+                  </ThemedText>
+                </View>
+              </ModernCard>
 
-        {/* Chart Section */}
-        <ThemedView style={styles.chartSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Check-in Trends</ThemedText>
-          <ThemedView style={styles.chartContainer}>
-            <ThemedView style={styles.chartPlaceholder}>
-              <IconSymbol size={60} name="chart.bar.fill" color="#007AFF" />
-              <ThemedText style={styles.chartPlaceholderText}>Chart Visualization</ThemedText>
-              <ThemedText style={styles.chartPlaceholderSubtext}>Interactive charts coming soon</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
+              <ModernCard variant="elevated" style={styles.metricCard}>
+                <View style={styles.metricHeader}>
+                  <IconSymbol size={20} name="clock.fill" color={Colors.dark.warning} />
+                  <ThemedText type="caption" style={styles.metricLabel}>Avg Duration</ThemedText>
+                </View>
+                <ThemedText type="title" style={styles.metricValue}>
+                  {analyticsData.metrics.avg_duration}s
+                </ThemedText>
+                <ThemedText type="caption" style={styles.metricSubtext}>
+                  Per check-in
+                </ThemedText>
+              </ModernCard>
+            </View>
 
-        {/* Performance Insights */}
-        <ThemedView style={styles.insightsSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Performance Insights</ThemedText>
+            {/* Risk Distribution */}
+            {Object.keys(analyticsData.risk_distribution).length > 0 && (
+              <View style={styles.section}>
+                <ThemedText type="heading" style={styles.sectionTitle}>Risk Level Distribution</ThemedText>
+                <ModernCard variant="elevated" style={styles.riskContainer}>
+                  {Object.entries(analyticsData.risk_distribution).map(([risk, count]) => (
+                    <View key={risk} style={styles.riskItem}>
+                      <View style={styles.riskInfo}>
+                        <View style={[styles.riskDot, { backgroundColor: getRiskLevelColor(risk) }]} />
+                        <ThemedText type="body" style={styles.riskLabel}>
+                          {risk.charAt(0).toUpperCase() + risk.slice(1)} Risk
+                        </ThemedText>
+                      </View>
+                      <ThemedText type="heading" style={styles.riskCount}>{count}</ThemedText>
+                    </View>
+                  ))}
+                </ModernCard>
+              </View>
+            )}
 
-          <ThemedView style={styles.insightCard}>
-            <ThemedView style={styles.insightHeader}>
-              <IconSymbol size={20} name="star.fill" color="#FFD700" />
-              <ThemedText style={styles.insightTitle}>Best Performance Day</ThemedText>
-            </ThemedView>
-            <ThemedText style={styles.insightValue}>Wednesday</ThemedText>
-            <ThemedText style={styles.insightDescription}>95% completion rate on mid-week check-ins</ThemedText>
-          </ThemedView>
+            {/* Daily Pattern */}
+            <View style={styles.section}>
+              <ThemedText type="heading" style={styles.sectionTitle}>Daily Check-in Pattern</ThemedText>
+              <ModernCard variant="elevated" style={styles.dailyContainer}>
+                {(() => {
+                  // Calculate the maximum count for proper scaling
+                  const maxCount = Math.max(...Object.values(analyticsData.daily_pattern));
+                  const minBarHeight = 4; // Minimum bar height in pixels
 
-          <ThemedView style={styles.insightCard}>
-            <ThemedView style={styles.insightHeader}>
-              <IconSymbol size={20} name="exclamationmark.triangle.fill" color="#FF9500" />
-              <ThemedText style={styles.insightTitle}>Areas for Improvement</ThemedText>
-            </ThemedView>
-            <ThemedText style={styles.insightValue}>Weekend Check-ins</ThemedText>
-            <ThemedText style={styles.insightDescription}>Lower completion rates on Saturdays and Sundays</ThemedText>
-          </ThemedView>
+                  // Account for all text elements and spacing
+                  const containerHeight = 120; // Total container height
+                  const sectionTitleHeight = 24; // Section title "Daily Check-in Pattern"
+                  const dayLabelHeight = 16; // Day labels (Mon, Tue, etc.)
+                  const countLabelHeight = 14; // Count labels (0, 1, 2, etc.)
+                  const padding = 16; // Container padding
+                  const margins = 16; // Margins between elements
 
-          <ThemedView style={styles.insightCard}>
-            <ThemedView style={styles.insightHeader}>
-              <IconSymbol size={20} name="target" color="#34C759" />
-              <ThemedText style={styles.insightTitle}>Goal Achievement</ThemedText>
-            </ThemedView>
-            <ThemedText style={styles.insightValue}>On Track</ThemedText>
-            <ThemedText style={styles.insightDescription}>Exceeding monthly targets by 15%</ThemedText>
-          </ThemedView>
-        </ThemedView>
+                  // Calculate available height for bars
+                  const availableHeight = containerHeight - sectionTitleHeight - dayLabelHeight - countLabelHeight - padding - margins;
+                  const maxBarHeight = Math.max(availableHeight, 40); // Ensure minimum 40px max height
 
-        {/* Recent Activity */}
-        <ThemedView style={styles.activitySection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Recent Activity</ThemedText>
+                  return Object.entries(analyticsData.daily_pattern).map(([day, count]) => {
+                    // Calculate scaled height with strict container constraints
+                    const scaledHeight = maxCount > 0
+                      ? Math.min(Math.max((count / maxCount) * maxBarHeight, minBarHeight), availableHeight)
+                      : minBarHeight;
 
-          <ThemedView style={styles.activityItem}>
-            <ThemedView style={styles.activityIcon}>
-              <IconSymbol size={16} name="mic.fill" color="#34C759" />
-            </ThemedView>
-            <ThemedView style={styles.activityContent}>
-              <ThemedText style={styles.activityText}>Daily check-in completed</ThemedText>
-              <ThemedText style={styles.activityTime}>2 hours ago</ThemedText>
-            </ThemedView>
-          </ThemedView>
+                    return (
+                      <View key={day} style={styles.dailyItem}>
+                        <ThemedText type="caption" style={styles.dailyLabel}>{day.slice(0, 3)}</ThemedText>
+                        <View style={[styles.dailyBar, { height: scaledHeight }]} />
+                        <ThemedText type="caption" style={styles.dailyCount}>{count}</ThemedText>
+                      </View>
+                    );
+                  });
+                })()}
+              </ModernCard>
+            </View>
 
-          <ThemedView style={styles.activityItem}>
-            <ThemedView style={styles.activityIcon}>
-              <IconSymbol size={16} name="checkmark.circle.fill" color="#007AFF" />
-            </ThemedView>
-            <ThemedView style={styles.activityContent}>
-              <ThemedText style={styles.activityText}>Weekly report generated</ThemedText>
-              <ThemedText style={styles.activityTime}>1 day ago</ThemedText>
-            </ThemedView>
-          </ThemedView>
+            {/* Performance Insights */}
+            {analyticsData.insights.length > 0 && (
+              <View style={styles.section}>
+                <ThemedText type="heading" style={styles.sectionTitle}>Performance Insights</ThemedText>
+                {analyticsData.insights.map((insight, index) => (
+                  <ModernCard key={index} variant="elevated" style={styles.insightCard}>
+                    <View style={styles.insightHeader}>
+                      <IconSymbol
+                        size={20}
+                        name={getInsightIcon(insight.type)}
+                        color={getInsightColor(insight.type)}
+                      />
+                      <ThemedText type="subtitle" style={styles.insightTitle}>{insight.title}</ThemedText>
+                    </View>
+                    <ThemedText type="heading" style={styles.insightValue}>{insight.value}</ThemedText>
+                    <ThemedText type="caption" style={styles.insightDescription}>{insight.description}</ThemedText>
+                  </ModernCard>
+                ))}
+              </View>
+            )}
 
-          <ThemedView style={styles.activityItem}>
-            <ThemedView style={styles.activityIcon}>
-              <IconSymbol size={16} name="chart.line.uptrend.xyaxis" color="#FF9500" />
-            </ThemedView>
-            <ThemedView style={styles.activityContent}>
-              <ThemedText style={styles.activityText}>Trend analysis updated</ThemedText>
-              <ThemedText style={styles.activityTime}>3 days ago</ThemedText>
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
+            {/* Recent Activity */}
+            {analyticsData.recent_activity.length > 0 && (
+              <View style={styles.section}>
+                <ThemedText type="heading" style={styles.sectionTitle}>Recent Activity</ThemedText>
+                {analyticsData.recent_activity.map((activity) => (
+                  <ModernCard key={activity.id} variant="outlined" style={styles.activityItem}>
+                    <View style={styles.activityIcon}>
+                      <IconSymbol
+                        size={16}
+                        name="mic.fill"
+                        color={activity.status === 'completed' ? Colors.dark.success : Colors.dark.warning}
+                      />
+                    </View>
+                    <View style={styles.activityContent}>
+                      <ThemedText type="body" style={styles.activityText}>
+                        {activity.type} {activity.status}
+                        {activity.risk_level && (
+                          <ThemedText style={[styles.activityRisk, { color: getRiskLevelColor(activity.risk_level) }]}>
+                            {' '}({activity.risk_level})
+                          </ThemedText>
+                        )}
+                      </ThemedText>
+                      <ThemedText type="caption" style={styles.activityTime}>{activity.time_ago}</ThemedText>
+                    </View>
+                  </ModernCard>
+                ))}
+              </View>
+            )}
+          </>
+        )}
       </ScrollView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.dark.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.dark.background,
+  },
+  loadingText: {
+    marginTop: 16,
+    color: Colors.dark.text,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 120, // Increased to account for tab bar
+    paddingBottom: 120,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 25,
+    marginBottom: 32,
     paddingTop: 20,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  titleContainer: {
-    gap: 4,
+  logoContainer: {
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+    lineHeight: 34, // Add lineHeight to prevent text cutoff
+    includeFontPadding: false, // Remove extra padding
   },
   subtitle: {
-    fontSize: 14,
-    opacity: 0.7,
-    color: '#007AFF',
+    fontSize: 16,
+    opacity: 0.8,
+    textAlign: 'center',
+    lineHeight: 20, // Add lineHeight to prevent text cutoff
+    includeFontPadding: false, // Remove extra padding
   },
-
+  errorCard: {
+    marginBottom: 20,
+    padding: 16,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: Colors.dark.danger,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: Colors.dark.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: BorderRadius.md,
+  },
+  retryButtonText: {
+    color: Colors.dark.background,
+    fontWeight: '600',
+  },
   periodSelector: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
-    borderRadius: 12,
+    marginBottom: 24,
     padding: 4,
-    marginBottom: 25,
   },
   periodButton: {
     flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 8,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
   },
   periodButtonActive: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.dark.primary,
   },
   periodButtonText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#666',
+    fontWeight: '600',
+    color: Colors.dark.text,
   },
   periodButtonTextActive: {
-    color: 'white',
+    color: Colors.dark.background,
   },
   metricsContainer: {
     flexDirection: 'row',
-    gap: 15,
-    marginBottom: 25,
+    gap: 8,
+    marginBottom: 24,
+    justifyContent: 'space-between',
   },
   metricCard: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderRadius: 15,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    padding: 12,
+    minWidth: 0, // Allow flex items to shrink below their content size
+    alignItems: 'center',
   },
   metricHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   metricLabel: {
-    fontSize: 14,
-    opacity: 0.7,
-    fontWeight: '500',
+    marginLeft: 8,
+    opacity: 0.8,
+    flex: 1,
+    flexShrink: 1,
+    fontSize: 12,
   },
   metricValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
+    flexShrink: 1,
+    textAlign: 'center',
+  },
+  metricSubtext: {
+    opacity: 0.6,
+    textAlign: 'center',
+    fontSize: 12,
   },
   metricTrend: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    marginTop: 4,
   },
   trendText: {
-    fontSize: 12,
+    marginLeft: 4,
     fontWeight: '600',
-    color: '#34C759',
+    fontSize: 12,
   },
-  chartSection: {
-    marginBottom: 25,
+  section: {
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
-    color: '#007AFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
-  chartContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
-    padding: 30,
+  riskContainer: {
+    padding: 16,
+  },
+  riskItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  riskInfo: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  chartPlaceholder: {
-    alignItems: 'center',
-    gap: 10,
+  riskDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
   },
-  chartPlaceholderText: {
+  riskLabel: {
     fontSize: 16,
-    fontWeight: '600',
-    opacity: 0.7,
   },
-  chartPlaceholderSubtext: {
-    fontSize: 14,
-    opacity: 0.5,
+  riskCount: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  insightsSection: {
-    marginBottom: 25,
+  dailyContainer: {
+    padding: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    height: 120,
+    overflow: 'hidden', // Prevent bars from overflowing
+  },
+  dailyItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  dailyLabel: {
+    marginBottom: 8,
+    opacity: 0.8,
+  },
+  dailyBar: {
+    width: 20,
+    backgroundColor: Colors.dark.primary,
+    borderRadius: 2,
+    marginBottom: 8,
+    maxHeight: 50, // Reduced constraint to account for all text elements
+  },
+  dailyCount: {
+    fontSize: 12,
+    opacity: 0.8,
   },
   insightCard: {
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    marginBottom: 12,
+    padding: 16,
   },
   insightHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   insightTitle: {
+    marginLeft: 8,
     fontSize: 16,
     fontWeight: '600',
   },
   insightValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   insightDescription: {
-    fontSize: 14,
-    opacity: 0.7,
+    opacity: 0.8,
     lineHeight: 20,
-  },
-  activitySection: {
-    marginBottom: 25,
   },
   activityItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    padding: 16,
+    marginBottom: 8,
   },
   activityIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginRight: 12,
   },
   activityContent: {
     flex: 1,
   },
   activityText: {
     fontSize: 16,
-    fontWeight: '500',
     marginBottom: 4,
   },
+  activityRisk: {
+    fontWeight: '600',
+  },
   activityTime: {
-    fontSize: 14,
     opacity: 0.6,
+    fontSize: 14,
   },
 });

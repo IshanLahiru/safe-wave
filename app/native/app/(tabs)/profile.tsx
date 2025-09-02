@@ -1,18 +1,17 @@
 import React from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
+import OnboardingAnalysisTest from '@/components/OnboardingAnalysisTest';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const theme = Colors[colorScheme ?? 'light'];
   const { user, logout } = useUser();
   const insets = useSafeAreaInsets();
 
@@ -42,213 +41,211 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: Math.max(insets.top + 20, 60), // Safe area + minimum padding
+            paddingTop: insets.top + 20, // Add safe area top padding
           }
         ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <ThemedView style={styles.profileHeader}>
-          <ThemedView style={styles.avatarContainer}>
-            <IconSymbol size={60} name="person.fill" color="white" />
+        <ThemedView style={styles.header}>
+          <ThemedView style={styles.logoContainer}>
+            <IconSymbol size={60} name="person.fill" color={Colors.dark.primary} />
           </ThemedView>
-          <ThemedView style={styles.profileInfo}>
-            <ThemedText type="title" style={styles.profileName}>{user?.name || 'User'}</ThemedText>
-            <ThemedText style={styles.profileEmail}>{user?.email || 'user@example.com'}</ThemedText>
-            <ThemedText style={styles.profileRole}>{user?.role === 'healthcare_provider' ? 'Healthcare Provider' : 'User'}</ThemedText>
-          </ThemedView>
+          <ThemedText type="title" style={styles.title}>
+            👤 Profile
+          </ThemedText>
+          <ThemedText type="body" style={styles.subtitle}>
+            {user?.name || 'User'} • {user?.role === 'healthcare_provider' ? 'Healthcare Provider' : 'User'}
+          </ThemedText>
         </ThemedView>
 
         {/* User Status */}
-        <ThemedView style={styles.userStatusCard}>
-          <ThemedText type="subtitle" style={styles.userStatusTitle}>
+        <ModernCard variant="elevated" style={styles.userStatusCard}>
+          <ThemedText type="heading" style={styles.userStatusTitle}>
             {user?.isOnboardingComplete ? '✅ Onboarding Complete' : '⏳ Onboarding Pending'}
           </ThemedText>
-          <ThemedText style={styles.userStatusSubtitle}>
+          <ThemedText type="body" style={styles.userStatusSubtitle}>
             {user?.isOnboardingComplete
               ? 'You\'re all set up and ready to use the app!'
               : 'Complete the onboarding questionnaire to get started'
             }
           </ThemedText>
-        </ThemedView>
+        </ModernCard>
 
         {/* Emergency Contact Info */}
         {user?.emergencyContact && (
-          <ThemedView style={styles.emergencyContactCard}>
-            <ThemedText type="subtitle" style={styles.emergencyContactTitle}>
+          <ModernCard variant="elevated" style={styles.emergencyContactCard}>
+            <ThemedText type="heading" style={styles.emergencyContactTitle}>
               🚨 Emergency Contact
             </ThemedText>
-            <ThemedView style={styles.contactInfo}>
-              <ThemedText style={styles.contactLabel}>Name:</ThemedText>
-              <ThemedText style={styles.contactValue}>{user.emergencyContact.name}</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.contactInfo}>
-              <ThemedText style={styles.contactLabel}>Email:</ThemedText>
-              <ThemedText style={styles.contactValue}>{user.emergencyContact.email}</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.contactInfo}>
-              <ThemedText style={styles.contactLabel}>Relationship:</ThemedText>
-              <ThemedText style={styles.contactValue}>{user.emergencyContact.relationship}</ThemedText>
-            </ThemedView>
-          </ThemedView>
+            <View style={styles.contactInfo}>
+              <ThemedText type="body" style={styles.contactLabel}>Name:</ThemedText>
+              <ThemedText type="body" style={styles.contactValue}>{user.emergencyContact.name}</ThemedText>
+            </View>
+            <View style={styles.contactInfo}>
+              <ThemedText type="body" style={styles.contactLabel}>Email:</ThemedText>
+              <ThemedText type="body" style={styles.contactValue}>{user.emergencyContact.email}</ThemedText>
+            </View>
+            <View style={styles.contactInfo}>
+              <ThemedText type="body" style={styles.contactLabel}>Relationship:</ThemedText>
+              <ThemedText type="body" style={styles.contactValue}>{user.emergencyContact.relationship}</ThemedText>
+            </View>
+          </ModernCard>
         )}
 
         {/* Care Person Info */}
         {user?.carePersonEmail && (
-          <ThemedView style={styles.carePersonCard}>
-            <ThemedText type="subtitle" style={styles.carePersonTitle}>
+          <ModernCard variant="elevated" style={styles.carePersonCard}>
+            <ThemedText type="heading" style={styles.carePersonTitle}>
               👥 Care Person
             </ThemedText>
-            <ThemedText style={styles.carePersonEmail}>{user.carePersonEmail}</ThemedText>
-            <ThemedText style={styles.carePersonSubtitle}>
+            <ThemedText type="body" style={styles.carePersonEmail}>{user.carePersonEmail}</ThemedText>
+            <ThemedText type="caption" style={styles.carePersonSubtitle}>
               This person will be notified of your check-ins and any concerns
             </ThemedText>
-          </ThemedView>
+          </ModernCard>
         )}
 
         {/* User Preferences */}
         {user?.preferences && (
-          <ThemedView style={styles.preferencesCard}>
-            <ThemedText type="subtitle" style={styles.preferencesTitle}>
+          <ModernCard variant="elevated" style={styles.preferencesCard}>
+            <ThemedText type="heading" style={styles.preferencesTitle}>
               ⚙️ Preferences
             </ThemedText>
-            <ThemedView style={styles.preferenceItem}>
-              <ThemedText style={styles.preferenceLabel}>Check-in Frequency:</ThemedText>
-              <ThemedText style={styles.preferenceValue}>{user.preferences.checkinFrequency}</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.preferenceItem}>
-              <ThemedText style={styles.preferenceLabel}>Dark Mode:</ThemedText>
-              <ThemedText style={styles.preferenceValue}>{user.preferences.darkMode ? 'Enabled' : 'Disabled'}</ThemedText>
-            </ThemedView>
-            <ThemedView style={styles.preferenceItem}>
-              <ThemedText style={styles.preferenceLabel}>Language:</ThemedText>
-              <ThemedText style={styles.preferenceValue}>{user.preferences.language.toUpperCase()}</ThemedText>
-            </ThemedView>
-          </ThemedView>
+            <View style={styles.preferenceItem}>
+              <ThemedText type="body" style={styles.preferenceLabel}>Check-in Frequency:</ThemedText>
+              <ThemedText type="body" style={styles.preferenceValue}>{user.preferences.checkinFrequency}</ThemedText>
+            </View>
+            <View style={styles.preferenceItem}>
+              <ThemedText type="body" style={styles.preferenceLabel}>Dark Mode:</ThemedText>
+              <ThemedText type="body" style={styles.preferenceValue}>{user.preferences.darkMode ? 'Enabled' : 'Disabled'}</ThemedText>
+            </View>
+            <View style={styles.preferenceItem}>
+              <ThemedText type="body" style={styles.preferenceLabel}>Language:</ThemedText>
+              <ThemedText type="body" style={styles.preferenceValue}>{user.preferences.language.toUpperCase()}</ThemedText>
+            </View>
+          </ModernCard>
         )}
 
         {/* Account Section */}
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Account</ThemedText>
+        <ModernCard variant="elevated" style={styles.section}>
+          <ThemedText type="heading" style={styles.sectionTitle}>Account</ThemedText>
 
           <TouchableOpacity style={styles.settingRow} onPress={handleOnboardingQuestionnaire}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="doc.text.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Onboarding Questionnaire</ThemedText>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.right" color="#999" />
+            <View style={styles.settingLeft}>
+              <IconSymbol size={20} name="doc.text.fill" color={Colors.dark.primary} />
+              <ThemedText type="body" style={styles.settingLabel}>Onboarding Questionnaire</ThemedText>
+            </View>
+            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="lock.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Privacy & Security</ThemedText>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.right" color="#999" />
+            <View style={styles.settingLeft}>
+              <IconSymbol size={20} name="lock.fill" color={Colors.dark.primary} />
+              <ThemedText type="body" style={styles.settingLabel}>Privacy & Security</ThemedText>
+            </View>
+            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
           </TouchableOpacity>
-        </ThemedView>
+        </ModernCard>
 
         {/* Support Section */}
-        <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Support</ThemedText>
+        <ModernCard variant="elevated" style={styles.section}>
+          <ThemedText type="heading" style={styles.sectionTitle}>Support</ThemedText>
 
           <TouchableOpacity style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="questionmark.circle.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Help & FAQ</ThemedText>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.right" color="#999" />
+            <View style={styles.settingLeft}>
+              <IconSymbol size={20} name="questionmark.circle.fill" color={Colors.dark.primary} />
+              <ThemedText type="body" style={styles.settingLabel}>Help & FAQ</ThemedText>
+            </View>
+            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="envelope.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>Send Feedback</ThemedText>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.right" color="#999" />
+            <View style={styles.settingLeft}>
+              <IconSymbol size={20} name="envelope.fill" color={Colors.dark.primary} />
+              <ThemedText type="body" style={styles.settingLabel}>Send Feedback</ThemedText>
+            </View>
+            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
-            <ThemedView style={styles.settingLeft}>
-              <IconSymbol size={20} name="info.circle.fill" color="#007AFF" />
-              <ThemedText style={styles.settingLabel}>About</ThemedText>
-            </ThemedView>
-            <IconSymbol size={16} name="chevron.right" color="#999" />
+            <View style={styles.settingLeft}>
+              <IconSymbol size={20} name="info.circle.fill" color={Colors.dark.primary} />
+              <ThemedText type="body" style={styles.settingLabel}>About</ThemedText>
+            </View>
+            <IconSymbol size={16} name="chevron.right" color={Colors.dark.muted} />
           </TouchableOpacity>
-        </ThemedView>
+        </ModernCard>
+
+        {/* Onboarding Analysis Test Section */}
+        {user?.isOnboardingComplete && user?.carePersonEmail && (
+          <ModernCard variant="elevated" style={styles.section}>
+            <ThemedText type="heading" style={styles.sectionTitle}>🧪 Testing & Development</ThemedText>
+            <OnboardingAnalysisTest />
+          </ModernCard>
+        )}
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <IconSymbol size={20} name="rectangle.portrait.and.arrow.right" color="#FF3B30" />
-          <ThemedText style={styles.logoutText}>Log Out</ThemedText>
+          <IconSymbol size={20} name="rectangle.portrait.and.arrow.right" color={Colors.dark.danger} />
+          <ThemedText type="body" style={styles.logoutText}>Log Out</ThemedText>
         </TouchableOpacity>
       </ScrollView>
-    </ThemedView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.dark.background,
   },
   scrollContent: {
     padding: 20,
     paddingBottom: 120, // Increased to account for tab bar
   },
-  profileHeader: {
-    flexDirection: 'row',
+  header: {
     alignItems: 'center',
-    marginBottom: 30,
-    padding: 20,
-    backgroundColor: 'rgba(0, 122, 255, 0.05)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.1)',
+    marginBottom: 32,
+    paddingTop: 20,
   },
-  avatarContainer: {
+  logoContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#007AFF',
+    backgroundColor: 'rgba(14, 165, 233, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 20,
+    marginBottom: 20,
   },
-  profileInfo: {
-    flex: 1,
-    gap: 4,
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+    lineHeight: 34, // Add lineHeight to prevent text cutoff
+    includeFontPadding: false, // Remove extra padding
   },
-  profileName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  profileEmail: {
+  subtitle: {
     fontSize: 16,
+    textAlign: 'center',
     opacity: 0.7,
-  },
-  profileRole: {
-    fontSize: 14,
-    opacity: 0.6,
-    fontStyle: 'italic',
+    lineHeight: 20, // Add lineHeight to prevent text cutoff
+    includeFontPadding: false, // Remove extra padding
   },
   userStatusCard: {
-    backgroundColor: 'rgba(52, 199, 89, 0.05)',
-    borderRadius: 15,
-    padding: 20,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(52, 199, 89, 0.1)',
   },
   userStatusTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#34C759',
+    color: Colors.dark.success,
   },
   userStatusSubtitle: {
     fontSize: 14,
@@ -256,18 +253,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   emergencyContactCard: {
-    backgroundColor: 'rgba(255, 149, 0, 0.05)',
-    borderRadius: 15,
-    padding: 20,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 149, 0, 0.1)',
   },
   emergencyContactTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 15,
-    color: '#FF9500',
+    color: Colors.dark.warning,
   },
   contactInfo: {
     flexDirection: 'row',
@@ -285,18 +277,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   carePersonCard: {
-    backgroundColor: 'rgba(88, 86, 214, 0.05)',
-    borderRadius: 15,
-    padding: 20,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(88, 86, 214, 0.1)',
   },
   carePersonTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#5856D6',
+    color: Colors.dark.secondary,
   },
   carePersonEmail: {
     fontSize: 16,
@@ -309,18 +296,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   preferencesCard: {
-    backgroundColor: 'rgba(0, 122, 255, 0.05)',
-    borderRadius: 20,
-    padding: 20,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 122, 255, 0.1)',
   },
   preferencesTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 15,
-    color: '#007AFF',
+    color: Colors.dark.primary,
   },
   preferenceItem: {
     flexDirection: 'row',
@@ -339,17 +321,12 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-    borderRadius: 15,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 15,
-    color: '#007AFF',
+    color: Colors.dark.text,
   },
   settingRow: {
     flexDirection: 'row',
@@ -357,7 +334,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+    borderBottomColor: Colors.dark.border,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -373,15 +350,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: 'rgba(255, 59, 48, 0.1)',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     paddingVertical: 16,
-    borderRadius: 15,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 59, 48, 0.2)',
+    borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FF3B30',
+    color: Colors.dark.danger,
   },
 });
