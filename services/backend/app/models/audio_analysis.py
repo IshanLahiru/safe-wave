@@ -33,7 +33,7 @@ class AudioAnalysis(Base):
     analyzed_at = Column(DateTime(timezone=True))
     
     # Relationships
-    user = relationship("User", back_populates="audio_analyses")
+    # user = relationship("User", back_populates="audio_analyses")
     
     def to_dict(self):
         return {

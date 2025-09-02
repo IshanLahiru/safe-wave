@@ -36,7 +36,10 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    audio_analyses = relationship("AudioAnalysis", back_populates="user")
+    audios = relationship("Audio", back_populates="user")
+    documents = relationship("Document", back_populates="user")
+    favorites = relationship("UserFavorite", back_populates="user")
+    progress = relationship("UserProgress", back_populates="user")
     
     def to_dict(self):
         return {
