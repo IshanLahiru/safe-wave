@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Safe Wave API Environment Setup Script
-# This script helps you create a .env.local file with secure values.
+# This script helps you create a .env file with secure values.
 
 echo "🚀 Safe Wave API Environment Setup"
 echo "========================================"
 
-# Check if .env.local already exists
-if [ -f ".env.local" ]; then
-    read -p "⚠️  .env.local already exists. Overwrite? (y/N): " -n 1 -r
+# Check if .env already exists
+if [ -f ".env" ]; then
+    read -p "⚠️  .env already exists. Overwrite? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         echo "❌ Setup cancelled"
@@ -20,8 +20,8 @@ fi
 SECRET_KEY=$(openssl rand -base64 32)
 DB_PASSWORD=$(openssl rand -base64 16)
 
-# Create .env.local file
-cat > .env.local << EOF
+# Create .env file
+cat > .env << EOF
 # Database Configuration
 POSTGRES_DB=safewave
 POSTGRES_USER=safewave_user
@@ -68,7 +68,7 @@ ENABLE_LLM_ANALYSIS=true
 EOF
 
 if [ $? -eq 0 ]; then
-    echo "✅ Created .env.local file with secure values"
+    echo "✅ Created .env file with secure values"
     echo "⚠️  IMPORTANT: Update the following values:"
     echo "   - OPENAI_API_KEY: Set your actual OpenAI API key"
     echo "   - SMTP_USERNAME: Set your email for notifications"
@@ -77,10 +77,10 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "🎉 Environment setup complete!"
     echo "📝 Next steps:"
-    echo "   1. Review and update .env.local with your actual values"
+    echo "   1. Review and update .env with your actual values"
     echo "   2. Run: docker-compose up -d"
     echo "   3. Check logs: docker-compose logs -f api"
 else
-    echo "❌ Failed to create .env.local"
+    echo "❌ Failed to create .env"
     exit 1
 fi

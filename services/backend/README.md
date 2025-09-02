@@ -32,7 +32,7 @@ python scripts/setup_env.py
 ```
 
 **Option B: Manual setup**
-Create `.env.local` file with the following variables:
+Create `.env` file with the following variables:
 ```env
 # Database Configuration
 POSTGRES_DB=safewave
@@ -200,7 +200,7 @@ services/backend/
 
 ## Security Considerations
 
-1. **Never commit `.env.local` files** - They contain sensitive information
+1. **Never commit `.env` files** - They contain sensitive information
 2. **Use strong passwords** for database and JWT secrets
 3. **Rotate secrets regularly** in production
 4. **Restrict CORS origins** in production environments

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Environment Setup Script for Safe Wave API
-This script helps you create a .env.local file with secure values.
+This script helps you create a .env file with secure values.
 """
 
 import os
@@ -13,7 +13,7 @@ def generate_secret_key():
     return secrets.token_urlsafe(32)
 
 def create_env_file():
-    """Create .env.local file with secure values"""
+    """Create .env file with secure values"""
     env_content = f"""# Database Configuration
 POSTGRES_DB=safewave
 POSTGRES_USER=safewave_user
@@ -60,9 +60,9 @@ ENABLE_LLM_ANALYSIS=true
 """
     
     try:
-        with open('.env.local', 'w') as f:
+        with open('.env', 'w') as f:
             f.write(env_content)
-        print("✅ Created .env.local file with secure values")
+        print("✅ Created .env file with secure values")
         print("⚠️  IMPORTANT: Update the following values:")
         print("   - OPENAI_API_KEY: Set your actual OpenAI API key")
         print("   - SMTP_USERNAME: Set your email for notifications")
@@ -70,7 +70,7 @@ ENABLE_LLM_ANALYSIS=true
         print("   - Customize database credentials if needed")
         return True
     except Exception as e:
-        print(f"❌ Failed to create .env.local: {e}")
+        print(f"❌ Failed to create .env: {e}")
         return False
 
 def main():
@@ -78,8 +78,8 @@ def main():
     print("🚀 Safe Wave API Environment Setup")
     print("=" * 40)
     
-    if os.path.exists('.env.local'):
-        response = input("⚠️  .env.local already exists. Overwrite? (y/N): ")
+    if os.path.exists('.env'):
+        response = input("⚠️  .env already exists. Overwrite? (y/N): ")
         if response.lower() != 'y':
             print("❌ Setup cancelled")
             sys.exit(0)
@@ -87,7 +87,7 @@ def main():
     if create_env_file():
         print("\n🎉 Environment setup complete!")
         print("📝 Next steps:")
-        print("   1. Review and update .env.local with your actual values")
+        print("   1. Review and update .env with your actual values")
         print("   2. Run: docker-compose up -d")
         print("   3. Check logs: docker-compose logs -f api")
     else:
