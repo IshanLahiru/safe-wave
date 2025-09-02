@@ -94,22 +94,22 @@ function main() {
     process.exit(1);
   }
 
-  console.log(`🌐 Found network IP: ${newIP}`);
+  console.log(`Found network IP: ${newIP}`);
 
   // Update the config file
   const success = updateConfigFile(newIP);
 
   if (success) {
-    console.log('\n📱 Configuration updated successfully!');
-    console.log(`🔗 Backend URL: http://${newIP}:9000`);
-    console.log(`📚 API Docs: http://${newIP}:9000/docs`);
-    console.log(`🏥 Health Check: http://${newIP}:9000/health/`);
-    console.log('\n💡 Next steps:');
+    console.log('\nConfiguration updated successfully!');
+    console.log(`Backend URL: http://${newIP}:9000`);
+    console.log(`API Docs: http://${newIP}:9000/docs`);
+    console.log(`Health Check: http://${newIP}:9000/health/`);
+    console.log('\nNext steps:');
     console.log('1. Start your backend server: cd services/backend && python main.py');
     console.log('2. Test the connection in your app');
     console.log('3. If needed, restart your React Native development server');
   } else {
-    console.error('❌ Failed to update configuration');
+    console.error('Failed to update configuration');
     process.exit(1);
   }
 }

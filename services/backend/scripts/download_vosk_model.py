@@ -27,7 +27,7 @@ def download_vosk_model(model_name: str = "vosk-model-small-en-us-0.15"):
     }
 
     if model_name not in model_urls:
-        print(f"❌ Unknown model: {model_name}")
+        print(f"Unknown model: {model_name}")
         print(f"Available models: {', '.join(model_urls.keys())}")
         return False
 
@@ -36,9 +36,9 @@ def download_vosk_model(model_name: str = "vosk-model-small-en-us-0.15"):
     model_dir = models_dir / model_name
     zip_path = models_dir / f"{model_name}.zip"
 
-    print(f"🚀 Downloading Vosk model: {model_name}")
-    print(f"📁 Target directory: {model_dir}")
-    print(f"🌐 Download URL: {url}")
+    print(f"Downloading Vosk model: {model_name}")
+    print(f"Target directory: {model_dir}")
+    print(f"Download URL: {url}")
 
     # Create models directory
     models_dir.mkdir(exist_ok=True)
@@ -60,35 +60,35 @@ def download_vosk_model(model_name: str = "vosk-model-small-en-us-0.15"):
                     if total_size > 0:
                         percent = (downloaded / total_size) * 100
                         print(
-                            f"\r📥 Downloaded: {percent:.1f}% ({downloaded}/{total_size} bytes)",
+                            f"\rDownloaded: {percent:.1f}% ({downloaded}/{total_size} bytes)",
                             end="",
                             flush=True,
                         )
 
-        print(f"\n✅ Download completed: {zip_path}")
+        print(f"\nDownload completed: {zip_path}")
 
         # Extract the model
-        print("📦 Extracting model...")
+        print("Extracting model...")
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(models_dir)
 
-        print(f"✅ Model extracted to: {model_dir}")
+        print(f"Model extracted to: {model_dir}")
 
         # Clean up zip file
         zip_path.unlink()
-        print("🗑️  Cleaned up zip file")
+        print("Cleaned up zip file")
 
         # Verify model structure
         if model_dir.exists():
-            print(f"✅ Model ready at: {model_dir}")
-            print(f"📊 Model size: {get_directory_size(model_dir)}")
+            print(f"Model ready at: {model_dir}")
+            print(f"Model size: {get_directory_size(model_dir)}")
             return True
         else:
-            print(f"❌ Model extraction failed")
+            print(f"Model extraction failed")
             return False
 
     except Exception as e:
-        print(f"❌ Download failed: {e}")
+        print(f"Download failed: {e}")
         return False
 
 
@@ -111,7 +111,7 @@ def get_directory_size(path: Path) -> str:
 
 def list_available_models():
     """List available Vosk models"""
-    print("📚 Available Vosk Models:")
+    print("Available Vosk Models:")
     print("=" * 50)
 
     models = {
@@ -133,7 +133,7 @@ def list_available_models():
     }
 
     for model_name, info in models.items():
-        print(f"🔸 {model_name}")
+        print(f"- {model_name}")
         print(f"   Size: {info['size']}")
         print(f"   Description: {info['description']}")
         print(f"   Recommended: {info['recommended']}")
@@ -142,17 +142,17 @@ def list_available_models():
 
 def main():
     """Main function"""
-    print("🎤 Vosk Model Downloader")
+    print("Vosk Model Downloader")
     print("=" * 50)
 
     if len(sys.argv) > 1:
         model_name = sys.argv[1]
         success = download_vosk_model(model_name)
         if success:
-            print(f"\n🎉 Model '{model_name}' downloaded successfully!")
+            print(f"\nModel '{model_name}' downloaded successfully!")
             print("You can now use Vosk for offline audio transcription.")
         else:
-            print(f"\n❌ Failed to download model '{model_name}'")
+            print(f"\nFailed to download model '{model_name}'")
             sys.exit(1)
     else:
         print("Usage: python download_vosk_model.py [model_name]")

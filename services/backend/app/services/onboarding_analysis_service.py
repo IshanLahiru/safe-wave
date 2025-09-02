@@ -68,12 +68,12 @@ class OnboardingAnalysisService:
         # Log the transcription content being analyzed
         if transcription:
             logger.info("=" * 80)
-            logger.info("📝 ANALYZING AUDIO TRANSCRIPTION WITH ONBOARDING DATA")
+            logger.info("ANALYZING AUDIO TRANSCRIPTION WITH ONBOARDING DATA")
             logger.info("=" * 80)
-            logger.info(f'🎯 Transcribed text: "{transcription}"')
-            logger.info(f"📊 Text length: {len(transcription)} characters")
-            logger.info(f"🔍 Word count: {len(transcription.split()) if transcription else 0}")
-            logger.info(f"👤 User: {user_name}")
+            logger.info(f'Transcribed text: "{transcription}"')
+            logger.info(f"Text length: {len(transcription)} characters")
+            logger.info(f"Word count: {len(transcription.split()) if transcription else 0}")
+            logger.info(f"User: {user_name}")
             logger.info("=" * 80)
 
         # Create a comprehensive prompt including transcription if available

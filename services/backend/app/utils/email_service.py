@@ -86,15 +86,15 @@ class EmailService:
 
         # Log the transcription content being sent in email
         logger.info("=" * 80)
-        logger.info("📧 IMMEDIATE VOICE ALERT EMAIL")
+        logger.info("IMMEDIATE VOICE ALERT EMAIL")
         logger.info("=" * 80)
-        logger.info(f"👤 User: {user_name}")
-        logger.info(f"📧 Recipient: {to_email}")
-        logger.info(f"👥 Recipient type: {recipient_type}")
-        logger.info(f'🎯 Transcribed text: "{transcription}"')
-        logger.info(f"📊 Text length: {len(transcription)} characters")
-        logger.info(f"🔍 Word count: {len(transcription.split()) if transcription else 0}")
-        logger.info(f"🎯 Confidence: {confidence:.4f}")
+        logger.info(f"User: {user_name}")
+        logger.info(f"Recipient: {to_email}")
+        logger.info(f"Recipient type: {recipient_type}")
+        logger.info(f'Transcribed text: "{transcription}"')
+        logger.info(f"Text length: {len(transcription)} characters")
+        logger.info(f"Word count: {len(transcription.split()) if transcription else 0}")
+        logger.info(f"Confidence: {confidence:.4f}")
         logger.info("=" * 80)
 
         body = f"""
@@ -151,14 +151,14 @@ class EmailService:
         # Log the transcription content being sent in email
         if transcription:
             logger.info("=" * 80)
-            logger.info("📧 EMAIL INCLUDING AUDIO TRANSCRIPTION")
+            logger.info("EMAIL INCLUDING AUDIO TRANSCRIPTION")
             logger.info("=" * 80)
-            logger.info(f"👤 User: {user_name}")
-            logger.info(f"📧 Recipient: {to_email}")
-            logger.info(f"👥 Recipient type: {recipient_type}")
-            logger.info(f'🎯 Transcribed text: "{transcription}"')
-            logger.info(f"📊 Text length: {len(transcription)} characters")
-            logger.info(f"🔍 Word count: {len(transcription.split()) if transcription else 0}")
+            logger.info(f"User: {user_name}")
+            logger.info(f"Recipient: {to_email}")
+            logger.info(f"Recipient type: {recipient_type}")
+            logger.info(f'Transcribed text: "{transcription}"')
+            logger.info(f"Text length: {len(transcription)} characters")
+            logger.info(f"Word count: {len(transcription.split()) if transcription else 0}")
             logger.info("=" * 80)
 
         body = f"""

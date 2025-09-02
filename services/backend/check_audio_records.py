@@ -15,7 +15,7 @@ from app.models.audio import Audio
 async def check_audio_records():
     """Check existing audio records and their duration values"""
     try:
-        print("🔍 Checking existing audio records...")
+        print("Checking existing audio records...")
 
         # Create session
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -23,12 +23,12 @@ async def check_audio_records():
 
         # Get all audio records
         audios = db.query(Audio).all()
-        print(f"📊 Found {len(audios)} audio records")
+        print(f"Found {len(audios)} audio records")
 
         if audios:
-            print("\n📋 Audio records details:")
+            print("\nAudio records details:")
             for i, audio in enumerate(audios, 1):
-                print(f"\n🎵 Audio {i}:")
+                print(f"\nAudio {i}:")
                 print(f"  - ID: {audio.id}")
                 print(f"  - Filename: {audio.filename}")
                 print(f"  - Duration: {audio.duration} seconds")
@@ -39,16 +39,16 @@ async def check_audio_records():
 
                 # Check if file exists
                 if audio.file_path and os.path.exists(audio.file_path):
-                    print(f"  - File exists: ✅")
+                    print(f"  - File exists: YES")
                 else:
-                    print(f"  - File exists: ❌ (path: {audio.file_path})")
+                    print(f"  - File exists: NO (path: {audio.file_path})")
         else:
-            print("📭 No audio records found")
+            print("No audio records found")
 
         db.close()
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"Error: {e}")
         import traceback
 
         traceback.print_exc()

@@ -34,10 +34,10 @@ export default function OnboardingAnalysisTest() {
 
     setIsLoading(true);
     try {
-      console.log('🧪 Testing onboarding analysis...');
+      console.log('Testing onboarding analysis...');
       const result = await apiService.testOnboardingAnalysis();
 
-      console.log('✅ Test result:', result);
+      console.log('Test result:', result);
 
       Alert.alert(
         'Test Completed',
@@ -45,7 +45,7 @@ export default function OnboardingAnalysisTest() {
         [{ text: 'OK' }]
       );
     } catch (error) {
-      console.error('❌ Test failed:', error);
+      console.error('Test failed:', error);
 
       let errorMessage = 'Test failed';
       if (error instanceof Error) {

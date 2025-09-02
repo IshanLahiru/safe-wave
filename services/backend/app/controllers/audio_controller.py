@@ -146,12 +146,12 @@ class AudioController:
 
         except Exception as e:
             logger.error("=" * 80)
-            logger.error("❌ VOSK TRANSCRIPTION FAILED")
+            logger.error("VOSK TRANSCRIPTION FAILED")
             logger.error("=" * 80)
-            logger.error(f"🚫 Error: {e}")
-            logger.error(f"🔍 Exception type: {type(e)}")
-            logger.error(f"📋 Exception details: {str(e)}")
-            logger.error(f"📁 File path: {audio_file_path}")
+            logger.error(f"Error: {e}")
+            logger.error(f"Exception type: {type(e)}")
+            logger.error(f"Exception details: {str(e)}")
+            logger.error(f"File path: {audio_file_path}")
             logger.error("=" * 80)
             raise Exception(f"Audio transcription failed: {str(e)}")
 
@@ -160,17 +160,17 @@ class AudioController:
 
         try:
             logger.info("=" * 80)
-            logger.info("🧠 STARTING OPENROUTER LLM ANALYSIS")
+            logger.info("STARTING OPENROUTER LLM ANALYSIS")
             logger.info("=" * 80)
-            logger.info(f"📝 Transcription length: {len(transcription)} characters")
+            logger.info(f"Transcription length: {len(transcription)} characters")
             logger.info(
-                f"📊 Transcription preview: \"{transcription[:100]}{'...' if len(transcription) > 100 else ''}\""
+                f"Transcription preview: \"{transcription[:100]}{'...' if len(transcription) > 100 else ''}\""
             )
-            logger.info(f"👤 User data keys: {list(user_data.keys())}")
-            logger.info(f"👤 User name: {user_data.get('name', 'Unknown')}")
-            logger.info(f"📧 Care person email: {user_data.get('carePersonEmail', 'None')}")
+            logger.info(f"User data keys: {list(user_data.keys())}")
+            logger.info(f"User name: {user_data.get('name', 'Unknown')}")
+            logger.info(f"Care person email: {user_data.get('carePersonEmail', 'None')}")
             logger.info(
-                f"🚨 Emergency contact: {user_data.get('emergencyContact', {}).get('email', 'None')}"
+                f"Emergency contact: {user_data.get('emergencyContact', {}).get('email', 'None')}"
             )
 
             # Check if OpenRouter is available
@@ -179,19 +179,17 @@ class AudioController:
                 raise Exception("OpenRouter service not available - API key not configured")
 
             # Use OpenRouter for analysis
-            logger.info("🔄 Calling OpenRouter API for mental health analysis...")
+            logger.info("Calling OpenRouter API for mental health analysis...")
             analysis_data = openrouter_service.analyze_mental_health(transcription, user_data)
 
             logger.info("=" * 80)
-            logger.info("🎯 OPENROUTER ANALYSIS COMPLETED SUCCESSFULLY")
+            logger.info("OPENROUTER ANALYSIS COMPLETED SUCCESSFULLY")
             logger.info("=" * 80)
-            logger.info(f"📊 Risk level: {analysis_data.get('risk_level', 'unknown')}")
-            logger.info(f"⚠️ Urgency level: {analysis_data.get('urgency_level', 'unknown')}")
-            logger.info(f"📝 Summary: {analysis_data.get('summary', '')[:100]}...")
-            logger.info(f"🔍 Key concerns count: {len(analysis_data.get('key_concerns', []))}")
-            logger.info(
-                f"💡 Recommendations count: {len(analysis_data.get('recommendations', []))}"
-            )
+            logger.info(f"Risk level: {analysis_data.get('risk_level', 'unknown')}")
+            logger.info(f"Urgency level: {analysis_data.get('urgency_level', 'unknown')}")
+            logger.info(f"Summary: {analysis_data.get('summary', '')[:100]}...")
+            logger.info(f"Key concerns count: {len(analysis_data.get('key_concerns', []))}")
+            logger.info(f"Recommendations count: {len(analysis_data.get('recommendations', []))}")
             logger.info(
                 f"🚨 Crisis intervention needed: {analysis_data.get('crisis_intervention_needed', False)}"
             )

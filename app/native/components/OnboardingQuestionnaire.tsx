@@ -497,7 +497,7 @@ export default function OnboardingQuestionnaire() {
         completeOnboarding(allAnswers);
 
         Alert.alert(
-          'Welcome to Safe Wave! 🌊',
+          'Welcome to Safe Wave!',
           'Your onboarding is complete! Your emergency contact information has been saved for your safety.',
           [
             {

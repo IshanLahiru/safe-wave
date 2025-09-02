@@ -64,37 +64,37 @@ ENABLE_LLM_ANALYSIS=true
     try:
         with open(".env", "w") as f:
             f.write(env_content)
-        print("✅ Created .env file with secure values")
-        print("⚠️  IMPORTANT: Update the following values:")
+        print("Created .env file with secure values")
+        print("IMPORTANT: Update the following values:")
         print("   - OPENAI_API_KEY: Set your actual OpenAI API key")
         print("   - SMTP_USERNAME: Set your email for notifications")
         print("   - SMTP_PASSWORD: Set your email app password")
         print("   - Customize database credentials if needed")
         return True
     except Exception as e:
-        print(f"❌ Failed to create .env: {e}")
+        print(f"Failed to create .env: {e}")
         return False
 
 
 def main():
     """Main function"""
-    print("🚀 Safe Wave API Environment Setup")
+    print("Safe Wave API Environment Setup")
     print("=" * 40)
 
     if os.path.exists(".env"):
-        response = input("⚠️  .env already exists. Overwrite? (y/N): ")
+        response = input(".env already exists. Overwrite? (y/N): ")
         if response.lower() != "y":
-            print("❌ Setup cancelled")
+            print("Setup cancelled")
             sys.exit(0)
 
     if create_env_file():
-        print("\n🎉 Environment setup complete!")
-        print("📝 Next steps:")
+        print("\nEnvironment setup complete!")
+        print("Next steps:")
         print("   1. Review and update .env with your actual values")
         print("   2. Run: docker-compose up -d")
         print("   3. Check logs: docker-compose logs -f api")
     else:
-        print("\n❌ Setup failed. Please check the error above.")
+        print("\nSetup failed. Please check the error above.")
         sys.exit(1)
 
 
