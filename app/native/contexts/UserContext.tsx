@@ -232,6 +232,31 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, []);
 
+  // Ensure API service has tokens loaded when user context changes
+  useEffect(() => {
+    if (user && !isLoading) {
+      // Double-check that API service has the tokens
+      const ensureTokensLoaded = async () => {
+        try {
+          console.log('🔍 Ensuring API service has tokens loaded...');
+          const { accessToken, refreshToken } = await apiService.getStoredTokens();
+
+          if (accessToken && refreshToken) {
+            console.log('✅ Tokens confirmed in API service');
+          } else {
+            console.log('⚠️ Tokens missing in API service, attempting to reload...');
+            // Force reload tokens
+            await apiService.getStoredTokens();
+          }
+        } catch (error) {
+          console.log('❌ Error ensuring tokens loaded:', error);
+        }
+      };
+
+      ensureTokensLoaded();
+    }
+  }, [user, isLoading]);
+
   // Fallback: Force login screen after 10 seconds if still loading
   useEffect(() => {
     const fallbackTimeout = setTimeout(() => {
