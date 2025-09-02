@@ -53,6 +53,8 @@ const MAPPING = {
   'eye.fill': 'visibility',
   'eye.slash.fill': 'visibility-off',
   'xmark': 'close',
+  'arrow.up.doc': 'file-upload',
+  'doc.text': 'description',
 } as IconMapping;
 
 /**
