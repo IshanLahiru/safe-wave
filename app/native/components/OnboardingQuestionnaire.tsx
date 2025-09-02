@@ -1,23 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Modal, View, KeyboardAvoidingView, Platform } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
+import { ModernCard } from '@/components/ui/ModernCard';
+import { Colors, Shadows, Spacing, BorderRadius } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useUser } from '@/contexts/UserContext';
+import { apiService } from '@/services/api';
 
 interface Question {
     id: string;
     text: string;
-    type: 'multiple-choice' | 'scale' | 'text';
+    type: 'multiple-choice' | 'scale' | 'text' | 'file';
     options?: string[];
     scaleRange?: { min: number; max: number; labels: string[] };
 }
 
 const QUESTIONS: Question[] = [
+    {
+        id: 'user_full_name',
+        text: 'What is your full name?',
+        type: 'text'
+    },
     {
         id: 'safety_concerns',
         text: 'Do you have any current safety concerns?',
@@ -92,19 +101,58 @@ const QUESTIONS: Question[] = [
         text: 'What is your relationship to this emergency contact?',
         type: 'multiple-choice',
         options: ['Family member', 'Friend', 'Therapist/Counselor', 'Doctor/Healthcare provider', 'Other']
+    },
+    {
+        id: 'mood_frequency',
+        text: 'Over the past 2 weeks, how often have you felt down, depressed, or hopeless?',
+        type: 'multiple-choice',
+        options: ['Not at all', 'Several days', 'More than half the days', 'Nearly every day']
+    },
+    {
+        id: 'concentration_difficulty',
+        text: 'Have you had trouble concentrating on tasks recently?',
+        type: 'multiple-choice',
+        options: ['Never', 'Sometimes', 'Often', 'Almost always']
+    },
+    {
+        id: 'physical_symptoms',
+        text: 'Have you experienced any of the following physical symptoms recently?',
+        type: 'multiple-choice',
+        options: ['Headaches', 'Fatigue', 'Changes in appetite', 'Muscle tension', 'None of the above']
+    },
+    {
+        id: 'reaction_to_stress',
+        text: 'When you feel stressed or low, what do you usually do in response?',
+        type: 'text'
+    },
+    {
+        id: 'medical_documents',
+        text: 'Please upload any relevant medical details or documents (e.g., prescriptions, reports).',
+        type: 'file'
     }
 ];
 
 export default function OnboardingQuestionnaire() {
     const router = useRouter();
-    const colorScheme = useColorScheme();
-    const theme = Colors[colorScheme ?? 'light'];
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const theme = Colors.dark; // Use dark theme consistently
     const { user, completeOnboarding } = useUser();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [textInputs, setTextInputs] = useState<Record<string, string>>({});
+    const [uploadedFiles, setUploadedFiles] = useState<Record<string, any>>({});
+    const [uploadStatus, setUploadStatus] = useState<Record<string, string>>({});
+
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    // Auto-scroll to active tab when question index changes
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollToActiveTab(currentQuestionIndex);
+        }
+    }, [currentQuestionIndex]);
 
     const currentQuestion = QUESTIONS[currentQuestionIndex];
     const isLastQuestion = currentQuestionIndex === QUESTIONS.length - 1;
@@ -140,6 +188,76 @@ export default function OnboardingQuestionnaire() {
         }));
     };
 
+    const handleFileUpload = async (questionId: string) => {
+        try {
+            setUploadStatus(prev => ({ ...prev, [questionId]: 'uploading' }));
+
+            // Pick document
+            const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*', 'text/plain'],
+                copyToCacheDirectory: true,
+                multiple: false
+            });
+
+            if (result.canceled) {
+                setUploadStatus(prev => ({ ...prev, [questionId]: 'idle' }));
+                return;
+            }
+
+            const file = result.assets[0];
+
+            // Validate file size (10MB max)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size && file.size > maxSize) {
+                Alert.alert('File Too Large', 'Please select a file smaller than 10MB.');
+                setUploadStatus(prev => ({ ...prev, [questionId]: 'idle' }));
+                return;
+            }
+
+            // Create form data for upload
+            const formData = new FormData();
+            formData.append('file', {
+                uri: file.uri,
+                name: file.name,
+                type: file.mimeType || 'application/octet-stream'
+            } as any);
+
+            // Upload to backend
+            const response = await fetch(`http://192.168.31.14:9000/documents/onboarding-upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${await apiService.getAccessToken()}`,
+                    'Content-Type': 'multipart/form-data',
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.status}`);
+            }
+
+            const uploadResult = await response.json();
+
+            setUploadedFiles(prev => ({
+                ...prev,
+                [questionId]: {
+                    id: uploadResult.document_id,
+                    name: file.name,
+                    size: file.size,
+                    type: file.mimeType,
+                    uri: file.uri
+                }
+            }));
+
+            setUploadStatus(prev => ({ ...prev, [questionId]: 'completed' }));
+
+        } catch (error) {
+            console.error('File upload error:', error);
+            setUploadStatus(prev => ({ ...prev, [questionId]: 'error' }));
+            Alert.alert('Upload Error', 'Failed to upload file. Please try again.');
+        }
+    };
+
     const handleBackNavigation = () => {
         // Check if user came from profile (onboarding incomplete)
         if (!user?.isOnboardingComplete) {
@@ -156,6 +274,22 @@ export default function OnboardingQuestionnaire() {
         router.replace('/(tabs)/profile');
     };
 
+    const scrollToActiveTab = (index: number) => {
+        const tabWidth = 90; // Tab width including margin
+        const containerPadding = 32; // Horizontal padding of container
+        const screenWidth = 400; // Approximate screen width
+        const visibleWidth = screenWidth - (containerPadding * 2);
+        const centerOffset = visibleWidth / 2;
+        const scrollOffset = Math.max(0, (index * tabWidth) - centerOffset + (tabWidth / 2));
+
+        setTimeout(() => {
+            scrollViewRef.current?.scrollTo({
+                x: scrollOffset,
+                animated: true
+            });
+        }, 100);
+    };
+
     const handleNext = () => {
         if (currentQuestion.type === 'text' && !textInputs[currentQuestion.id]?.trim()) {
             Alert.alert('Please provide an answer', 'This question requires a response before continuing.');
@@ -166,17 +300,21 @@ export default function OnboardingQuestionnaire() {
             // Save answers and navigate back
             handleComplete();
         } else {
-            setCurrentQuestionIndex(prev => prev + 1);
+            const nextIndex = currentQuestionIndex + 1;
+            setCurrentQuestionIndex(nextIndex);
+            scrollToActiveTab(nextIndex);
         }
     };
 
     const handlePrevious = () => {
         if (!isFirstQuestion) {
-            setCurrentQuestionIndex(prev => prev - 1);
+            const prevIndex = currentQuestionIndex - 1;
+            setCurrentQuestionIndex(prevIndex);
+            scrollToActiveTab(prevIndex);
         }
     };
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
         // Validate emergency contact information
         const emergencyContactName = textInputs['emergency_contact_name']?.trim();
         const emergencyContactEmail = textInputs['emergency_contact_email']?.trim();
@@ -191,20 +329,40 @@ export default function OnboardingQuestionnaire() {
             return;
         }
 
-        // Save all answers to user context
-        const allAnswers = { ...answers, ...textInputs };
-        completeOnboarding(allAnswers);
+        try {
+            // Save all answers to user context
+            const allAnswers = {
+                ...answers,
+                ...textInputs,
+                uploaded_files: uploadedFiles
+            };
 
-        Alert.alert(
-            'Welcome to Safe Wave! 🌊',
-            'Your onboarding is complete! Your emergency contact information has been saved for your safety.',
-            [
-                {
-                    text: 'Get Started',
-                    onPress: () => router.replace('/(tabs)')
-                }
-            ]
-        );
+            // Send onboarding data to backend
+            const response = await apiService.request('/auth/complete-onboarding', {
+                method: 'POST',
+                body: JSON.stringify(allAnswers)
+            }) as { success: boolean };
+
+            if (response.success) {
+                completeOnboarding(allAnswers);
+
+                Alert.alert(
+                    'Welcome to Safe Wave! 🌊',
+                    'Your onboarding is complete! Your emergency contact information has been saved for your safety.',
+                    [
+                        {
+                            text: 'Get Started',
+                            onPress: () => router.replace('/(tabs)')
+                        }
+                    ]
+                );
+            } else {
+                Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+            }
+        } catch (error) {
+            console.error('Onboarding completion error:', error);
+            Alert.alert('Error', 'Failed to complete onboarding. Please try again.');
+        }
     };
 
     const renderQuestion = () => {
@@ -221,15 +379,22 @@ export default function OnboardingQuestionnaire() {
                                 ]}
                                 onPress={() => handleAnswer(option)}
                             >
-                                <ThemedText style={[
-                                    styles.optionText,
-                                    answers[currentQuestion.id] === option && styles.selectedOptionText
-                                ]}>
-                                    {option}
-                                </ThemedText>
-                                {answers[currentQuestion.id] === option && (
-                                    <IconSymbol size={20} name="checkmark.circle.fill" color="#007AFF" />
-                                )}
+                                <View style={styles.radioContainer}>
+                                    <View style={[
+                                        styles.radioButton,
+                                        answers[currentQuestion.id] === option && styles.radioButtonSelected
+                                    ]}>
+                                        {answers[currentQuestion.id] === option && (
+                                            <View style={styles.radioButtonInner} />
+                                        )}
+                                    </View>
+                                    <ThemedText style={[
+                                        styles.optionText,
+                                        answers[currentQuestion.id] === option && styles.selectedOptionText
+                                    ]}>
+                                        {option}
+                                    </ThemedText>
+                                </View>
                             </TouchableOpacity>
                         ))}
                     </View>
@@ -237,30 +402,82 @@ export default function OnboardingQuestionnaire() {
 
             case 'scale':
                 const { min, max, labels } = currentQuestion.scaleRange!;
+                const getScaleColor = (value: number) => {
+                    const range = max - min + 1;
+                    const position = (value - min) / (range - 1);
+
+                    if (position <= 0.2) return Colors.dark.danger; // Very low - Red
+                    if (position <= 0.4) return Colors.dark.warning; // Low - Orange
+                    if (position <= 0.6) return Colors.dark.secondary; // Medium - Yellow
+                    if (position <= 0.8) return Colors.dark.success; // High - Green
+                    return Colors.dark.primary; // Very high - Blue
+                };
+
+                const getScaleLabel = (value: number) => {
+                    const range = max - min + 1;
+                    const position = (value - min) / (range - 1);
+
+                    if (position <= 0.2) return 'Very Low';
+                    if (position <= 0.4) return 'Low';
+                    if (position <= 0.6) return 'Medium';
+                    if (position <= 0.8) return 'High';
+                    return 'Very High';
+                };
+
                 return (
                     <View style={styles.scaleContainer}>
-                        <View style={styles.scaleLabels}>
-                            <ThemedText style={styles.scaleLabel}>{labels[0]}</ThemedText>
-                            <ThemedText style={styles.scaleLabel}>{labels[1]}</ThemedText>
-                        </View>
                         <View style={styles.scaleButtons}>
-                            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((value) => (
-                                <TouchableOpacity
-                                    key={value}
-                                    style={[
-                                        styles.scaleButton,
-                                        answers[currentQuestion.id] === value && styles.selectedScaleButton
-                                    ]}
-                                    onPress={() => handleAnswer(value)}
-                                >
-                                    <ThemedText style={[
-                                        styles.scaleButtonText,
-                                        answers[currentQuestion.id] === value && styles.selectedScaleButtonText
-                                    ]}>
-                                        {value}
-                                    </ThemedText>
-                                </TouchableOpacity>
-                            ))}
+                            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((value) => {
+                                const scaleColor = getScaleColor(value);
+                                const scaleLabel = getScaleLabel(value);
+                                const isSelected = answers[currentQuestion.id] === value;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={value}
+                                        style={[
+                                            styles.scaleButton,
+                                            { borderColor: scaleColor },
+                                            isSelected && { backgroundColor: scaleColor }
+                                        ]}
+                                        onPress={() => handleAnswer(value)}
+                                    >
+                                        <ThemedText style={[
+                                            styles.scaleButtonText,
+                                            { color: isSelected ? 'white' : scaleColor }
+                                        ]}>
+                                            {value}
+                                        </ThemedText>
+                                        {isSelected && (
+                                            <ThemedText style={styles.scaleButtonLabel}>
+                                                {scaleLabel}
+                                            </ThemedText>
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                        <View style={styles.scaleLegend}>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendColor, { backgroundColor: Colors.dark.danger }]} />
+                                <ThemedText style={styles.legendText}>Very Low</ThemedText>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendColor, { backgroundColor: Colors.dark.warning }]} />
+                                <ThemedText style={styles.legendText}>Low</ThemedText>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendColor, { backgroundColor: Colors.dark.secondary }]} />
+                                <ThemedText style={styles.legendText}>Medium</ThemedText>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendColor, { backgroundColor: Colors.dark.success }]} />
+                                <ThemedText style={styles.legendText}>High</ThemedText>
+                            </View>
+                            <View style={styles.legendItem}>
+                                <View style={[styles.legendColor, { backgroundColor: Colors.dark.primary }]} />
+                                <ThemedText style={styles.legendText}>Very High</ThemedText>
+                            </View>
                         </View>
                     </View>
                 );
@@ -289,165 +506,314 @@ export default function OnboardingQuestionnaire() {
                     </ThemedView>
                 );
 
+            case 'file':
+                const fileStatus = uploadStatus[currentQuestion.id];
+                const uploadedFile = uploadedFiles[currentQuestion.id];
+
+                return (
+                    <View style={styles.fileUploadContainer}>
+                        <ThemedText style={styles.fileUploadLabel}>
+                            {currentQuestion.text}
+                        </ThemedText>
+
+                        {!uploadedFile ? (
+                            <TouchableOpacity
+                                style={[
+                                    styles.fileUploadButton,
+                                    fileStatus === 'uploading' && styles.fileUploadButtonUploading
+                                ]}
+                                onPress={() => handleFileUpload(currentQuestion.id)}
+                                disabled={fileStatus === 'uploading'}
+                            >
+                                {fileStatus === 'uploading' ? (
+                                    <>
+                                        <IconSymbol size={24} name="arrow.clockwise" color={Colors.dark.primary} />
+                                        <ThemedText style={styles.fileUploadText}>
+                                            Uploading...
+                                        </ThemedText>
+                                    </>
+                                ) : (
+                                    <>
+                                        <IconSymbol size={24} name="doc.badge.plus" color={Colors.dark.primary} />
+                                        <ThemedText style={styles.fileUploadText}>
+                                            Tap to upload documents
+                                        </ThemedText>
+                                        <ThemedText style={styles.fileUploadSubtext}>
+                                            PDF, DOC, or image files
+                                        </ThemedText>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        ) : (
+                            <View style={styles.uploadedFileContainer}>
+                                <IconSymbol size={24} name="checkmark.circle.fill" color={Colors.dark.success} />
+                                <ThemedText style={styles.uploadedFileName}>
+                                    {uploadedFile.name}
+                                </ThemedText>
+                                <TouchableOpacity
+                                    style={styles.removeFileButton}
+                                    onPress={() => {
+                                        setUploadedFiles(prev => {
+                                            const newFiles = { ...prev };
+                                            delete newFiles[currentQuestion.id];
+                                            return newFiles;
+                                        });
+                                        setUploadStatus(prev => {
+                                            const newStatus = { ...prev };
+                                            delete newStatus[currentQuestion.id];
+                                            return newStatus;
+                                        });
+                                    }}
+                                >
+                                    <IconSymbol size={16} name="xmark.circle.fill" color={Colors.dark.danger} />
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                    </View>
+                );
+
             default:
                 return null;
         }
     };
 
     return (
-        <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        >
-            {/* Header */}
-            <ThemedView style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={handleBackNavigation}>
-                    <IconSymbol size={24} name="chevron.left" color={theme.tint} />
-                    <ThemedText style={styles.backButtonText}>Back</ThemedText>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.closeButton} onPress={handleCloseQuestionnaire}>
-                    <IconSymbol size={24} name="xmark" color={theme.tint} />
-                </TouchableOpacity>
-
-                <ThemedView style={styles.titleContainer}>
-                    <ThemedText type="title" style={styles.headerTitle}>
-                        🌊 Welcome to Safe Wave
-                    </ThemedText>
-                    <ThemedText style={styles.headerSubtitle}>
-                        Let's get to know you better
-                    </ThemedText>
-                </ThemedView>
-            </ThemedView>
-
-            {/* Progress Bar */}
-            <ThemedView style={styles.progressContainer}>
-                <View style={styles.progressBar}>
-                    <View
-                        style={[
-                            styles.progressFill,
-                            { width: `${((currentQuestionIndex + 1) / QUESTIONS.length) * 100}%` }
-                        ]}
-                    />
-                </View>
-                <ThemedText style={styles.progressText}>
-                    {currentQuestionIndex + 1} of {QUESTIONS.length}
-                </ThemedText>
-            </ThemedView>
-
-            <ScrollView
-                style={styles.content}
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.scrollContent}
+        <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
-                {/* Emergency Contact Notice */}
-                {(currentQuestion.id === 'emergency_contact_name' ||
-                    currentQuestion.id === 'emergency_contact_email' ||
-                    currentQuestion.id === 'emergency_contact_relationship') && (
-                        <ThemedView style={styles.emergencyNotice}>
-                            <ThemedText style={styles.emergencyNoticeText}>
-                                ⚠️ Emergency contact information is required for your safety
-                            </ThemedText>
-                        </ThemedView>
-                    )}
+                {/* Header */}
+                <ThemedView style={[styles.header, { paddingTop: insets.top + 10 }]}>
+                    <TouchableOpacity style={styles.backButton} onPress={handleBackNavigation}>
+                        <IconSymbol size={24} name="chevron.left" color={theme.primary} />
+                        <ThemedText style={styles.backButtonText}>Back</ThemedText>
+                    </TouchableOpacity>
 
-                {/* Question */}
-                <ThemedView style={styles.questionContainer}>
-                    <ThemedText type="title" style={styles.questionText}>
-                        {currentQuestion.text}
-                    </ThemedText>
+                    <TouchableOpacity style={styles.closeButton} onPress={handleCloseQuestionnaire}>
+                        <IconSymbol size={24} name="xmark" color={theme.primary} />
+                    </TouchableOpacity>
                 </ThemedView>
 
-                {/* Answer Options */}
-                {renderQuestion()}
+                {/* Question Progress Tabs */}
+                <View style={styles.questionTabsContainer}>
+                    <ScrollView
+                        ref={scrollViewRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.questionTabsContent}
+                        style={styles.tabsScrollView}
+                    >
+                        {QUESTIONS.map((question, index) => {
+                            const isAnswered = answers[question.id] !== undefined;
+                            const isCurrent = index === currentQuestionIndex;
 
-                {/* Add extra padding at bottom for keyboard */}
-                <View style={styles.keyboardSpacer} />
-            </ScrollView>
+                            return (
+                                <TouchableOpacity
+                                    key={question.id}
+                                    style={[
+                                        styles.questionTab,
+                                        isCurrent && styles.activeQuestionTab,
+                                        isAnswered && !isCurrent && styles.answeredQuestionTab,
+                                        !isAnswered && !isCurrent && styles.unansweredQuestionTab
+                                    ]}
+                                    onPress={() => {
+                                        setCurrentQuestionIndex(index);
+                                        scrollToActiveTab(index);
+                                    }}
+                                >
+                                    <View style={styles.questionTabContent}>
+                                        <ThemedText style={[
+                                            styles.questionTabNumber,
+                                            isCurrent && styles.activeQuestionTabNumber,
+                                            !isAnswered && !isCurrent && styles.unansweredQuestionTabNumber
+                                        ]}>
+                                            {index + 1}
+                                        </ThemedText>
+                                        {isAnswered ? (
+                                            <IconSymbol
+                                                size={14}
+                                                name="checkmark.circle.fill"
+                                                color={isCurrent ? 'white' : Colors.dark.success}
+                                            />
+                                        ) : (
+                                            <IconSymbol
+                                                size={14}
+                                                name="questionmark.circle"
+                                                color={isCurrent ? 'white' : Colors.dark.primary}
+                                            />
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </ScrollView>
+                </View>
 
-            {/* Navigation Buttons */}
-            <ThemedView style={[
-                styles.navigationContainer,
-                { paddingBottom: Math.max(insets.bottom + 20, 40) }
-            ]}>
-                {!isFirstQuestion && (
-                    <TouchableOpacity style={styles.previousButton} onPress={handlePrevious}>
-                        <IconSymbol size={20} name="chevron.left" color={theme.tint} />
-                        <ThemedText style={styles.previousButtonText}>Previous</ThemedText>
-                    </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                    style={[
-                        styles.nextButton,
-                        (!isAnswerValid()) && styles.disabledButton
-                    ]}
-                    onPress={handleNext}
-                    disabled={!isAnswerValid()}
+                <ScrollView
+                    style={styles.content}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.scrollContent}
                 >
-                    <ThemedText style={styles.nextButtonText}>
-                        {isLastQuestion ? 'Complete' : 'Next'}
-                    </ThemedText>
-                    {!isLastQuestion && (
-                        <IconSymbol size={20} name="chevron.right" color="white" />
+                    {/* Emergency Contact Notice */}
+                    {(currentQuestion.id === 'emergency_contact_name' ||
+                        currentQuestion.id === 'emergency_contact_email' ||
+                        currentQuestion.id === 'emergency_contact_relationship') && (
+                            <ModernCard variant="outlined" style={styles.emergencyNotice}>
+                                <ThemedText style={styles.emergencyNoticeText}>
+                                    ⚠️ Emergency contact information is required for your safety
+                                </ThemedText>
+                            </ModernCard>
+                        )}
+
+                    {/* Question */}
+                    <ThemedView style={styles.questionContainer}>
+                        <ThemedText type="title" style={styles.questionText}>
+                            {currentQuestion.text}
+                        </ThemedText>
+                    </ThemedView>
+
+                    {/* Answer Options */}
+                    {renderQuestion()}
+
+                    {/* Add extra padding at bottom for keyboard */}
+                    <View style={styles.keyboardSpacer} />
+                </ScrollView>
+
+                {/* Navigation Buttons */}
+                <ModernCard variant="elevated" style={styles.navigationContainer}>
+                    {!isFirstQuestion && (
+                        <TouchableOpacity style={styles.previousButton} onPress={handlePrevious}>
+                            <IconSymbol size={20} name="chevron.left" color={theme.primary} />
+                            <ThemedText style={styles.previousButtonText}>Previous</ThemedText>
+                        </TouchableOpacity>
                     )}
-                </TouchableOpacity>
-            </ThemedView>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.nextButton,
+                            (!isAnswerValid()) && styles.disabledButton
+                        ]}
+                        onPress={handleNext}
+                        disabled={!isAnswerValid()}
+                    >
+                        <ThemedText style={styles.nextButtonText}>
+                            {isLastQuestion ? 'Complete' : 'Next'}
+                        </ThemedText>
+                        {!isLastQuestion && (
+                            <IconSymbol size={20} name="chevron.right" color="white" />
+                        )}
+                    </TouchableOpacity>
+                </ModernCard>
 
 
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 0,
+        backgroundColor: Colors.dark.background,
     },
     header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingTop: 60,
-        paddingBottom: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderRadius: 15,
-        margin: 20,
-        marginBottom: 0,
-        borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
-        position: 'relative',
+        paddingHorizontal: Spacing.sm,
+        paddingVertical: Spacing.sm,
+        marginBottom: Spacing.sm,
+        backgroundColor: Colors.dark.background,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.dark.primary,
+        minHeight: 2,
+        ...Shadows.small,
+    },
+    questionTabsContainer: {
+        backgroundColor: Colors.dark.surface,
+        paddingVertical: 8,
+        paddingHorizontal: Spacing.xl,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.dark.border,
+        ...Shadows.small,
+    },
+    tabsScrollView: {
+        flexGrow: 0,
+    },
+    questionTabsContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: Spacing.sm,
+    },
+    questionTab: {
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        borderRadius: BorderRadius.lg,
+        backgroundColor: Colors.dark.card,
+        borderWidth: 2,
+        borderColor: Colors.dark.border,
+        minWidth: 90,
+        minHeight: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
+        ...Shadows.medium,
+    },
+    activeQuestionTab: {
+        backgroundColor: Colors.dark.primary,
+        borderColor: Colors.dark.primary,
+        ...Shadows.large,
+    },
+    answeredQuestionTab: {
+        backgroundColor: Colors.dark.card,
+        borderColor: Colors.dark.success,
+        ...Shadows.small,
+    },
+    unansweredQuestionTab: {
+        backgroundColor: Colors.dark.card,
+        borderColor: Colors.dark.primary,
+        opacity: 0.8,
+    },
+    questionTabContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row',
+        gap: 4,
+    },
+    questionTabNumber: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    activeQuestionTabNumber: {
+        color: 'white',
+    },
+    unansweredQuestionTabNumber: {
+        color: Colors.dark.primary,
     },
     backButton: {
-        position: 'absolute',
-        left: 20,
-        top: 20,
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        zIndex: 10,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: BorderRadius.full,
+        backgroundColor: Colors.dark.surface,
     },
     backButtonText: {
         fontSize: 16,
         fontWeight: '500',
-        marginLeft: 4,
+        marginLeft: Spacing.xs,
+        color: Colors.dark.text,
         opacity: 0.8,
     },
     closeButton: {
-        position: 'absolute',
-        right: 20,
-        top: 20,
         width: 40,
         height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderRadius: BorderRadius.full,
+        backgroundColor: Colors.dark.surface,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 10,
     },
     titleContainer: {
         alignItems: 'center',
@@ -456,46 +822,46 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 24,
         fontWeight: '700',
-        marginBottom: 8,
+        marginBottom: Spacing.sm,
         textAlign: 'center',
+        color: Colors.dark.text,
     },
     headerSubtitle: {
         fontSize: 16,
         fontWeight: '400',
         textAlign: 'center',
         opacity: 0.7,
+        color: Colors.dark.text,
     },
     progressContainer: {
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        borderRadius: 15,
-        margin: 20,
-        marginTop: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.lg,
+        margin: Spacing.xl,
+        marginTop: Spacing.sm,
     },
     progressBar: {
         height: 6,
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-        borderRadius: 3,
-        marginBottom: 10,
+        backgroundColor: Colors.dark.border,
+        borderRadius: BorderRadius.sm,
+        marginBottom: Spacing.sm,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#007AFF',
-        borderRadius: 3,
+        backgroundColor: Colors.dark.primary,
+        borderRadius: BorderRadius.sm,
     },
     progressText: {
         fontSize: 14,
         textAlign: 'center',
         fontWeight: '500',
         opacity: 0.7,
+        color: Colors.dark.text,
     },
     content: {
         flex: 1,
-        padding: 20,
+        padding: Spacing.xl,
+        paddingTop: Spacing.lg,
         paddingBottom: 120, // Add space for navigation buttons
     },
     scrollContent: {
@@ -516,50 +882,73 @@ const styles = StyleSheet.create({
         lineHeight: 28,
         textAlign: 'left',
         marginBottom: 24,
-        color: '#1C1C1E',
+        color: Colors.dark.text,
         letterSpacing: -0.3,
     },
     optionsContainer: {
-        gap: 12,
+        gap: Spacing.md,
     },
     optionButton: {
+        padding: Spacing.lg,
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.md,
+        borderWidth: 1,
+        borderColor: Colors.dark.border,
+        minHeight: 56,
+        ...Shadows.small,
+    },
+    radioContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
-        minHeight: 56,
+    },
+    radioButton: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: Colors.dark.border,
+        marginRight: Spacing.md,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    radioButtonSelected: {
+        borderColor: Colors.dark.primary,
+    },
+    radioButtonInner: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: Colors.dark.primary,
     },
     selectedOption: {
-        borderColor: '#007AFF',
-        backgroundColor: 'rgba(10, 126, 164, 0.1)',
+        borderColor: Colors.dark.primary,
+        backgroundColor: Colors.dark.surface,
     },
     optionText: {
         fontSize: 16,
         flex: 1,
         fontWeight: '500',
+        color: Colors.dark.text,
     },
     selectedOptionText: {
         fontWeight: '600',
-        color: '#007AFF',
+        color: Colors.dark.primary,
     },
     scaleContainer: {
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.02)',
-        borderRadius: 15,
-        padding: 20,
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.xl,
         borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
+        borderColor: Colors.dark.border,
+        ...Shadows.small,
     },
     scaleLabels: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
-        marginBottom: 20,
-        paddingHorizontal: 10,
+        marginBottom: Spacing.xl,
+        paddingHorizontal: Spacing.sm,
     },
     scaleLabel: {
         fontSize: 14,
@@ -567,33 +956,119 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         flex: 1,
         opacity: 0.7,
+        color: Colors.dark.text,
     },
     scaleButtons: {
         flexDirection: 'row',
-        gap: 8,
+        gap: Spacing.sm,
         flexWrap: 'wrap',
         justifyContent: 'center',
     },
     scaleButton: {
         width: 48,
         height: 48,
-        borderRadius: 24,
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
+        borderRadius: BorderRadius.full,
+        backgroundColor: Colors.dark.card,
         borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
+        borderColor: Colors.dark.border,
         justifyContent: 'center',
         alignItems: 'center',
+        ...Shadows.small,
     },
     selectedScaleButton: {
-        borderColor: '#007AFF',
-        backgroundColor: '#007AFF',
+        borderColor: Colors.dark.primary,
+        backgroundColor: Colors.dark.primary,
     },
     scaleButtonText: {
         fontSize: 18,
         fontWeight: '600',
+        color: Colors.dark.text,
     },
     selectedScaleButtonText: {
         color: 'white',
+    },
+    scaleButtonLabel: {
+        fontSize: 10,
+        fontWeight: '500',
+        color: 'white',
+        marginTop: 2,
+    },
+    scaleLegend: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: Spacing.lg,
+        paddingHorizontal: Spacing.sm,
+    },
+    legendItem: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    legendColor: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        marginBottom: 4,
+    },
+    legendText: {
+        fontSize: 10,
+        fontWeight: '500',
+        color: Colors.dark.muted,
+        textAlign: 'center',
+    },
+    fileUploadContainer: {
+        marginBottom: Spacing.lg,
+    },
+    fileUploadLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.dark.text,
+        marginBottom: Spacing.md,
+    },
+    fileUploadButton: {
+        backgroundColor: Colors.dark.card,
+        borderWidth: 2,
+        borderColor: Colors.dark.border,
+        borderStyle: 'dashed',
+        borderRadius: BorderRadius.md,
+        padding: Spacing.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 120,
+    },
+    fileUploadButtonUploading: {
+        borderColor: Colors.dark.primary,
+        backgroundColor: Colors.dark.surface,
+    },
+    fileUploadText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.dark.primary,
+        marginTop: Spacing.sm,
+        marginBottom: Spacing.xs,
+    },
+    fileUploadSubtext: {
+        fontSize: 14,
+        color: Colors.dark.muted,
+        textAlign: 'center',
+    },
+    uploadedFileContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.dark.card,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.lg,
+        borderWidth: 1,
+        borderColor: Colors.dark.success,
+    },
+    uploadedFileName: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: Colors.dark.text,
+        marginLeft: Spacing.sm,
+        flex: 1,
+    },
+    removeFileButton: {
+        padding: Spacing.xs,
     },
     textInputContainer: {
         alignItems: 'flex-start',
@@ -603,86 +1078,77 @@ const styles = StyleSheet.create({
         borderWidth: 0,
         borderColor: 'transparent',
         width: '100%',
-        marginBottom: 20,
+        marginBottom: Spacing.xl,
     },
     textInputLabel: {
         fontSize: 16,
-        marginBottom: 15,
+        marginBottom: Spacing.lg,
         fontWeight: '600',
         textAlign: 'left',
         opacity: 0.9,
-        color: '#1C1C1E',
+        color: Colors.dark.text,
         letterSpacing: -0.2,
     },
 
     textInputField: {
         width: '100%',
         minHeight: 120,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        padding: 16,
+        backgroundColor: Colors.dark.inputBackground,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.lg,
         borderWidth: 1.5,
-        borderColor: '#E5E5EA',
+        borderColor: Colors.dark.border,
         fontSize: 16,
         lineHeight: 22,
         textAlign: 'left',
-        color: '#000000',
+        color: Colors.dark.text,
         textAlignVertical: 'top',
         fontWeight: '400',
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-        elevation: 1,
+        ...Shadows.small,
     },
     textInputFieldFocused: {
-        borderColor: '#007AFF',
+        borderColor: Colors.dark.primary,
         borderWidth: 2,
-        shadowColor: '#007AFF',
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
+        ...Shadows.glow,
     },
     navigationContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-        backgroundColor: 'rgba(0, 0, 0, 0.03)',
-        borderRadius: 15,
-        margin: 20,
-        marginTop: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(0, 0, 0, 0.05)',
+        paddingHorizontal: Spacing.xl,
+        paddingVertical: Spacing.xl,
+        margin: Spacing.xl,
+        marginTop: Spacing.sm,
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
         zIndex: 1000,
+        backgroundColor: Colors.dark.background,
     },
     previousButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        paddingVertical: Spacing.md,
+        paddingHorizontal: Spacing.lg,
+        borderRadius: BorderRadius.md,
+        backgroundColor: Colors.dark.surface,
     },
     previousButtonText: {
         fontSize: 16,
-        marginLeft: 8,
+        marginLeft: Spacing.sm,
         fontWeight: '500',
         opacity: 0.7,
+        color: Colors.dark.text,
     },
     nextButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#007AFF',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 20,
-        gap: 8,
+        backgroundColor: Colors.dark.primary,
+        paddingVertical: Spacing.md,
+        paddingHorizontal: Spacing.xxl,
+        borderRadius: BorderRadius.xl,
+        gap: Spacing.sm,
         minWidth: 100,
     },
     nextButtonText: {
@@ -691,17 +1157,17 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     disabledButton: {
-        backgroundColor: '#687076',
+        backgroundColor: Colors.dark.disabled,
     },
 
     emergencyNotice: {
-        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+        backgroundColor: Colors.dark.warning + '20', // 20% opacity
         borderWidth: 1,
-        borderColor: 'rgba(255, 193, 7, 0.3)',
-        borderRadius: 12,
-        padding: 16,
-        marginHorizontal: 20,
-        marginBottom: 20,
+        borderColor: Colors.dark.warning + '40', // 40% opacity
+        borderRadius: BorderRadius.md,
+        padding: Spacing.lg,
+        marginHorizontal: Spacing.xl,
+        marginBottom: Spacing.xl,
     },
     keyboardSpacer: {
         height: 100, // Space for keyboard
@@ -712,5 +1178,6 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontWeight: '500',
         lineHeight: 20,
+        color: Colors.dark.text,
     },
 });
