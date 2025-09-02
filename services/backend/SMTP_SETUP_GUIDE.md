@@ -246,7 +246,7 @@ print(f'Email sent: {success}')
 
 ### **Health Check Endpoint**
 ```bash
-curl http://localhost:8000/audio/health
+curl http://localhost:9000/audio/health
 ```
 
 ## 🎉 **Success Indicators**

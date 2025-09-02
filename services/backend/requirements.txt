@@ -14,7 +14,18 @@ email-validator==2.1.0
 # Audio processing and AI analysis
 openai>=1.58.1
 aiofiles==23.2.1
+vosk>=0.3.44
+soundfile>=0.13.1
+ffmpeg-python>=0.2.0
+requests>=2.31.0
 
 # LLM and analysis
 langchain==0.0.350
 langchain-openai==0.0.2
+
+# Document processing (optional - for PDF/DOC support)
+# PyPDF2==3.0.1
+# python-docx==0.8.11
+
+# Redis for caching
+redis==5.0.1
