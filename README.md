@@ -116,6 +116,24 @@ npm run test
 npm run clean
 ```
 
+### Network IP Configuration
+
+```bash
+# Update network IP for local network access (mobile devices)
+npm run update-ip
+```
+
+This script automatically:
+- Detects your current network IP address
+- Updates the frontend configuration to use the network IP
+- Ensures the backend is accessible from mobile devices on the same network
+- Provides test URLs and next steps
+
+**Use this when:**
+- You want to test the app on a physical mobile device
+- Your mobile device can't access `localhost` from the computer
+- You're developing on a local network and need cross-device access
+
 ## Development Workflow
 
 1. **Start development servers:**

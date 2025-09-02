@@ -17,7 +17,8 @@
     "lint": "turbo run lint",
     "lint:frontend": "turbo run lint --filter=native",
     "test": "turbo run test",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "update-ip": "turbo run update-ip --filter=backend"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

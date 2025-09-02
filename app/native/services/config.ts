@@ -10,8 +10,8 @@ export const API_CONFIG = {
   FALLBACK_URLS: [
     'http://192.168.31.14:9000',
     'http://localhost:9000',
-    'http://10.0.2.2:9000', // Android emulator
-    'http://127.0.0.1:9000'
+    'http://192.168.31.14:9000', // Android emulator
+    'http://192.168.31.14:9000'
   ]
 };
 

@@ -23,6 +23,9 @@
     },
     "clean": {
       "cache": false
+    },
+    "update-ip": {
+      "cache": false
     }
   }
 }

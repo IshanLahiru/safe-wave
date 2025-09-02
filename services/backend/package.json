@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "python main.py",
     "start": "python main.py",
+    "update-ip": "python scripts/update_network_ip.py",
     "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true"
   },
   "engines": {
