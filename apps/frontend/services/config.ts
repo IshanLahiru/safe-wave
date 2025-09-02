@@ -1,3 +1,5 @@
+export const API_BASE_URL = 'http://192.168.31.14:9000';
+
 // API Configuration
 export const API_CONFIG = {
   // Use network IP for mobile/simulator, localhost for web development

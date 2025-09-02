@@ -7,6 +7,7 @@
     "setup": "python -m pip install -r requirements.txt",
     "dev": "python main.py",
     "start": "python main.py",
+    "network": "python start-network.py",
     "build": "echo 'Python build complete'",
     "lint": "echo 'Python linting skipped - install flake8 for full linting'",
     "format": "echo 'Python formatting skipped - install black for full formatting'",

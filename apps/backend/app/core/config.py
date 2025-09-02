@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "safewave"
     POSTGRES_USER: str = "user"
     POSTGRES_PASSWORD: str = "password"
-    POSTGRES_PORT: int = 5433
+    POSTGRES_PORT: int = 9000
     DATABASE_URL: str = "postgresql://user:password@localhost:5433/safewave"
     
     # JWT
@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     # API Configuration
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Safe Wave API"
-    HOST: str = "0.0.0.0"
+    HOST: str = "192.168.31.14"
     PORT: int = 9000
     API_PORT: int = 9000  # For docker-compose compatibility
     
