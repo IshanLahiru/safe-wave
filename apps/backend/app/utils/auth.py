@@ -43,20 +43,19 @@ def create_token_pair(data: dict) -> Tuple[str, str, int]:
     
     return access_token, refresh_token, expires_in
 
-def verify_token(token: str, token_type: str = "access") -> Optional[TokenData]:
+def verify_token(token: str, token_type: str = "access") -> Optional[dict]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
+        user_id: str = payload.get("sub")
         token_type_payload: str = payload.get("type")
         
-        if email is None or token_type_payload != token_type:
+        if user_id is None or token_type_payload != token_type:
             return None
             
-        token_data = TokenData(email=email)
-        return token_data
+        return payload
     except JWTError:
         return None
 
-def verify_refresh_token(token: str) -> Optional[TokenData]:
+def verify_refresh_token(token: str) -> Optional[dict]:
     """Verify refresh token specifically"""
     return verify_token(token, "refresh")

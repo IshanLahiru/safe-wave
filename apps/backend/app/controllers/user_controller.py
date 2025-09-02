@@ -13,7 +13,7 @@ class UserController:
         db_user = User(
             email=user_data.email,
             name=user_data.name,
-            password_hash=hashed_password,
+            hashed_password=hashed_password,
             role=user_data.role,
             preferences={
                 "checkinFrequency": "Daily",
@@ -43,7 +43,7 @@ class UserController:
         if user:
             # Use bcrypt for password verification
             from app.utils.auth import verify_password
-            if verify_password(password, user.password_hash):
+            if verify_password(password, user.hashed_password):
                 return user
         return None
     

@@ -1,14 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy import text
+import logging
 from app.core.database import get_db
 from app.presenters.auth_presenter import auth_presenter
 from app.schemas.user import UserLogin, UserSignup, Token, UserResponse, RefreshToken
-from app.utils.token_service import verify_token, verify_refresh_token
+from app.utils.auth import verify_token, verify_refresh_token, create_access_token, create_refresh_token
 from app.models.user import User
+from app.services.user.user_service import user_service
+from app.services.token_service import TokenService
 
 router = APIRouter()
 security = HTTPBearer()
+logger = logging.getLogger(__name__)
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
@@ -29,26 +34,34 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
 @router.post("/signup", response_model=Token)
 async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
     """User registration endpoint"""
-    # Check if user already exists
-    existing_user = UserController.get_user_by_email(db, user_data.email)
-    if existing_user:
+    try:
+        # Check if user already exists
+        existing_user = user_service.get_user_by_email(db, user_data.email)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+        
+        # Create new user using the service
+        user = user_service.create_user(db, user_data.email, user_data.password, user_data.name)
+        
+        # Generate tokens
+        access_token = create_access_token(data={"sub": str(user.id)})
+        refresh_token = create_refresh_token(data={"sub": str(user.id)})
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "expires_in": 900  # 15 minutes in seconds
+        }
+    except Exception as e:
+        logger.error(f"Signup error: {e}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user"
         )
-    
-    # Create new user
-    user = UserController.create_user(db, user_data, user_data.password)
-    
-    # Create tokens for automatic login
-    access_token, refresh_token, expires_in = create_token_pair(data={"sub": user.email})
-    
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer",
-        "expires_in": expires_in
-    }
 
 @router.post("/refresh", response_model=Token)
 async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db)):
@@ -76,8 +89,17 @@ async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
+        # Get user ID from token data
+        user_id = token_data.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token data",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
         # Check if user still exists
-        user = UserController.get_user_by_email(db, email=token_data.email)
+        user = user_service.get_user_by_id(db, int(user_id))
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -86,13 +108,14 @@ async def refresh_token(refresh_data: RefreshToken, db: Session = Depends(get_db
             )
         
         # Create new token pair
-        access_token, refresh_token, expires_in = create_token_pair(data={"sub": user.email})
+        access_token = create_access_token(data={"sub": str(user.id)})
+        refresh_token = create_refresh_token(data={"sub": str(user.id)})
         
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "bearer",
-            "expires_in": expires_in
+            "expires_in": 900  # 15 minutes in seconds
         }
         
     except HTTPException:
@@ -148,7 +171,15 @@ def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"},
             )
         
-        user = UserController.get_user_by_email(db, email=token_data.email)
+        user_id = token_data.get("sub")
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token data",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        user = user_service.get_user_by_id(db, int(user_id))
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

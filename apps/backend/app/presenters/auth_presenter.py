@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional, Tuple
 from sqlalchemy.orm import Session
 
 from app.services.user.user_service import user_service
-from app.utils.token_service import create_access_token, create_refresh_token
+from app.utils.auth import create_access_token, create_refresh_token
 from app.exceptions.base import UserDataError
 from app.core.config import settings
 
