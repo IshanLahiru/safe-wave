@@ -176,9 +176,49 @@ export default function OnboardingQuestionnaire() {
         } else if (currentQuestion.type === 'multiple-choice' || currentQuestion.type === 'scale') {
             // For multiple choice and scale questions, check if an answer is selected
             return answers[currentQuestion.id] !== undefined;
+        } else if (currentQuestion.type === 'file') {
+            // For file questions, check if a file has been uploaded
+            return uploadedFiles[currentQuestion.id] !== undefined;
         }
 
         return false;
+    };
+
+    const areAllQuestionsAnswered = () => {
+        // Check if all questions have been answered
+        for (const question of QUESTIONS) {
+            if (question.type === 'text') {
+                if (!textInputs[question.id] || !textInputs[question.id].trim()) {
+                    return false;
+                }
+            } else if (question.type === 'multiple-choice' || question.type === 'scale') {
+                if (answers[question.id] === undefined) {
+                    return false;
+                }
+            } else if (question.type === 'file') {
+                if (!uploadedFiles[question.id]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    };
+
+    const getCompletedQuestionsCount = () => {
+        return QUESTIONS.filter(question => {
+            if (question.type === 'text') {
+                return textInputs[question.id] && textInputs[question.id].trim().length > 0;
+            } else if (question.type === 'multiple-choice' || question.type === 'scale') {
+                return answers[question.id] !== undefined;
+            } else if (question.type === 'file') {
+                return uploadedFiles[question.id] !== undefined;
+            }
+            return false;
+        }).length;
+    };
+
+    const getCompletionPercentage = () => {
+        return (getCompletedQuestionsCount() / QUESTIONS.length) * 100;
     };
 
     const handleTextInputChange = (questionId: string, text: string) => {
@@ -192,9 +232,11 @@ export default function OnboardingQuestionnaire() {
         try {
             setUploadStatus(prev => ({ ...prev, [questionId]: 'uploading' }));
 
-            // Pick document
+            // Pick document - Enhanced for cross-platform compatibility
             const result = await DocumentPicker.getDocumentAsync({
-                type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*', 'text/plain'],
+                type: Platform.OS === 'web'
+                    ? ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*', 'text/plain']
+                    : ['*/*'], // Allow all file types on mobile for better compatibility
                 copyToCacheDirectory: true,
                 multiple: false
             });
@@ -208,26 +250,57 @@ export default function OnboardingQuestionnaire() {
 
             // Validate file size (10MB max)
             const maxSize = 10 * 1024 * 1024; // 10MB
-            if (file.size && file.size > maxSize) {
-                Alert.alert('File Too Large', 'Please select a file smaller than 10MB.');
+            if (!file.size) {
+                Alert.alert('File Error', 'Could not determine file size. Please try another file.');
                 setUploadStatus(prev => ({ ...prev, [questionId]: 'idle' }));
                 return;
             }
 
-            // Create form data for upload
+            if (file.size > maxSize) {
+                Alert.alert('File Too Large', `Please select a file smaller than ${maxSize / (1024 * 1024)}MB.`);
+                setUploadStatus(prev => ({ ...prev, [questionId]: 'idle' }));
+                return;
+            }
+
+            // Create form data for upload - Fix for iOS and PC compatibility
             const formData = new FormData();
-            formData.append('file', {
-                uri: file.uri,
-                name: file.name,
-                type: file.mimeType || 'application/octet-stream'
-            } as any);
+
+            // Handle different platforms and file types
+            if (Platform.OS === 'web') {
+                // For web/PC, we need to create a proper File object
+                if (file.uri.startsWith('blob:')) {
+                    // Handle blob URLs for web
+                    const response = await fetch(file.uri);
+                    const blob = await response.blob();
+                    formData.append('file', blob, file.name);
+                } else {
+                    // Handle file paths for web
+                    formData.append('file', file, file.name);
+                }
+            } else {
+                // For iOS/Android, use the proper file object structure
+                const fileToUpload = {
+                    uri: file.uri,
+                    name: file.name || 'document',
+                    type: file.mimeType || 'application/octet-stream'
+                };
+                formData.append('file', fileToUpload);
+            }
 
             // Upload to backend
+            console.log('🌐 Uploading file:', {
+                platform: Platform.OS,
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.mimeType,
+                fileUri: file.uri
+            });
+
             const response = await fetch(`http://192.168.31.14:9000/documents/onboarding-upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${await apiService.getAccessToken()}`,
-                    'Content-Type': 'multipart/form-data',
+                    // DO NOT set Content-Type manually for FormData - React Native will set it automatically
                 },
                 body: formData
             });
@@ -249,12 +322,35 @@ export default function OnboardingQuestionnaire() {
                 }
             }));
 
+            // Store file answer in answers state (IMPORTANT for validation!)
+            setAnswers(prev => ({
+                ...prev,
+                [questionId]: {
+                    fileId: uploadResult.document_id,
+                    filename: file.name,
+                    fileSize: file.size,
+                    fileType: file.mimeType
+                }
+            }));
+
             setUploadStatus(prev => ({ ...prev, [questionId]: 'completed' }));
 
         } catch (error) {
             console.error('File upload error:', error);
             setUploadStatus(prev => ({ ...prev, [questionId]: 'error' }));
-            Alert.alert('Upload Error', 'Failed to upload file. Please try again.');
+
+            let errorMessage = 'Failed to upload file. Please try again.';
+            if (error.message.includes('401')) {
+                errorMessage = 'Authentication failed. Please log in again.';
+            } else if (error.message.includes('413')) {
+                errorMessage = 'File too large. Please select a smaller file.';
+            } else if (error.message.includes('415')) {
+                errorMessage = 'File type not supported. Please select a different file.';
+            } else if (error.message.includes('422')) {
+                errorMessage = 'Invalid file format. Please try a different file or contact support.';
+            }
+
+            Alert.alert('Upload Error', errorMessage);
         }
     };
 
@@ -315,6 +411,18 @@ export default function OnboardingQuestionnaire() {
     };
 
     const handleComplete = async () => {
+        // Check if all questions are answered
+        if (!areAllQuestionsAnswered()) {
+            const completedCount = getCompletedQuestionsCount();
+            const totalCount = QUESTIONS.length;
+            Alert.alert(
+                'Incomplete Questionnaire',
+                `Please answer all ${totalCount} questions before completing. You have completed ${completedCount} of ${totalCount} questions.`,
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
         // Validate emergency contact information
         const emergencyContactName = textInputs['emergency_contact_name']?.trim();
         const emergencyContactEmail = textInputs['emergency_contact_email']?.trim();
@@ -334,6 +442,17 @@ export default function OnboardingQuestionnaire() {
             const allAnswers = {
                 ...answers,
                 ...textInputs,
+                // Include file information properly
+                ...Object.keys(uploadedFiles).reduce((acc, questionId) => {
+                    acc[questionId] = {
+                        fileId: uploadedFiles[questionId].id,
+                        filename: uploadedFiles[questionId].name,
+                        fileSize: uploadedFiles[questionId].size,
+                        fileType: uploadedFiles[questionId].type
+                    };
+                    return acc;
+                }, {}),
+                // Also include the uploaded_files for backend reference
                 uploaded_files: uploadedFiles
             };
 
@@ -596,6 +715,23 @@ export default function OnboardingQuestionnaire() {
                     </TouchableOpacity>
                 </ThemedView>
 
+                {/* Progress Indicator */}
+                <View style={styles.progressContainer}>
+                    <ThemedText style={styles.progressText}>
+                        {getCompletedQuestionsCount()} of {QUESTIONS.length} questions completed
+                    </ThemedText>
+                    <View style={styles.progressBar}>
+                        <View
+                            style={[
+                                styles.progressFill,
+                                {
+                                    width: `${getCompletionPercentage()}%`
+                                }
+                            ]}
+                        />
+                    </View>
+                </View>
+
                 {/* Question Progress Tabs */}
                 <View style={styles.questionTabsContainer}>
                     <ScrollView
@@ -606,7 +742,16 @@ export default function OnboardingQuestionnaire() {
                         style={styles.tabsScrollView}
                     >
                         {QUESTIONS.map((question, index) => {
-                            const isAnswered = answers[question.id] !== undefined;
+                            const isAnswered = (() => {
+                                if (question.type === 'text') {
+                                    return textInputs[question.id] && textInputs[question.id].trim().length > 0;
+                                } else if (question.type === 'multiple-choice' || question.type === 'scale') {
+                                    return answers[question.id] !== undefined;
+                                } else if (question.type === 'file') {
+                                    return uploadedFiles[question.id] !== undefined;
+                                }
+                                return false;
+                            })();
                             const isCurrent = index === currentQuestionIndex;
 
                             return (
@@ -673,6 +818,16 @@ export default function OnboardingQuestionnaire() {
                         <ThemedText type="title" style={styles.questionText}>
                             {currentQuestion.text}
                         </ThemedText>
+
+                        {/* Show warning if on last question but not all questions are answered */}
+                        {isLastQuestion && !areAllQuestionsAnswered() && (
+                            <ModernCard variant="outlined" style={styles.incompleteWarning}>
+                                <ThemedText style={styles.incompleteWarningText}>
+                                    ⚠️ You must answer all {QUESTIONS.length} questions before completing the questionnaire.
+                                    You have completed {getCompletedQuestionsCount()} of {QUESTIONS.length} questions.
+                                </ThemedText>
+                            </ModernCard>
+                        )}
                     </ThemedView>
 
                     {/* Answer Options */}
@@ -694,10 +849,10 @@ export default function OnboardingQuestionnaire() {
                     <TouchableOpacity
                         style={[
                             styles.nextButton,
-                            (!isAnswerValid()) && styles.disabledButton
+                            (isLastQuestion ? !areAllQuestionsAnswered() : !isAnswerValid()) && styles.disabledButton
                         ]}
                         onPress={handleNext}
-                        disabled={!isAnswerValid()}
+                        disabled={isLastQuestion ? !areAllQuestionsAnswered() : !isAnswerValid()}
                     >
                         <ThemedText style={styles.nextButtonText}>
                             {isLastQuestion ? 'Complete' : 'Next'}
@@ -1110,6 +1265,18 @@ const styles = StyleSheet.create({
         borderColor: Colors.dark.primary,
         borderWidth: 2,
         ...Shadows.glow,
+    },
+    incompleteWarning: {
+        marginTop: Spacing.lg,
+        marginBottom: Spacing.lg,
+        backgroundColor: Colors.dark.warning + '20',
+        borderColor: Colors.dark.warning,
+    },
+    incompleteWarningText: {
+        fontSize: 14,
+        color: Colors.dark.warning,
+        textAlign: 'center',
+        fontWeight: '500',
     },
     navigationContainer: {
         flexDirection: 'row',

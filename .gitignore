@@ -40,3 +40,7 @@ uploads/audio/*.webm
 uploads/documents/*
 !uploads/audio/.gitkeep
 !uploads/documents/.gitkeep
+*.wav
+*.mp3
+*.webm
+*.docx

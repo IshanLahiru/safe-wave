@@ -136,52 +136,73 @@ const RecordingCard = React.memo(({
           pressed && styles.recordingCardPressed,
         ]}
       >
-        <ModernCard style={styles.cardContent}>
+        <ModernCard style={{
+          ...styles.cardContent,
+          ...(recording.risk_level ? {
+            borderLeftWidth: 4,
+            borderLeftColor: recording.risk_level === 'critical' ? '#ff4444' :
+              recording.risk_level === 'high' ? '#ff8800' :
+                recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
+          } : {})
+        }}>
+          {/* Risk Level Corner Indicator */}
+          {recording.risk_level && (
+            <View style={[
+              styles.riskCornerIndicator,
+              {
+                backgroundColor: recording.risk_level === 'critical' ? '#ff4444' :
+                  recording.risk_level === 'high' ? '#ff8800' :
+                    recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
+              }
+            ]} />
+          )}
+
           <View style={styles.recordingHeader}>
             <View style={styles.recordingInfo}>
               <ThemedText style={styles.recordingTime}>
                 {formatTimestamp(recording.timestamp)}
               </ThemedText>
-              <ThemedText style={styles.recordingDuration}>
-                {recording.isPlaying
-                  ? `${formatDuration(recording.playbackProgress || 0)} / ${formatDuration(recording.duration)}`
-                  : formatDuration(recording.duration)
-                }
-              </ThemedText>
             </View>
 
-            <TouchableOpacity
-              style={[
-                styles.playButton,
-                recording.isPlaying && styles.playingButton
-              ]}
-              onPress={(e) => {
-                e.stopPropagation();
-                handlePlayPress();
-              }}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={recording.isPlaying ? 'pause' : 'play'}
-                size={20}
-                color={Colors.light.background}
-              />
-            </TouchableOpacity>
+            {/* Risk Level Chip - Only Visible When Collapsed */}
+            {recording.risk_level && !recording.isExpanded && (
+              <View style={[
+                styles.riskLevelChip,
+                {
+                  backgroundColor: recording.risk_level === 'critical' ? '#ff4444' + '20' :
+                    recording.risk_level === 'high' ? '#ff8800' + '20' :
+                      recording.risk_level === 'medium' ? '#ffaa00' + '20' : '#4CAF50' + '20',
+                  borderColor: recording.risk_level === 'critical' ? '#ff4444' :
+                    recording.risk_level === 'high' ? '#ff8800' :
+                      recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
+                }
+              ]}>
+                <Ionicons
+                  name={recording.risk_level === 'critical' ? 'warning' :
+                    recording.risk_level === 'high' ? 'alert-circle' :
+                      recording.risk_level === 'medium' ? 'information-circle' : 'checkmark-circle'}
+                  size={14}
+                  color={recording.risk_level === 'critical' ? '#ff4444' :
+                    recording.risk_level === 'high' ? '#ff8800' :
+                      recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'}
+                />
+                <ThemedText style={[
+                  styles.riskLevelChipText,
+                  {
+                    color: recording.risk_level === 'critical' ? '#ff4444' :
+                      recording.risk_level === 'high' ? '#ff8800' :
+                        recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
+                  }
+                ]}>
+                  {recording.risk_level === 'critical' ? 'Critical' :
+                    recording.risk_level === 'high' ? 'High' :
+                      recording.risk_level === 'medium' ? 'Medium' : 'Low'}
+                </ThemedText>
+              </View>
+            )}
           </View>
 
-          {/* Audio Playback Progress Bar */}
-          {recording.isPlaying && (
-            <View style={styles.audioProgressContainer}>
-              <View style={styles.audioProgressBar}>
-                <View
-                  style={[
-                    styles.audioProgressFill,
-                    { width: `${(recording.playbackPosition || 0) * 100}%` }
-                  ]}
-                />
-              </View>
-            </View>
-          )}
+
 
           {/* Progress and Status Indicators */}
           {recording.is_uploading && (
@@ -1222,14 +1243,18 @@ export default function CheckinScreen() {
                 styles.recordButtonInner,
                 {
                   transform: [{ scale: isRecording ? pulseAnimation : 1 }],
+                  backgroundColor: 'transparent', // No background when not recording
                 },
               ]}
             >
-              <Ionicons
-                name={isRecording ? 'stop' : 'mic'}
-                size={32}
-                color={Colors.light.background}
-              />
+              <View style={styles.smileEmojiContainer}>
+                <ThemedText style={[
+                  styles.smileEmoji,
+                  isRecording && styles.recordingEmoji
+                ]}>
+                  😊
+                </ThemedText>
+              </View>
             </Animated.View>
           </TouchableOpacity>
         </View>
@@ -1260,7 +1285,7 @@ export default function CheckinScreen() {
                 Ready to record
               </ThemedText>
               <ThemedText style={styles.recordingHint}>
-                Tap the microphone to start
+                Tap the smile to start
               </ThemedText>
             </>
           )}
@@ -1277,7 +1302,7 @@ export default function CheckinScreen() {
       ]}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <ThemedText style={styles.sectionTitle}>Recent Recordings</ThemedText>
+            <ThemedText style={styles.sectionTitle}>Recent</ThemedText>
             <TouchableOpacity
               style={styles.refreshButton}
               onPress={refreshRecordings}
@@ -1431,7 +1456,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8,
@@ -1448,6 +1473,33 @@ const styles = StyleSheet.create({
   recordButtonInner: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  smileEmojiContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 80,
+    height: 80,
+  },
+
+  smileEmoji: {
+    fontSize: 80,
+    color: '#000000', // Black fill
+    textAlign: 'center',
+    lineHeight: 80,
+  },
+
+  stopButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 80,
+    height: 80,
+    backgroundColor: Colors.light.danger,
+    borderRadius: 40,
+  },
+
+  recordingEmoji: {
+    color: Colors.light.background, // White color when recording
   },
 
   recordingStatus: {
@@ -1521,6 +1573,7 @@ const styles = StyleSheet.create({
 
   cardContent: {
     padding: 16,
+    position: 'relative',
   },
 
   recordingHeader: {
@@ -1545,18 +1598,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 
-  playButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.light.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 
-  playingButton: {
-    backgroundColor: Colors.light.danger,
-  },
 
   transcriptionPreview: {
     marginTop: 12,
@@ -1625,6 +1667,35 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
+  },
+
+  riskCornerIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    zIndex: 10,
+  },
+
+  riskLevelChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    minWidth: 60,
+    justifyContent: 'center',
+  },
+
+  riskLevelChipText: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginLeft: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   // Progress and Status Styles

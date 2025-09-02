@@ -205,10 +205,12 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.dark.background,
   },
   scrollContent: {
     padding: 20,
     paddingBottom: 40,
+    backgroundColor: Colors.dark.background,
   },
   header: {
     alignItems: 'center',
@@ -257,7 +259,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.03)',
+    backgroundColor: Colors.dark.inputBackground,
     borderRadius: 15,
     paddingHorizontal: 16,
     marginBottom: 16,
@@ -296,7 +298,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   signupButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.dark.primary,
     borderRadius: 15,
     paddingVertical: 16,
     alignItems: 'center',

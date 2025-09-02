@@ -58,7 +58,7 @@ def test_onboarding_analysis():
         print("📧 Attempting to send test email...")
         
         # For testing, we'll use a dummy email (replace with real email for actual testing)
-        test_email = "test@example.com"  # Replace with your email for testing
+        test_email = "ishanlahiru2002@gmail.com"  # Your actual email for testing
         
         email_sent = email_service.send_onboarding_analysis_alert(
             to_email=test_email,

@@ -129,7 +129,7 @@ export default function LoginScreen() {
             <IconSymbol size={60} name="waveform" color={Colors.dark.primary} />
           </ThemedView>
           <ThemedText type="title" style={styles.title}>
-            🌊 Welcome Back
+            Welcome Back
           </ThemedText>
           <ThemedText type="body" style={styles.subtitle}>
             Sign in to continue your safe journey
@@ -146,9 +146,9 @@ export default function LoginScreen() {
               }
             ]} />
             <ThemedText type="caption" style={styles.backendStatusText}>
-              {backendStatus === 'online' ? 'Backend Online' :
-                backendStatus === 'offline' ? 'Backend Offline' :
-                  'Checking Backend...'}
+              {backendStatus === 'online' ? 'Online' :
+                backendStatus === 'offline' ? 'Offline' :
+                  'Checking...'}
             </ThemedText>
           </View>
         </ThemedView>
@@ -193,55 +193,6 @@ export default function LoginScreen() {
               {isLoading ? 'Signing In...' : 'Sign In'}
             </ThemedText>
           </TouchableOpacity>
-
-          {/* Debug Login Button */}
-          <TouchableOpacity
-            style={[styles.debugButton]}
-            onPress={async () => {
-              try {
-                console.log('🧪 Testing debug login...');
-                console.log('📧 Email:', email);
-                console.log('🔑 Password:', password);
-                console.log('🌐 Backend URL:', API_CONFIG.BASE_URL);
-
-                // Test backend connectivity
-                const healthResponse = await fetch(`${API_CONFIG.BASE_URL}/health/`);
-                console.log('🏥 Health check status:', healthResponse.status);
-
-                if (healthResponse.ok) {
-                  // Test login endpoint directly
-                  const loginResponse = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                  });
-
-                  console.log('🔐 Login endpoint status:', loginResponse.status);
-
-                  if (loginResponse.ok) {
-                    const loginData = await loginResponse.json();
-                    console.log('✅ Login endpoint response:', loginData);
-                    Alert.alert('✅ Debug Login', 'Login endpoint is working! Check console for details.');
-                  } else {
-                    const errorData = await loginResponse.json().catch(() => ({}));
-                    console.log('❌ Login endpoint error:', errorData);
-                    Alert.alert('❌ Debug Login', `Login endpoint failed: ${loginResponse.status}\n${errorData.detail || 'Unknown error'}`);
-                  }
-                } else {
-                  Alert.alert('❌ Backend Offline', 'Backend health check failed');
-                }
-              } catch (error) {
-                console.error('❌ Debug login failed:', error);
-                Alert.alert('❌ Debug Error', error instanceof Error ? error.message : 'Unknown error');
-              }
-            }}
-          >
-            <IconSymbol size={20} name="ladybug.fill" color={Colors.dark.primary} />
-            <ThemedText type="caption" style={styles.debugButtonText}>
-              Debug Login
-            </ThemedText>
-          </TouchableOpacity>
-
           {/* Error Message */}
           {errorMessage ? (
             <View style={styles.errorContainer}>
@@ -261,72 +212,6 @@ export default function LoginScreen() {
               Create New Account
             </ThemedText>
           </TouchableOpacity>
-
-          {/* Debug Information */}
-          <ModernCard variant="outlined" style={styles.debugCard}>
-            <ThemedText type="heading" style={styles.debugTitle}>
-              🔍 Debug Info
-            </ThemedText>
-            <ThemedText type="body" style={styles.debugText}>
-              User: {user ? 'Logged In' : 'Not Logged In'}
-            </ThemedText>
-            <ThemedText type="body" style={styles.debugText}>
-              Onboarding: {user?.isOnboardingComplete ? 'Complete' : 'Incomplete'}
-            </ThemedText>
-          </ModernCard>
-
-          {/* Network Test Button */}
-          <TouchableOpacity
-            style={styles.networkTestButton}
-            onPress={async () => {
-              try {
-                const response = await fetch(`${API_CONFIG.BASE_URL}/health/`);
-                const data = await response.json();
-                Alert.alert('Network Test', `Backend connected: ${data.message}`);
-              } catch (error) {
-                Alert.alert('Network Test', `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-              }
-            }}
-          >
-            <ThemedText style={styles.networkTestButtonText}>
-              🔧 Test Network Connection
-            </ThemedText>
-          </TouchableOpacity>
-
-          {/* Token Status Debug Button */}
-          <TouchableOpacity
-            style={styles.tokenDebugButton}
-            onPress={async () => {
-              try {
-                const tokenStatus = apiService.getTokenStatus();
-                const statusText = JSON.stringify(tokenStatus, null, 2);
-                Alert.alert('Token Status', statusText);
-              } catch (error) {
-                Alert.alert('Token Status Error', error instanceof Error ? error.message : 'Unknown error');
-              }
-            }}
-          >
-            <ThemedText style={styles.tokenDebugButtonText}>
-              🔍 Check Token Status
-            </ThemedText>
-          </TouchableOpacity>
-
-          {/* Manual Token Refresh Button */}
-          <TouchableOpacity
-            style={styles.tokenRefreshButton}
-            onPress={async () => {
-              try {
-                const success = await apiService.manualRefreshToken();
-                Alert.alert('Token Refresh', success ? 'Token refreshed successfully!' : 'Token refresh failed');
-              } catch (error) {
-                Alert.alert('Token Refresh Error', error instanceof Error ? error.message : 'Unknown error');
-              }
-            }}
-          >
-            <ThemedText style={styles.tokenDebugButtonText}>
-              🔄 Manual Token Refresh
-            </ThemedText>
-          </TouchableOpacity>
         </ThemedView>
       </ScrollView>
     </SafeAreaView>
@@ -336,11 +221,13 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.dark.background,
   },
   header: {
     alignItems: 'center',
     marginBottom: 40,
     paddingTop: 20,
+    backgroundColor: Colors.dark.background,
   },
   title: {
     fontSize: 28,
@@ -361,7 +248,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
   },
   backendStatusDot: {
     width: 8,
@@ -397,7 +283,7 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: Colors.dark.background,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.2)',
     borderRadius: BorderRadius.md,
@@ -466,7 +352,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(14, 165, 233, 0.1)',
+    backgroundColor: Colors.dark.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -475,76 +361,5 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  debugCard: {
-    width: '100%',
-    maxWidth: 350,
-    marginTop: Spacing.lg,
-  },
-  debugTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  debugText: {
-    fontSize: 14,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  networkTestButton: {
-    backgroundColor: '#FF9500',
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    width: '100%',
-    maxWidth: 350,
-  },
-  networkTestButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  tokenDebugButton: {
-    backgroundColor: '#5856D6',
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    width: '100%',
-    maxWidth: 350,
-  },
-  tokenRefreshButton: {
-    backgroundColor: '#34C759',
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-    marginTop: Spacing.lg,
-    width: '100%',
-    maxWidth: 350,
-  },
-  tokenDebugButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  debugButton: {
-    backgroundColor: Colors.dark.primary,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    alignItems: 'center',
-    marginTop: Spacing.sm,
-    width: '100%',
-    maxWidth: 350,
-    borderWidth: 1,
-    borderColor: Colors.dark.primary,
-  },
-  debugButtonText: {
-    color: Colors.dark.background,
-    fontSize: 14,
-    fontWeight: '500',
-  },
+
 });
