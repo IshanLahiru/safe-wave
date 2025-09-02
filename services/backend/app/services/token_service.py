@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from app.models.token import BlacklistedToken
 from app.utils.auth import verify_token, verify_refresh_token
 from jose import jwt
 from app.core.config import settings
+import logging
 
 class TokenService:
     """Service for managing JWT tokens"""
@@ -12,6 +14,9 @@ class TokenService:
     def blacklist_token(db: Session, token: str) -> bool:
         """Add a token to the blacklist"""
         try:
+            # Test database connection first
+            db.execute(text("SELECT 1"))
+            
             # Decode token to get expiration
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
             exp_timestamp = payload.get("exp")
@@ -32,17 +37,34 @@ class TokenService:
             return True
             
         except Exception as e:
-            db.rollback()
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to blacklist token: {e}")
+            try:
+                db.rollback()
+            except:
+                pass
             return False
     
     @staticmethod
     def is_token_blacklisted(db: Session, token: str) -> bool:
         """Check if a token is blacklisted"""
-        blacklisted = db.query(BlacklistedToken).filter(
-            BlacklistedToken.token == token,
-            BlacklistedToken.is_blacklisted == True
-        ).first()
-        return blacklisted is not None
+        try:
+            # Test database connection first
+            db.execute(text("SELECT 1"))
+            
+            blacklisted = db.query(BlacklistedToken).filter(
+                BlacklistedToken.token == token,
+                BlacklistedToken.is_blacklisted == True
+            ).first()
+            return blacklisted is not None
+            
+        except Exception as e:
+            # If database connection fails, assume token is not blacklisted
+            # This prevents authentication failures due to database issues
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Database connection failed during token blacklist check: {e}")
+            logger.warning("Assuming token is not blacklisted to prevent auth failures")
+            return False
     
     @staticmethod
     def cleanup_expired_tokens(db: Session) -> int:

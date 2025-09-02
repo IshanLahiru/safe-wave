@@ -81,7 +81,7 @@ class UserController:
         user.preferences["checkinFrequency"] = onboarding_data.checkin_frequency or "Daily"
         
         # Store onboarding answers
-        user.onboarding_answers = onboarding_data.dict()
+        user.onboarding_answers = onboarding_data.model_dump() if hasattr(onboarding_data, 'model_dump') else onboarding_data.dict()
         
         # Mark onboarding as complete
         user.is_onboarding_complete = True
