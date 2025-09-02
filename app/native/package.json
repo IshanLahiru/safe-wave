@@ -3,13 +3,16 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+    "dev": "expo start",
     "start": "expo start",
+    "build": "expo export",
     "reset-project": "node ./scripts/reset-project.js",
     "update-ip": "node ./scripts/update-ip.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "clean": "rm -rf .expo dist"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

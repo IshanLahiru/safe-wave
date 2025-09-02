@@ -1,0 +1,29 @@
+{
+  "name": "safe-wave-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Safe Wave monorepo with Turborepo",
+  "workspaces": [
+    "app/native",
+    "services/backend"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:frontend": "turbo run dev --filter=native",
+    "dev:backend": "turbo run dev --filter=backend",
+    "dev:all": "turbo run dev",
+    "build": "turbo run build",
+    "build:frontend": "turbo run build --filter=native",
+    "lint": "turbo run lint",
+    "lint:frontend": "turbo run lint --filter=native",
+    "test": "turbo run test",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0"
+  },
+  "packageManager": "npm@10.0.0",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
