@@ -23,10 +23,10 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
   const [isUploading, setIsUploading] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioUri, setAudioUri] = useState<string | null>(null);
-  
+
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
-  
+
   const recordingRef = useRef<NodeJS.Timeout | null>(null);
 
   const startRecording = async () => {
@@ -35,17 +35,17 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
       // For now, we'll simulate recording
       setIsRecording(true);
       setRecordingTime(0);
-      
+
       // Simulate recording timer
       recordingRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
-      
+
       // Simulate recording completion after 10 seconds
       setTimeout(() => {
         stopRecording();
       }, 10000);
-      
+
     } catch (error) {
       Alert.alert('Error', 'Failed to start recording');
     }
@@ -56,9 +56,9 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
       clearInterval(recordingRef.current);
       recordingRef.current = null;
     }
-    
+
     setIsRecording(false);
-    
+
     // Simulate audio file creation
     const mockAudioUri = `file://mock-audio-${Date.now()}.wav`;
     setAudioUri(mockAudioUri);
@@ -72,27 +72,46 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
     try {
       // Create form data for upload
       const formData = new FormData();
-      formData.append('file', {
+      // Proper React Native file object formatting
+      const fileObject = {
         uri: audioUri,
         type: 'audio/wav',
         name: 'audio-message.wav',
-      } as any);
-      
+      };
+
+      formData.append('file', fileObject);
+
       formData.append('description', 'Voice message');
       formData.append('mood_rating', '5');
 
+      console.log('📁 FormData created with file:', fileObject);
+      console.log('📁 Audio URI:', audioUri);
+
       // Upload to backend
       const response = await apiService.uploadAudio(formData);
-      
+
       if (onAnalysisComplete) {
         onAnalysisComplete(response);
       }
-      
+
       Alert.alert('Success', 'Audio uploaded and analysis started!');
-      
+
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload audio');
       console.error('Upload error:', error);
+
+      // Better error handling
+      let errorMessage = 'Failed to upload audio';
+      if (error instanceof Error) {
+        if (error.message.includes('422')) {
+          errorMessage = 'Invalid file format. Please try again.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Upload timeout. Please try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -182,7 +201,7 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
 
       <View style={styles.info}>
         <ThemedText style={styles.infoText}>
-          💡 Tip: Speak naturally about your day, feelings, or concerns. 
+          💡 Tip: Speak naturally about your day, feelings, or concerns.
           Our AI will analyze your message and provide insights.
         </ThemedText>
       </View>
