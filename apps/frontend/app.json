@@ -1,22 +1,48 @@
 {
   "expo": {
-    "name": "native",
-    "slug": "native",
+    "name": "frontend",
+    "slug": "safewave",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "native",
+    "scheme": "safe-wave",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "platforms": ["ios", "android", "web"],
+    "sdkVersion": "53.0.0",
+    "runtimeVersion": "1.0.0",
+    "jsEngine": "jsc",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.safewave.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Safe Wave to access your camera for audio recording.",
+        "NSMicrophoneUsageDescription": "Allow Safe Wave to access your microphone for audio recording.",
+        "NSLocationWhenInUseUsageDescription": "Allow Safe Wave to use your location for emergency services.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow Safe Wave to use your location for emergency services."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.safewave.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +58,25 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-secure-store",
+      "expo-av",
+      "expo-document-picker",
+      "expo-file-system",
+      "expo-media-library",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Safe Wave to access your camera for audio recording.",
+          "microphonePermission": "Allow Safe Wave to access your microphone for audio recording.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Safe Wave to use your location for emergency services."
         }
       ]
     ],
