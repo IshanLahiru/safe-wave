@@ -19,9 +19,71 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
 import { apiService } from '@/services/api';
-import { LinearGradient } from 'expo-linear-gradient';
+
 
 const { width } = Dimensions.get('window');
+
+// Enhanced interfaces for better type safety
+interface ContentCategory {
+  id: number;
+  name: string;
+  color: string;
+}
+
+interface Video {
+  id: number;
+  title: string;
+  description: string;
+  youtube_id: string;
+  thumbnail_url: string;
+  duration: number;
+  category: ContentCategory;
+  stress_level: string;
+  mood_boost: number;
+  is_favorite?: boolean;
+}
+
+interface MealPlan {
+  id: number;
+  title: string;
+  description: string;
+  difficulty: string;
+  prep_time: number;
+  cook_time?: number;
+  servings?: number;
+  calories_per_serving?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  stress_reduction_benefits?: string[];
+  mood_boost_ingredients?: string[];
+  ingredients?: string[];
+  instructions?: string[];
+  tips?: string;
+  image_url: string;
+  video_url?: string | null;
+  category: ContentCategory;
+  is_featured?: boolean;
+  created_at?: string;
+  is_favorite?: boolean;
+}
+
+interface Article {
+  id: number;
+  title: string;
+  excerpt: string;
+  read_time: number;
+  image_url: string;
+  category: ContentCategory;
+  is_favorite?: boolean;
+}
+
+interface Quote {
+  id: number;
+  text: string;
+  author: string;
+  category: ContentCategory;
+}
 
 interface HomeContent {
   featured_videos: Array<{
@@ -100,6 +162,37 @@ export default function HomeScreen() {
   const [userDocuments, setUserDocuments] = useState<any[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
 
+  // Content lists for expanded sections
+  const [contentLists, setContentLists] = useState<{
+    videos: Video[];
+    articles: Article[];
+    mealPlans: MealPlan[];
+    quotes: Quote[];
+  }>({
+    videos: [],
+    articles: [],
+    mealPlans: [],
+    quotes: [],
+  });
+
+  // Loading states for expanded sections
+  const [expandedLoading, setExpandedLoading] = useState<{
+    videos: boolean;
+    articles: boolean;
+    mealPlans: boolean;
+    quotes: boolean;
+  }>({
+    videos: false,
+    articles: false,
+    mealPlans: false,
+    quotes: false,
+  });
+
+  // Meal plan modal state
+  const [showMealPlanModal, setShowMealPlanModal] = useState(false);
+  const [selectedMealPlan, setSelectedMealPlan] = useState<MealPlan | null>(null);
+  const [mealPlanModalLoading, setMealPlanModalLoading] = useState(false);
+
   // Progress tracking state
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [showProgressHistory, setShowProgressHistory] = useState(false);
@@ -137,6 +230,14 @@ export default function HomeScreen() {
       const response = await apiService.request<HomeContent>('/content/home-content');
       console.log('Home content received via apiService:', response);
       setHomeContent(response);
+
+      // Initialize content lists with featured content
+      setContentLists({
+        videos: response.featured_videos || [],
+        articles: response.featured_articles || [],
+        mealPlans: response.featured_meal_plans || [],
+        quotes: response.daily_quote ? [response.daily_quote] : [],
+      });
     } catch (err) {
       console.error('Failed to fetch home content:', err);
       setError(`Failed to load content: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -232,6 +333,41 @@ export default function HomeScreen() {
       meditation_minutes: 15,
       notes: '',
     });
+  };
+
+  // Meal plan modal functions
+  const openMealPlanModal = async (mealPlan: MealPlan) => {
+    // If the meal plan doesn't have full details, fetch them
+    if (!mealPlan.ingredients || !mealPlan.instructions || mealPlan.ingredients.length === 0 || mealPlan.instructions.length === 0) {
+      try {
+        setMealPlanModalLoading(true);
+        const response = await apiService.request(`/content/meal-plans/${mealPlan.id}`);
+        if (response && typeof response === 'object') {
+          // Merge the response with the original meal plan to ensure all required fields are present
+          const fullMealPlan: MealPlan = {
+            ...mealPlan,
+            ...response,
+          };
+          setSelectedMealPlan(fullMealPlan);
+        } else {
+          setSelectedMealPlan(mealPlan);
+        }
+      } catch (err) {
+        console.error('Failed to fetch full meal plan details:', err);
+        setSelectedMealPlan(mealPlan);
+      } finally {
+        setMealPlanModalLoading(false);
+      }
+    } else {
+      setSelectedMealPlan(mealPlan);
+    }
+
+    setShowMealPlanModal(true);
+  };
+
+  const closeMealPlanModal = () => {
+    setShowMealPlanModal(false);
+    setSelectedMealPlan(null);
   };
 
   const updateProgress = async () => {
@@ -373,6 +509,42 @@ export default function HomeScreen() {
     }
   };
 
+  // Function to fetch all videos when section is expanded
+  const fetchAllVideos = async () => {
+    try {
+      setExpandedLoading(prev => ({ ...prev, videos: true }));
+      const response = await apiService.request('/content/videos/public?limit=50');
+      if (response && response.videos) {
+        setContentLists(prev => ({
+          ...prev,
+          videos: response.videos,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch all videos:', err);
+    } finally {
+      setExpandedLoading(prev => ({ ...prev, videos: false }));
+    }
+  };
+
+  // Function to fetch all meal plans when section is expanded
+  const fetchAllMealPlans = async () => {
+    try {
+      setExpandedLoading(prev => ({ ...prev, mealPlans: true }));
+      const response = await apiService.request('/content/meal-plans/public?limit=50');
+      if (response && response.meal_plans) {
+        setContentLists(prev => ({
+          ...prev,
+          mealPlans: response.meal_plans,
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch all meal plans:', err);
+    } finally {
+      setExpandedLoading(prev => ({ ...prev, mealPlans: false }));
+    }
+  };
+
   if (loading && !homeContent) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -390,10 +562,7 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Welcome Header */}
-        <LinearGradient
-          colors={[Colors.dark.primary, Colors.dark.secondary]}
-          style={styles.welcomeHeader}
-        >
+        <View style={styles.welcomeHeader}>
           <View style={styles.welcomeContent}>
             <IconSymbol size={40} name='heart.fill' color={Colors.dark.background} />
             <View style={styles.welcomeText}>
@@ -405,7 +574,7 @@ export default function HomeScreen() {
               </ThemedText>
             </View>
           </View>
-        </LinearGradient>
+        </View>
 
         {error && (
           <ModernCard variant='outlined' style={styles.errorCard}>
@@ -443,120 +612,7 @@ export default function HomeScreen() {
           </ModernCard>
         )}
 
-        {/* Quick Wellness Check */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type='heading' style={styles.sectionTitle}>
-              How are you feeling today?
-            </ThemedText>
-            <View style={styles.wellnessActions}>
-              <View style={styles.streakIndicator}>
-                <IconSymbol size={16} name='flame.fill' color={Colors.dark.warning} />
-                <ThemedText type='caption' style={styles.streakText}>
-                  {homeContent?.user_progress ? '3' : '0'} day streak
-                </ThemedText>
-              </View>
-              <TouchableOpacity
-                style={styles.historyButton}
-                onPress={() => {
-                  fetchProgressHistory();
-                  setShowProgressHistory(true);
-                }}
-              >
-                <IconSymbol
-                  size={16}
-                  name='chart.line.uptrend.xyaxis'
-                  color={Colors.dark.secondary}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.updateProgressButton} onPress={openProgressModal}>
-                <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <ModernCard variant='elevated' style={styles.wellnessCard}>
-            <View style={styles.wellnessGrid}>
-              <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name='heart.fill' color={Colors.dark.success} />
-                <ThemedText type='caption' style={styles.wellnessLabel}>
-                  Mood
-                </ThemedText>
-                <ThemedText type='body' style={styles.wellnessValue}>
-                  {homeContent?.user_progress?.mood_rating
-                    ? getMoodEmoji(homeContent.user_progress.mood_rating)
-                    : '—'}
-                </ThemedText>
-              </TouchableOpacity>
 
-              <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol
-                  size={32}
-                  name='brain.head.profile'
-                  color={getStressLevelColor(homeContent?.user_progress?.stress_level || 5)}
-                />
-                <ThemedText type='caption' style={styles.wellnessLabel}>
-                  Stress
-                </ThemedText>
-                <ThemedText type='body' style={styles.wellnessValue}>
-                  {homeContent?.user_progress?.stress_level || '—'}
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name='bed.double.fill' color={Colors.dark.primary} />
-                <ThemedText type='caption' style={styles.wellnessLabel}>
-                  Sleep
-                </ThemedText>
-                <ThemedText type='body' style={styles.wellnessValue}>
-                  {homeContent?.user_progress?.sleep_hours
-                    ? `${homeContent.user_progress.sleep_hours}h`
-                    : '—'}
-                </ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.wellnessItem}>
-                <IconSymbol size={32} name='figure.walk' color={Colors.dark.warning} />
-                <ThemedText type='caption' style={styles.wellnessLabel}>
-                  Exercise
-                </ThemedText>
-                <ThemedText type='body' style={styles.wellnessValue}>
-                  {homeContent?.user_progress?.exercise_minutes
-                    ? `${homeContent.user_progress.exercise_minutes}m`
-                    : '—'}
-                </ThemedText>
-              </TouchableOpacity>
-            </View>
-
-            {/* Progress Summary */}
-            {homeContent?.user_progress && (
-              <View style={styles.progressSummary}>
-                <View style={styles.progressStats}>
-                  <View style={styles.progressStat}>
-                    <IconSymbol size={16} name='bed.double.fill' color={Colors.dark.primary} />
-                    <ThemedText type='caption' style={styles.progressStatText}>
-                      {homeContent.user_progress.sleep_hours || 0}h sleep
-                    </ThemedText>
-                  </View>
-                  <View style={styles.progressStat}>
-                    <IconSymbol size={16} name='figure.walk' color={Colors.dark.warning} />
-                    <ThemedText type='caption' style={styles.progressStatText}>
-                      {homeContent.user_progress.exercise_minutes || 0}m exercise
-                    </ThemedText>
-                  </View>
-                  <View style={styles.progressStat}>
-                    <IconSymbol size={16} name='brain.head.profile' color={Colors.dark.secondary} />
-                    <ThemedText type='caption' style={styles.progressStatText}>
-                      {homeContent.user_progress.meditation_minutes || 0}m meditation
-                    </ThemedText>
-                  </View>
-                </View>
-                <ThemedText type='caption' style={styles.progressSummaryText}>
-                  Track your daily wellness to see patterns over time
-                </ThemedText>
-              </View>
-            )}
-          </ModernCard>
-        </View>
 
         {/* Featured Videos - Dynamic from API */}
         <View style={styles.section}>
@@ -566,7 +622,13 @@ export default function HomeScreen() {
             </ThemedText>
             <TouchableOpacity
               style={styles.viewAllButton}
-              onPress={() => setShowAllVideos(!showAllVideos)}
+              onPress={async () => {
+                if (!showAllVideos) {
+                  // Fetch all videos when expanding
+                  await fetchAllVideos();
+                }
+                setShowAllVideos(!showAllVideos);
+              }}
             >
               <ThemedText type='caption' style={styles.viewAllButtonText}>
                 {showAllVideos ? 'Show Less' : 'View All'}
@@ -642,65 +704,64 @@ export default function HomeScreen() {
                   <ThemedText type='body' style={styles.expandedTitle}>
                     All Videos
                   </ThemedText>
-                  <View style={styles.videoGrid}>
-                    {homeContent.featured_videos.map(video => (
-                      <TouchableOpacity
-                        key={`expanded-${video.id}`}
-                        style={styles.expandedVideoCard}
-                        onPress={() => openYouTubeVideo(video.youtube_id)}
-                      >
-                        <View style={styles.expandedVideoThumbnail}>
-                          <Image
-                            source={{
-                              uri:
-                                video.thumbnail_url ||
-                                'https://via.placeholder.com/200x120/4A90E2/FFFFFF?text=Video',
-                            }}
-                            style={styles.expandedThumbnailImage}
-                            resizeMode='cover'
-                          />
-                          <View style={styles.videoOverlay}>
-                            <IconSymbol size={20} name='play.fill' color={Colors.dark.background} />
+
+                  {expandedLoading.videos ? (
+                    <View style={styles.expandedLoading}>
+                      <ActivityIndicator size="large" color={Colors.dark.primary} />
+                      <ThemedText type="body" style={styles.expandedLoadingText}>
+                        Loading all videos...
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <View style={styles.videoGrid}>
+                      {contentLists.videos.map(video => (
+                        <TouchableOpacity
+                          key={`expanded-${video.id}`}
+                          style={styles.expandedVideoCard}
+                          onPress={() => openYouTubeVideo(video.youtube_id)}
+                        >
+                          <View style={styles.expandedVideoThumbnail}>
+                            <Image
+                              source={{
+                                uri:
+                                  video.thumbnail_url ||
+                                  'https://via.placeholder.com/200x120/4A90E2/FFFFFF?text=Video',
+                              }}
+                              style={styles.expandedThumbnailImage}
+                              resizeMode='cover'
+                            />
+                            <View style={styles.videoOverlay}>
+                              <IconSymbol size={20} name='play.fill' color={Colors.dark.background} />
+                            </View>
                           </View>
-                        </View>
-                        <View style={styles.expandedVideoInfo}>
-                          <ThemedText
-                            type='caption'
-                            style={styles.expandedVideoTitle}
-                            numberOfLines={2}
-                          >
-                            {video.title}
-                          </ThemedText>
-                          <View style={styles.expandedVideoMeta}>
-                            <View
-                              style={[
-                                styles.stressLevel,
-                                { backgroundColor: video.category.color },
-                              ]}
+                          <View style={styles.expandedVideoInfo}>
+                            <ThemedText
+                              type='caption'
+                              style={styles.expandedVideoTitle}
+                              numberOfLines={2}
                             >
-                              <ThemedText type='caption' style={styles.stressLevelText}>
-                                {video.stress_level}
+                              {video.title}
+                            </ThemedText>
+                            <View style={styles.expandedVideoMeta}>
+                              <View
+                                style={[
+                                  styles.stressLevel,
+                                  { backgroundColor: video.category.color },
+                                ]}
+                              >
+                                <ThemedText type='caption' style={styles.stressLevelText}>
+                                  {video.stress_level}
+                                </ThemedText>
+                              </View>
+                              <ThemedText type='caption' style={styles.moodBoost}>
+                                😊 +{video.mood_boost}
                               </ThemedText>
                             </View>
-                            <ThemedText type='caption' style={styles.moodBoost}>
-                              😊 +{video.mood_boost}
-                            </ThemedText>
                           </View>
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  {/* Load More Button */}
-                  <TouchableOpacity
-                    style={styles.loadMoreButton}
-                    onPress={() => loadMoreContent('videos')}
-                  >
-                    <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
-                    <ThemedText type='caption' style={styles.loadMoreButtonText}>
-                      Load More Videos
-                    </ThemedText>
-                  </TouchableOpacity>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
                 </View>
               )}
             </>
@@ -727,7 +788,13 @@ export default function HomeScreen() {
               </ThemedText>
               <TouchableOpacity
                 style={styles.viewAllButton}
-                onPress={() => setShowAllMealPlans(!showAllMealPlans)}
+                onPress={async () => {
+                  if (!showAllMealPlans) {
+                    // Fetch all meal plans when expanding
+                    await fetchAllMealPlans();
+                  }
+                  setShowAllMealPlans(!showAllMealPlans);
+                }}
               >
                 <ThemedText type='caption' style={styles.viewAllButtonText}>
                   {showAllMealPlans ? 'Show Less' : 'View All'}
@@ -740,45 +807,50 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             {homeContent.featured_meal_plans.map(meal => (
-              <ModernCard key={meal.id} variant='elevated' style={styles.mealCard}>
-                <View style={styles.mealContent}>
-                  <View style={styles.mealImageContainer}>
-                    <Image
-                      source={{
-                        uri:
-                          meal.image_url ||
-                          'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal',
-                      }}
-                      style={styles.mealImage}
-                      resizeMode='cover'
-                      defaultSource={{
-                        uri: 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal',
-                      }}
-                    />
-                  </View>
-                  <View style={styles.mealInfo}>
-                    <ThemedText type='body' style={styles.mealTitle}>
-                      {meal.title}
-                    </ThemedText>
-                    <ThemedText type='caption' style={styles.mealDescription} numberOfLines={2}>
-                      {meal.description}
-                    </ThemedText>
-                    <View style={styles.mealMeta}>
-                      <View style={[styles.difficulty, { backgroundColor: meal.category.color }]}>
-                        <ThemedText type='caption' style={styles.difficultyText}>
-                          {meal.difficulty}
-                        </ThemedText>
-                      </View>
-                      <View style={styles.prepTime}>
-                        <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
-                        <ThemedText type='caption' style={styles.prepTimeText}>
-                          {meal.prep_time}m
-                        </ThemedText>
+              <TouchableOpacity
+                key={meal.id}
+                onPress={() => openMealPlanModal(meal)}
+              >
+                <ModernCard variant='elevated' style={styles.mealCard}>
+                  <View style={styles.mealContent}>
+                    <View style={styles.mealImageContainer}>
+                      <Image
+                        source={{
+                          uri:
+                            meal.image_url ||
+                            'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal',
+                        }}
+                        style={styles.mealImage}
+                        resizeMode='cover'
+                        defaultSource={{
+                          uri: 'https://via.placeholder.com/80x80/4CAF50/FFFFFF?text=Meal',
+                        }}
+                      />
+                    </View>
+                    <View style={styles.mealInfo}>
+                      <ThemedText type='body' style={styles.mealTitle}>
+                        {meal.title}
+                      </ThemedText>
+                      <ThemedText type='caption' style={styles.mealDescription} numberOfLines={2}>
+                        {meal.description}
+                      </ThemedText>
+                      <View style={styles.mealMeta}>
+                        <View style={[styles.difficulty, { backgroundColor: meal.category.color }]}>
+                          <ThemedText type='caption' style={styles.difficultyText}>
+                            {meal.difficulty}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.prepTime}>
+                          <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                          <ThemedText type='caption' style={styles.prepTimeText}>
+                            {meal.prep_time}m
+                          </ThemedText>
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
-              </ModernCard>
+                </ModernCard>
+              </TouchableOpacity>
             ))}
 
             {/* Expanded meal plans view */}
@@ -787,67 +859,70 @@ export default function HomeScreen() {
                 <ThemedText type='body' style={styles.expandedTitle}>
                   All Meal Plans
                 </ThemedText>
-                <View style={styles.mealGrid}>
-                  {homeContent.featured_meal_plans.map(meal => (
-                    <ModernCard
-                      key={`expanded-${meal.id}`}
-                      variant='elevated'
-                      style={styles.expandedMealCard}
-                    >
-                      <View style={styles.expandedMealContent}>
-                        <View style={styles.expandedMealImageContainer}>
-                          <Image
-                            source={{
-                              uri:
-                                meal.image_url ||
-                                'https://via.placeholder.com/120x80/4CAF50/FFFFFF?text=Meal',
-                            }}
-                            style={styles.expandedMealImage}
-                            resizeMode='cover'
-                          />
-                        </View>
-                        <View style={styles.expandedMealInfo}>
-                          <ThemedText type='body' style={styles.expandedMealTitle}>
-                            {meal.title}
-                          </ThemedText>
-                          <ThemedText
-                            type='caption'
-                            style={styles.expandedMealDescription}
-                            numberOfLines={2}
-                          >
-                            {meal.description}
-                          </ThemedText>
-                          <View style={styles.expandedMealMeta}>
-                            <View
-                              style={[styles.difficulty, { backgroundColor: meal.category.color }]}
-                            >
-                              <ThemedText type='caption' style={styles.difficultyText}>
-                                {meal.difficulty}
-                              </ThemedText>
+
+                {expandedLoading.mealPlans ? (
+                  <View style={styles.expandedLoading}>
+                    <ActivityIndicator size="large" color={Colors.dark.primary} />
+                    <ThemedText type="body" style={styles.expandedLoadingText}>
+                      Loading all meal plans...
+                    </ThemedText>
+                  </View>
+                ) : (
+                  <View style={styles.mealGrid}>
+                    {contentLists.mealPlans.map(meal => (
+                      <TouchableOpacity
+                        key={`expanded-${meal.id}`}
+                        onPress={() => openMealPlanModal(meal)}
+                      >
+                        <ModernCard
+                          variant='elevated'
+                          style={styles.expandedMealCard}
+                        >
+                          <View style={styles.expandedMealContent}>
+                            <View style={styles.expandedMealImageContainer}>
+                              <Image
+                                source={{
+                                  uri:
+                                    meal.image_url ||
+                                    'https://via.placeholder.com/120x80/4CAF50/FFFFFF?text=Meal',
+                                }}
+                                style={styles.expandedMealImage}
+                                resizeMode='cover'
+                              />
                             </View>
-                            <View style={styles.prepTime}>
-                              <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
-                              <ThemedText type='caption' style={styles.prepTimeText}>
-                                {meal.prep_time}m
+                            <View style={styles.expandedMealInfo}>
+                              <ThemedText type='body' style={styles.expandedMealTitle}>
+                                {meal.title}
                               </ThemedText>
+                              <ThemedText
+                                type='caption'
+                                style={styles.expandedMealDescription}
+                                numberOfLines={2}
+                              >
+                                {meal.description}
+                              </ThemedText>
+                              <View style={styles.expandedMealMeta}>
+                                <View
+                                  style={[styles.difficulty, { backgroundColor: meal.category.color }]}
+                                >
+                                  <ThemedText type='caption' style={styles.difficultyText}>
+                                    {meal.difficulty}
+                                  </ThemedText>
+                                </View>
+                                <View style={styles.prepTime}>
+                                  <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                                  <ThemedText type='caption' style={styles.prepTimeText}>
+                                    {meal.prep_time}m
+                                  </ThemedText>
+                                </View>
+                              </View>
                             </View>
                           </View>
-                        </View>
-                      </View>
-                    </ModernCard>
-                  ))}
-                </View>
-
-                {/* Load More Button */}
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={() => loadMoreContent('mealPlans')}
-                >
-                  <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
-                  <ThemedText type='caption' style={styles.loadMoreButtonText}>
-                    Load More Meal Plans
-                  </ThemedText>
-                </TouchableOpacity>
+                        </ModernCard>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
             )}
           </View>
@@ -1010,98 +1085,192 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* User Documents */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <ThemedText type='heading' style={styles.sectionTitle}>
-              Your Documents 📄
-            </ThemedText>
-            <View style={styles.documentActions}>
-              <TouchableOpacity
-                style={styles.searchButton}
-                onPress={() => {
-                  Alert.alert('Search', 'Document search feature coming soon!');
-                }}
-              >
-                <IconSymbol size={16} name='magnifyingglass' color={Colors.dark.primary} />
+
+
+
+      </ScrollView>
+
+      {/* Meal Plan Details Modal */}
+      {showMealPlanModal && selectedMealPlan && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <ThemedText type='heading' style={styles.modalTitle}>
+                {selectedMealPlan.title}
+              </ThemedText>
+              <TouchableOpacity style={styles.closeButton} onPress={closeMealPlanModal}>
+                <IconSymbol size={24} name='xmark' color={Colors.dark.text} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.viewAllButton} onPress={fetchUserDocuments}>
-                <IconSymbol size={16} name='arrow.clockwise' color={Colors.dark.primary} />
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {mealPlanModalLoading ? (
+                <View style={styles.mealPlanModalLoading}>
+                  <ActivityIndicator size='large' color={Colors.dark.primary} />
+                  <ThemedText type='body' style={styles.mealPlanModalLoadingText}>
+                    Loading meal plan details...
+                  </ThemedText>
+                </View>
+              ) : (
+                <>
+                  {/* Meal Plan Image */}
+                  <View style={styles.mealPlanModalImageContainer}>
+                    <Image
+                      source={{
+                        uri: selectedMealPlan.image_url || 'https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=Meal+Plan',
+                      }}
+                      style={styles.mealPlanModalImage}
+                      resizeMode='cover'
+                    />
+                    <View style={styles.mealPlanImageOverlay}>
+                      <View style={[styles.mealPlanCategoryBadge, { backgroundColor: selectedMealPlan.category.color }]}>
+                        <ThemedText type='caption' style={styles.mealPlanCategoryBadgeText}>
+                          {selectedMealPlan.category.name}
+                        </ThemedText>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Title & Description */}
+                  <View style={styles.mealPlanHeader}>
+                    <ThemedText type='title' style={styles.mealPlanTitle}>
+                      {selectedMealPlan.title}
+                    </ThemedText>
+                    <ThemedText type='body' style={styles.mealPlanDescriptionText}>
+                      {selectedMealPlan.description}
+                    </ThemedText>
+                  </View>
+
+                  {/* Compact Info Rows */}
+                  <View style={styles.mealPlanInfoSection}>
+                    <View style={styles.infoRow}>
+                      <ThemedText type='body' style={styles.infoText}>
+                        🍳 Difficulty: {selectedMealPlan.difficulty?.charAt(0).toUpperCase() + selectedMealPlan.difficulty?.slice(1) || 'Easy'}
+                      </ThemedText>
+                      <ThemedText type='body' style={styles.infoText}>
+                        ⏱ {(selectedMealPlan.prep_time || 0) + (selectedMealPlan.cook_time || 0)} mins
+                      </ThemedText>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <ThemedText type='body' style={styles.infoText}>
+                        🥗 Servings: {selectedMealPlan.servings || 1}
+                      </ThemedText>
+                      <ThemedText type='body' style={styles.infoText}>
+                        🔥 {selectedMealPlan.calories_per_serving || 0} kcal
+                      </ThemedText>
+                    </View>
+                    <View style={styles.infoRow}>
+                      <ThemedText type='body' style={styles.infoText}>
+                        💪 {selectedMealPlan.protein || 0}g Protein
+                      </ThemedText>
+                      <ThemedText type='body' style={styles.infoText}>
+                        🍞 {selectedMealPlan.carbs || 0}g Carbs
+                      </ThemedText>
+                      <ThemedText type='body' style={styles.infoText}>
+                        🧈 {selectedMealPlan.fat || 0}g Fat
+                      </ThemedText>
+                    </View>
+                  </View>
+
+                  {/* Stress Reduction Benefits */}
+                  {selectedMealPlan.stress_reduction_benefits && selectedMealPlan.stress_reduction_benefits.length > 0 && (
+                    <View style={styles.mealPlanSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        🌿 Stress Reduction Benefits
+                      </ThemedText>
+                      {selectedMealPlan.stress_reduction_benefits.map((benefit, index) => (
+                        <ThemedText key={index} type='body' style={styles.listItem}>
+                          • {benefit}
+                        </ThemedText>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Mood Boost Ingredients */}
+                  {selectedMealPlan.mood_boost_ingredients && selectedMealPlan.mood_boost_ingredients.length > 0 && (
+                    <View style={styles.mealPlanSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        😊 Mood Boost Ingredients
+                      </ThemedText>
+                      {selectedMealPlan.mood_boost_ingredients.map((ingredient, index) => (
+                        <ThemedText key={index} type='body' style={styles.listItem}>
+                          • {ingredient}
+                        </ThemedText>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Ingredients */}
+                  <View style={styles.mealPlanSection}>
+                    <ThemedText type='body' style={styles.sectionTitle}>
+                      🛒 Ingredients
+                    </ThemedText>
+                    {selectedMealPlan.ingredients && selectedMealPlan.ingredients.length > 0 ? (
+                      selectedMealPlan.ingredients.map((ingredient, index) => (
+                        <ThemedText key={index} type='body' style={styles.listItem}>
+                          • {ingredient}
+                        </ThemedText>
+                      ))
+                    ) : (
+                      <ThemedText type='body' style={styles.noDataText}>
+                        No ingredients available
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* Instructions */}
+                  <View style={styles.mealPlanSection}>
+                    <ThemedText type='body' style={styles.sectionTitle}>
+                      👨‍🍳 Instructions
+                    </ThemedText>
+                    {selectedMealPlan.instructions && selectedMealPlan.instructions.length > 0 ? (
+                      selectedMealPlan.instructions.map((instruction, index) => (
+                        <ThemedText key={index} type='body' style={styles.listItem}>
+                          {index + 1}. {instruction}
+                        </ThemedText>
+                      ))
+                    ) : (
+                      <ThemedText type='body' style={styles.noDataText}>
+                        No instructions available
+                      </ThemedText>
+                    )}
+                  </View>
+
+                  {/* Tips */}
+                  {selectedMealPlan.tips && (
+                    <View style={styles.mealPlanSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        💡 Tips
+                      </ThemedText>
+                      <ThemedText type='body' style={styles.tipsText}>
+                        {selectedMealPlan.tips}
+                      </ThemedText>
+                    </View>
+                  )}
+
+                  {/* Creation Date */}
+                  {selectedMealPlan.created_at && (
+                    <View style={styles.mealPlanSection}>
+                      <View style={styles.creationDateContainer}>
+                        <IconSymbol size={16} name='calendar' color={Colors.dark.muted} />
+                        <ThemedText type='caption' style={styles.creationDateText}>
+                          Created: {new Date(selectedMealPlan.created_at).toLocaleDateString()}
+                        </ThemedText>
+                      </View>
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity style={styles.modalButton} onPress={closeMealPlanModal}>
+                <ThemedText style={styles.modalButtonText}>Close</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
-
-          {documentsLoading ? (
-            <ModernCard variant='elevated' style={styles.placeholderCard}>
-              <ActivityIndicator size='small' color={Colors.dark.primary} />
-              <ThemedText type='body' style={styles.placeholderText}>
-                Loading documents...
-              </ThemedText>
-            </ModernCard>
-          ) : userDocuments.length > 0 ? (
-            userDocuments.slice(0, 3).map(doc => (
-              <ModernCard key={doc.id} variant='elevated' style={styles.documentCard}>
-                <TouchableOpacity style={styles.documentContent} onPress={() => openDocument(doc)}>
-                  <View style={styles.documentIcon}>
-                    <IconSymbol size={24} name='doc.text' color={Colors.dark.primary} />
-                  </View>
-                  <View style={styles.documentInfo}>
-                    <ThemedText type='body' style={styles.documentTitle}>
-                      {doc.filename}
-                    </ThemedText>
-                    <ThemedText type='caption' style={styles.documentMeta}>
-                      {doc.category} • {Math.round(doc.fileSize / 1024)}KB
-                    </ThemedText>
-                  </View>
-                  <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
-                </TouchableOpacity>
-              </ModernCard>
-            ))
-          ) : (
-            <ModernCard variant='elevated' style={styles.placeholderCard}>
-              <ThemedText type='body' style={styles.placeholderText}>
-                No documents uploaded yet
-              </ThemedText>
-            </ModernCard>
-          )}
         </View>
-
-        {/* Quick Actions */}
-        <View style={styles.section}>
-          <ThemedText type='heading' style={styles.sectionTitle}>
-            Quick Actions
-          </ThemedText>
-          <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name='mic.fill' color={Colors.dark.primary} />
-              <ThemedText type='caption' style={styles.actionText}>
-                Voice Check-in
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name='brain.head.profile' color={Colors.dark.warning} />
-              <ThemedText type='caption' style={styles.actionText}>
-                Meditation
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name='figure.walk' color={Colors.dark.success} />
-              <ThemedText type='caption' style={styles.actionText}>
-                Exercise
-              </ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionButton}>
-              <IconSymbol size={32} name='bed.double.fill' color={Colors.dark.secondary} />
-              <ThemedText type='caption' style={styles.actionText}>
-                Sleep
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
+      )}
 
       {/* Document Viewer Modal */}
       {showDocumentViewer && selectedDocument && (
@@ -1540,6 +1709,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   welcomeHeader: {
+    backgroundColor: Colors.dark.primary,
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.lg,
     ...Shadows.large,
@@ -1975,6 +2145,140 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  // Meal Plan Modal styles
+  mealPlanModalImageContainer: {
+    marginBottom: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  mealPlanModalImage: {
+    width: '100%',
+    height: 200,
+  },
+  mealPlanImageOverlay: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+  },
+  mealPlanCategoryBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+    ...Shadows.small,
+  },
+  mealPlanCategoryBadgeText: {
+    color: Colors.dark.background,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+
+  mealPlanDescriptionText: {
+    lineHeight: 20,
+    opacity: 0.8,
+    color: Colors.dark.muted,
+  },
+  mealPlanSection: {
+    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+  },
+  mealPlanSectionTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.dark.primary + '10',
+    borderRadius: BorderRadius.md,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.dark.primary,
+  },
+  mealPlanSectionTitleText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.dark.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+
+
+  tipsText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: Colors.dark.muted,
+    marginTop: Spacing.xs,
+    lineHeight: 20,
+  },
+  creationDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.sm,
+    backgroundColor: Colors.dark.muted + '10',
+    borderRadius: BorderRadius.sm,
+  },
+  creationDateText: {
+    opacity: 0.7,
+    fontSize: 12,
+  },
+  noDataText: {
+    textAlign: 'center',
+    opacity: 0.6,
+    fontStyle: 'italic',
+    padding: Spacing.lg,
+  },
+  mealPlanModalLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.xl * 2,
+    minHeight: 200,
+  },
+  mealPlanModalLoadingText: {
+    marginTop: Spacing.md,
+    opacity: 0.7,
+    textAlign: 'center',
+  },
+  mealPlanHeader: {
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  mealPlanTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: Spacing.sm,
+    color: Colors.dark.text,
+  },
+  mealPlanInfoSection: {
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  infoText: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
+    color: Colors.dark.text,
+  },
+  listItem: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    marginLeft: Spacing.md,
+    marginBottom: Spacing.sm,
+    lineHeight: 20,
+  },
+
   // Expanded section styles
   expandedSection: {
     marginTop: Spacing.lg,
@@ -1985,6 +2289,15 @@ const styles = StyleSheet.create({
   expandedTitle: {
     marginBottom: Spacing.md,
     opacity: 0.8,
+    textAlign: 'center',
+  },
+  expandedLoading: {
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  expandedLoadingText: {
+    marginTop: Spacing.md,
+    opacity: 0.7,
     textAlign: 'center',
   },
   videoGrid: {

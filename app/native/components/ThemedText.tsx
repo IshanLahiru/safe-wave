@@ -27,7 +27,15 @@ export function ThemedText({
     }
   };
 
-  return <Text style={[{ color: getColor() }, styles[type], style]} {...rest} />;
+  return (
+    <Text
+      style={[{ color: getColor() }, styles[type], style]}
+      {...rest}
+      // Global emoji rendering improvements
+      includeFontPadding={false}
+      textAlignVertical="center"
+    />
+  );
 }
 
 const styles = StyleSheet.create({

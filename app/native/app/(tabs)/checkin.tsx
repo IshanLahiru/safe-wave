@@ -139,16 +139,16 @@ const RecordingCard = React.memo(
               ...styles.cardContent,
               ...(recording.risk_level
                 ? {
-                    borderLeftWidth: 4,
-                    borderLeftColor:
-                      recording.risk_level === 'critical'
-                        ? '#ff4444'
-                        : recording.risk_level === 'high'
-                          ? '#ff8800'
-                          : recording.risk_level === 'medium'
-                            ? '#ffaa00'
-                            : '#4CAF50',
-                  }
+                  borderLeftWidth: 4,
+                  borderLeftColor:
+                    recording.risk_level === 'critical'
+                      ? '#ff4444'
+                      : recording.risk_level === 'high'
+                        ? '#ff8800'
+                        : recording.risk_level === 'medium'
+                          ? '#ffaa00'
+                          : '#4CAF50',
+                }
                 : {}),
             }}
           >
@@ -704,13 +704,13 @@ export default function CheckinScreen() {
         prev.map(r =>
           r.id === recording.id
             ? {
-                ...r,
-                transcription: response.transcription || 'Processing transcription...',
-                transcription_status: response.transcription ? 'completed' : 'processing',
-                risk_level: response.riskLevel,
-                analysis_status: response.analyzedAt ? 'completed' : 'processing',
-                file_path: response.audioFilePath,
-              }
+              ...r,
+              transcription: response.transcription || 'Processing transcription...',
+              transcription_status: response.transcription ? 'completed' : 'processing',
+              risk_level: response.riskLevel,
+              analysis_status: response.analyzedAt ? 'completed' : 'processing',
+              file_path: response.audioFilePath,
+            }
             : r
         )
       );
@@ -808,10 +808,10 @@ export default function CheckinScreen() {
                 prev.map(r =>
                   r.id === recording.id
                     ? {
-                        ...r,
-                        playbackProgress: progress,
-                        playbackPosition: position,
-                      }
+                      ...r,
+                      playbackProgress: progress,
+                      playbackPosition: position,
+                    }
                     : r
                 )
               );
@@ -898,10 +898,10 @@ export default function CheckinScreen() {
               prev.map(r =>
                 r.id === recording.id
                   ? {
-                      ...r,
-                      playbackProgress: progress,
-                      playbackPosition: position,
-                    }
+                    ...r,
+                    playbackProgress: progress,
+                    playbackPosition: position,
+                  }
                   : r
               )
             );
@@ -1053,12 +1053,12 @@ export default function CheckinScreen() {
           prev.map(r =>
             r.id === data.audio_id.toString()
               ? {
-                  ...r,
-                  transcription_status: data.status,
-                  transcription: data.transcription || r.transcription,
-                  confidence: data.confidence,
-                  is_transcribing: data.status === 'processing',
-                }
+                ...r,
+                transcription_status: data.status,
+                transcription: data.transcription || r.transcription,
+                confidence: data.confidence,
+                is_transcribing: data.status === 'processing',
+              }
               : r
           )
         );
@@ -1070,11 +1070,11 @@ export default function CheckinScreen() {
           prev.map(r =>
             r.id === data.audio_id.toString()
               ? {
-                  ...r,
-                  analysis_status: data.status,
-                  risk_level: data.risk_level,
-                  is_analyzing: data.status === 'processing',
-                }
+                ...r,
+                analysis_status: data.status,
+                risk_level: data.risk_level,
+                is_analyzing: data.status === 'processing',
+              }
               : r
           )
         );
@@ -1307,7 +1307,11 @@ export default function CheckinScreen() {
               ]}
             >
               <View style={styles.smileEmojiContainer}>
-                <ThemedText style={[styles.smileEmoji, isRecording && styles.recordingEmoji]}>
+                <ThemedText
+                  style={[styles.smileEmoji, isRecording && styles.recordingEmoji]}
+                  allowFontScaling={false} // Prevent font scaling issues
+                  numberOfLines={1} // Ensure single line rendering
+                >
                   😊
                 </ThemedText>
               </View>
@@ -1541,14 +1545,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: 80,
-    height: 80,
+    height: 90, // Increased height to prevent emoji clipping
+    overflow: 'visible', // Prevent clipping
+    paddingVertical: 5, // Add padding to center the emoji better
   },
 
   smileEmoji: {
     fontSize: 80,
     color: '#000000', // Black fill
     textAlign: 'center',
+    textAlignVertical: 'center', // Better vertical alignment
     lineHeight: 80,
+    includeFontPadding: false, // Remove extra padding that causes clipping
+    overflow: 'visible', // Ensure emoji is fully visible
+    // Additional properties for better emoji rendering
+    ...(Platform.OS === 'android' && { fontFamily: 'sans-serif' }), // Better Android emoji support
   },
 
   stopButtonContainer: {
