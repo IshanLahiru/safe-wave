@@ -40,6 +40,7 @@ class User(Base):
     documents = relationship("Document", back_populates="user")
     favorites = relationship("UserFavorite", back_populates="user")
     progress = relationship("UserProgress", back_populates="user")
+    email_alerts = relationship("EmailAlert", back_populates="user")
 
     def to_dict(self):
         return {

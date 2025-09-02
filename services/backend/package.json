@@ -10,7 +10,22 @@
     "format": "black . && isort .",
     "format:check": "black --check . && isort --check-only .",
     "lint": "flake8 . && mypy .",
-    "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true"
+    "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true",
+    "migration:new": "python scripts/migration.py new",
+    "migration:run": "python scripts/migration.py run",
+    "migration:rollback": "python scripts/migration.py rollback",
+    "migration:history": "python scripts/migration.py history",
+    "migration:current": "python scripts/migration.py current",
+    "migration:status": "python scripts/migration.py status",
+    "migration:recreate": "python scripts/manage.py migration-recreate",
+    "migration:uncommit": "python scripts/manage.py migration-uncommit",
+    "db:reset": "python scripts/manage.py db-reset",
+    "db:recreate": "python scripts/manage.py db-recreate",
+    "alembic": "alembic",
+    "alembic:upgrade": "alembic upgrade head",
+    "alembic:downgrade": "alembic downgrade -1",
+    "alembic:history": "alembic history --verbose",
+    "alembic:current": "alembic current --verbose"
   },
   "engines": {
     "python": ">=3.8"

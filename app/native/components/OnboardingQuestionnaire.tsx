@@ -148,7 +148,7 @@ const QUESTIONS: Question[] = [
   },
   {
     id: 'medical_documents',
-    text: 'Please upload any relevant medical details or documents (e.g., prescriptions, reports).',
+    text: 'Please upload any relevant medical details or documents (e.g., prescriptions, reports). (Optional)',
     type: 'file',
   },
 ];
@@ -196,15 +196,15 @@ export default function OnboardingQuestionnaire() {
       // For multiple choice and scale questions, check if an answer is selected
       return answers[currentQuestion.id] !== undefined;
     } else if (currentQuestion.type === 'file') {
-      // For file questions, check if a file has been uploaded
-      return uploadedFiles[currentQuestion.id] !== undefined;
+      // For file questions, always allow progression (optional upload)
+      return true;
     }
 
     return false;
   };
 
   const areAllQuestionsAnswered = () => {
-    // Check if all questions have been answered
+    // Check if all required questions have been answered (excluding optional file uploads)
     for (const question of QUESTIONS) {
       if (question.type === 'text') {
         if (!textInputs[question.id] || !textInputs[question.id].trim()) {
@@ -214,11 +214,8 @@ export default function OnboardingQuestionnaire() {
         if (answers[question.id] === undefined) {
           return false;
         }
-      } else if (question.type === 'file') {
-        if (!uploadedFiles[question.id]) {
-          return false;
-        }
       }
+      // File questions are optional - skip validation for them
     }
     return true;
   };
@@ -230,7 +227,8 @@ export default function OnboardingQuestionnaire() {
       } else if (question.type === 'multiple-choice' || question.type === 'scale') {
         return answers[question.id] !== undefined;
       } else if (question.type === 'file') {
-        return uploadedFiles[question.id] !== undefined;
+        // File questions are optional - count as completed regardless of upload status
+        return true;
       }
       return false;
     }).length;
@@ -256,12 +254,12 @@ export default function OnboardingQuestionnaire() {
         type:
           Platform.OS === 'web'
             ? [
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'image/*',
-                'text/plain',
-              ]
+              'application/pdf',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/*',
+              'text/plain',
+            ]
             : ['*/*'], // Allow all file types on mobile for better compatibility
         copyToCacheDirectory: true,
         multiple: false,
@@ -664,29 +662,45 @@ export default function OnboardingQuestionnaire() {
             <ThemedText style={styles.fileUploadLabel}>{currentQuestion.text}</ThemedText>
 
             {!uploadedFile ? (
-              <TouchableOpacity
-                style={[
-                  styles.fileUploadButton,
-                  fileStatus === 'uploading' && styles.fileUploadButtonUploading,
-                ]}
-                onPress={() => handleFileUpload(currentQuestion.id)}
-                disabled={fileStatus === 'uploading'}
-              >
-                {fileStatus === 'uploading' ? (
-                  <>
-                    <IconSymbol size={24} name='arrow.clockwise' color={Colors.dark.primary} />
-                    <ThemedText style={styles.fileUploadText}>Uploading...</ThemedText>
-                  </>
-                ) : (
-                  <>
-                    <IconSymbol size={24} name='doc.badge.plus' color={Colors.dark.primary} />
-                    <ThemedText style={styles.fileUploadText}>Tap to upload documents</ThemedText>
-                    <ThemedText style={styles.fileUploadSubtext}>
-                      PDF, DOC, or image files
-                    </ThemedText>
-                  </>
-                )}
-              </TouchableOpacity>
+              <View style={styles.fileUploadOptions}>
+                <TouchableOpacity
+                  style={[
+                    styles.fileUploadButton,
+                    fileStatus === 'uploading' && styles.fileUploadButtonUploading,
+                  ]}
+                  onPress={() => handleFileUpload(currentQuestion.id)}
+                  disabled={fileStatus === 'uploading'}
+                >
+                  {fileStatus === 'uploading' ? (
+                    <>
+                      <IconSymbol size={24} name='arrow.clockwise' color={Colors.dark.primary} />
+                      <ThemedText style={styles.fileUploadText}>Uploading...</ThemedText>
+                    </>
+                  ) : (
+                    <>
+                      <IconSymbol size={24} name='doc.badge.plus' color={Colors.dark.primary} />
+                      <ThemedText style={styles.fileUploadText}>Tap to upload documents</ThemedText>
+                      <ThemedText style={styles.fileUploadSubtext}>
+                        PDF, DOC, or image files
+                      </ThemedText>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.skipButton}
+                  onPress={() => {
+                    // Mark as skipped by setting a special value
+                    setAnswers(prev => ({
+                      ...prev,
+                      [currentQuestion.id]: 'skipped',
+                    }));
+                  }}
+                >
+                  <IconSymbol size={20} name='arrow.right' color={Colors.dark.muted} />
+                  <ThemedText style={styles.skipButtonText}>Skip this step</ThemedText>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View style={styles.uploadedFileContainer}>
                 <IconSymbol size={24} name='checkmark.circle.fill' color={Colors.dark.success} />
@@ -703,6 +717,11 @@ export default function OnboardingQuestionnaire() {
                       const newStatus = { ...prev };
                       delete newStatus[currentQuestion.id];
                       return newStatus;
+                    });
+                    setAnswers(prev => {
+                      const newAnswers = { ...prev };
+                      delete newAnswers[currentQuestion.id];
+                      return newAnswers;
                     });
                   }}
                 >
@@ -770,7 +789,8 @@ export default function OnboardingQuestionnaire() {
                 } else if (question.type === 'multiple-choice' || question.type === 'scale') {
                   return answers[question.id] !== undefined;
                 } else if (question.type === 'file') {
-                  return uploadedFiles[question.id] !== undefined;
+                  // File questions are optional - always show as answered
+                  return true;
                 }
                 return false;
               })();
@@ -830,12 +850,12 @@ export default function OnboardingQuestionnaire() {
           {(currentQuestion.id === 'emergency_contact_name' ||
             currentQuestion.id === 'emergency_contact_email' ||
             currentQuestion.id === 'emergency_contact_relationship') && (
-            <ModernCard variant='outlined' style={styles.emergencyNotice}>
-              <ThemedText style={styles.emergencyNoticeText}>
-                ⚠️ Emergency contact information is required for your safety
-              </ThemedText>
-            </ModernCard>
-          )}
+              <ModernCard variant='outlined' style={styles.emergencyNotice}>
+                <ThemedText style={styles.emergencyNoticeText}>
+                  ⚠️ Emergency contact information is required for your safety
+                </ThemedText>
+              </ModernCard>
+            )}
 
           {/* Question */}
           <ThemedView style={styles.questionContainer}>
@@ -875,7 +895,7 @@ export default function OnboardingQuestionnaire() {
             style={[
               styles.nextButton,
               (isLastQuestion ? !areAllQuestionsAnswered() : !isAnswerValid()) &&
-                styles.disabledButton,
+              styles.disabledButton,
             ]}
             onPress={handleNext}
             disabled={isLastQuestion ? !areAllQuestionsAnswered() : !isAnswerValid()}
@@ -1201,6 +1221,9 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginBottom: Spacing.md,
   },
+  fileUploadOptions: {
+    gap: Spacing.md,
+  },
   fileUploadButton: {
     backgroundColor: Colors.dark.card,
     borderWidth: 2,
@@ -1246,6 +1269,23 @@ const styles = StyleSheet.create({
   },
   removeFileButton: {
     padding: Spacing.xs,
+  },
+  skipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.dark.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    gap: Spacing.sm,
+  },
+  skipButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.dark.muted,
   },
   textInputContainer: {
     alignItems: 'flex-start',

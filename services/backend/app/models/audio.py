@@ -43,6 +43,7 @@ class Audio(Base):
 
     # Relationships
     user = relationship("User", back_populates="audios")
+    email_alerts = relationship("EmailAlert", back_populates="audio")
 
     def to_dict(self):
         return {

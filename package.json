@@ -23,7 +23,17 @@
     "format:check": "turbo run format:check",
     "test": "turbo run test",
     "clean": "turbo run clean",
-    "update-ip": "turbo run update-ip --filter=backend"
+    "update-ip": "turbo run update-ip --filter=backend",
+    "migration:new": "turbo run migration:new --filter=backend",
+    "migration:run": "turbo run migration:run --filter=backend",
+    "migration:rollback": "turbo run migration:rollback --filter=backend",
+    "migration:history": "turbo run migration:history --filter=backend",
+    "migration:current": "turbo run migration:current --filter=backend",
+    "migration:status": "turbo run migration:status --filter=backend",
+    "migration:recreate": "turbo run migration:recreate --filter=backend",
+    "migration:uncommit": "turbo run migration:uncommit --filter=backend",
+    "db:reset": "turbo run db:reset --filter=backend",
+    "db:recreate": "turbo run db:recreate --filter=backend"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

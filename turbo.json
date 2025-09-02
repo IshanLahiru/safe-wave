@@ -32,6 +32,42 @@
     },
     "format:check": {
       "cache": false
+    },
+    "migration:new": {
+      "cache": false,
+      "interactive": true
+    },
+    "migration:run": {
+      "cache": false
+    },
+    "migration:rollback": {
+      "cache": false,
+      "interactive": true
+    },
+    "migration:history": {
+      "cache": false
+    },
+    "migration:current": {
+      "cache": false
+    },
+    "migration:status": {
+      "cache": false
+    },
+    "migration:recreate": {
+      "cache": false,
+      "interactive": true
+    },
+    "migration:uncommit": {
+      "cache": false,
+      "interactive": true
+    },
+    "db:reset": {
+      "cache": false,
+      "interactive": true
+    },
+    "db:recreate": {
+      "cache": false,
+      "interactive": true
     }
   }
 }

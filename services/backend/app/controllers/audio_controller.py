@@ -13,7 +13,7 @@ from app.schemas.audio import AudioCreate, AudioUpdate
 from app.services.onboarding_analysis_service import onboarding_analysis_service
 from app.services.openrouter_service import openrouter_service
 from app.services.vosk_transcription_service import vosk_transcription_service
-from app.utils.email_service import EmailService
+from app.services.email_alert_service import email_alert_service
 
 logger = logging.getLogger(__name__)
 
@@ -293,77 +293,24 @@ class AudioController:
                 logger.error(f"❌ User {user_id} not found in database")
                 return False
 
-            # Collect all available email addresses
-            emails_to_send = []
-            email_types = []
+            # Send immediate voice alert using the new EmailAlert service
+            logger.info(f"📧 Sending immediate voice alert for audio {audio_id}, user {user_id}")
 
-            # Add care person email if available
-            if user.care_person_email:
-                emails_to_send.append(user.care_person_email)
-                email_types.append("care person")
-                logger.info(f"📧 Care person email found: {user.care_person_email}")
-            else:
-                logger.warning(f"⚠️ No care person email configured for user {user_id}")
-
-            # Add emergency contact email if available
-            if user.emergency_contact_email:
-                emails_to_send.append(user.emergency_contact_email)
-                email_types.append("emergency contact")
-                logger.info(f"📧 Emergency contact email found: {user.emergency_contact_email}")
-            else:
-                logger.warning(f"⚠️ No emergency contact email configured for user {user_id}")
-
-            if not emails_to_send:
-                logger.error(f"❌ No email addresses available for user {user_id}")
-                return False
-
-            # Send immediate voice alert emails
-            emails_sent = 0
-            email_service = EmailService()
-
-            for email, email_type in zip(emails_to_send, email_types):
-                try:
-                    # Log the transcription being sent in this email
-                    logger.info("=" * 80)
-                    logger.info(f"📧 SENDING IMMEDIATE VOICE ALERT TO {email_type.upper()}")
-                    logger.info("=" * 80)
-                    logger.info(f"📧 Email: {email}")
-                    logger.info(f"👤 User: {user.name}")
-                    logger.info(f'🎯 Transcribed text: "{transcription}"')
-                    logger.info(f"📊 Text length: {len(transcription)} characters")
-                    logger.info("=" * 80)
-
-                    # Send immediate voice alert
-                    email_sent = email_service.send_immediate_voice_alert(
-                        to_email=email,
-                        user_name=user.name,
-                        transcription=transcription,
-                        confidence=confidence,
-                        audio_id=audio_id,
-                        recipient_type=email_type,
-                    )
-
-                    if email_sent:
-                        logger.info(
-                            f"✅ Immediate voice alert sent successfully to {email_type}: {email}"
-                        )
-                        emails_sent += 1
-                    else:
-                        logger.error(
-                            f"❌ Failed to send immediate voice alert to {email_type}: {email}"
-                        )
-
-                except Exception as e:
-                    logger.error(
-                        f"❌ Error sending immediate voice alert to {email_type} {email}: {e}"
-                    )
-
-            logger.info(
-                f"📊 Immediate voice alert emails sent: {emails_sent}/{len(emails_to_send)}"
+            alerts_created = email_alert_service.send_immediate_voice_alert(
+                db=db,
+                user=user,
+                audio_id=audio_id,
+                transcription=transcription,
+                confidence=confidence
             )
-            logger.info("=" * 80)
 
-            return emails_sent > 0
+            # Check if any alerts were sent successfully
+            successful_alerts = [alert for alert in alerts_created if alert.sent_successfully]
+            total_alerts = len(alerts_created)
+
+            logger.info(f"📊 Immediate voice alerts sent: {len(successful_alerts)}/{total_alerts}")
+
+            return len(successful_alerts) > 0
 
         except Exception as e:
             logger.error("=" * 80)
@@ -414,76 +361,25 @@ class AudioController:
                 user.onboarding_answers, user.name, transcription
             )
 
-            # Send emails to both care person and emergency contact if available
-            emails_to_send = []
-            email_types = []
+            # Send onboarding analysis alert using the new EmailAlert service
+            logger.info(f"📧 Sending onboarding analysis alert for audio {audio_id}, user {user_id}")
 
-            if user.care_person_email:
-                emails_to_send.append(user.care_person_email)
-                email_types.append("care person")
+            alerts_created = email_alert_service.send_onboarding_analysis_alert(
+                db=db,
+                user=user,
+                audio_id=audio_id,
+                onboarding_analysis=onboarding_analysis,
+                transcription=transcription,
+                audio_analysis_failed=True
+            )
 
-            if user.emergency_contact_email:
-                emails_to_send.append(user.emergency_contact_email)
-                email_types.append("emergency contact")
+            # Check if any alerts were sent successfully
+            successful_alerts = [alert for alert in alerts_created if alert.sent_successfully]
+            total_alerts = len(alerts_created)
 
-            if emails_to_send:
-                logger.info(
-                    f"Sending onboarding analysis alerts to: {', '.join(f'{t}: {e}' for t, e in zip(email_types, emails_to_send))}"
-                )
-                email_service = EmailService()
+            logger.info(f"📊 Onboarding analysis alerts sent: {len(successful_alerts)}/{total_alerts}")
 
-                # Send emails to all available addresses
-                emails_sent = 0
-                total_emails = len(emails_to_send)
-
-                for email, email_type in zip(emails_to_send, email_types):
-                    try:
-                        # Log the transcription being sent in this email
-                        transcription_content = onboarding_analysis.get("transcription", "")
-                        if transcription_content:
-                            logger.info("=" * 80)
-                            logger.info(
-                                f"📧 SENDING EMAIL WITH TRANSCRIPTION TO {email_type.upper()}"
-                            )
-                            logger.info("=" * 80)
-                            logger.info(f"📧 Email: {email}")
-                            logger.info(f"👤 User: {user.name}")
-                            logger.info(f'🎯 Transcribed text: "{transcription_content}"')
-                            logger.info(f"📊 Text length: {len(transcription_content)} characters")
-                            logger.info("=" * 80)
-
-                        # For testing: always send email after analysis
-                        email_sent = email_service.send_onboarding_analysis_alert(
-                            to_email=email,
-                            user_name=user.name,
-                            onboarding_analysis=onboarding_analysis,
-                            audio_analysis_failed=True,
-                            recipient_type=email_type,
-                            transcription=transcription_content,  # Include transcription if available
-                        )
-
-                        if email_sent:
-                            logger.info(
-                                f"Onboarding analysis alert sent successfully to {email_type}: {email}"
-                            )
-                            emails_sent += 1
-                        else:
-                            logger.error(
-                                f"Failed to send onboarding analysis alert to {email_type}: {email}"
-                            )
-
-                    except Exception as e:
-                        logger.error(f"Error sending email to {email_type} {email}: {e}")
-
-                logger.info(
-                    f"Email sending complete: {emails_sent}/{total_emails} emails sent successfully"
-                )
-                return emails_sent > 0  # Return True if at least one email was sent
-            else:
-                logger.warning(
-                    f"No care person email or emergency contact email configured for user {user_id}"
-                )
-                return False
+            return len(successful_alerts) > 0
 
         except Exception as e:
             logger.error(f"Failed to handle audio analysis failure for audio {audio_id}: {e}")

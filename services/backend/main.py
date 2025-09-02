@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.models.audio import Audio
-from app.models.audio_analysis import AudioAnalysis
+from app.models.email_alert import EmailAlert
 from app.models.content import (
     Article,
     ContentCategory,

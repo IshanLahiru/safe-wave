@@ -11,7 +11,7 @@ from sqlalchemy import engine_from_config, pool
 from app.core.config import settings
 from app.core.database import Base
 from app.models.audio import Audio
-from app.models.audio_analysis import AudioAnalysis
+from app.models.email_alert import EmailAlert
 from app.models.content import (
     Article,
     ContentCategory,
