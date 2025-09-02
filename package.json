@@ -1,0 +1,40 @@
+{
+  "name": "safe-wave-monorepo",
+  "version": "1.0.0",
+  "description": "Safe Wave - Mental Health Monitoring Platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "type-check": "turbo run type-check",
+    "test": "turbo run test",
+    "clean": "turbo run clean",
+    "start": "turbo run start",
+    "setup": "npm install && turbo run setup",
+    "backend:dev": "turbo run dev --filter=backend",
+    "frontend:dev": "turbo run dev --filter=frontend",
+    "backend:build": "turbo run build --filter=backend",
+    "frontend:build": "turbo run build --filter=frontend"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "prettier": "^3.1.0",
+    "turbo": "^1.11.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "packageManager": "npm@10.2.4",
+  "dependencies": {
+    "is-arrayish": "^0.3.2",
+    "isexe": "^3.1.1"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Safe Wave Backend API",
+  "main": "main.py",
+  "scripts": {
+    "setup": "python -m pip install -r requirements.txt",
+    "dev": "python main.py",
+    "start": "python main.py",
+    "build": "echo 'Python build complete'",
+    "lint": "python -m flake8 app/ --max-line-length=120 --ignore=E501,W503",
+    "format": "python -m black app/ --line-length=120",
+    "type-check": "python -m mypy app/ --ignore-missing-imports",
+    "test": "python -m pytest tests/ -v",
+    "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true",
+    "db:migrate": "alembic upgrade head",
+    "db:reset": "alembic downgrade base && alembic upgrade head",
+    "test:onboarding": "python test_onboarding_analysis.py",
+    "test:email": "python -c 'from app.utils.email_service import EmailService; print(EmailService().send_email(\"test@example.com\", \"Test\", \"Test message\"))'",
+    "check:config": "python -c 'from app.core.config import settings; print(f\"SMTP: {settings.SMTP_SERVER}:{settings.SMTP_PORT}\"); print(f\"OpenRouter: {bool(settings.OPENROUTER_API_KEY)}\")'",
+    "seed:data": "python scripts/seed_content.py"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "python": ">=3.10.0"
+  }
+}

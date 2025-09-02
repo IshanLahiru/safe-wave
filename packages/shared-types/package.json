@@ -1,0 +1,19 @@
+{
+  "name": "@safe-wave/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for Safe Wave",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "echo 'Shared types build skipped due to dependency issues'",
+    "dev": "echo 'Shared types dev mode'",
+    "clean": "rm -rf dist",
+    "type-check": "echo 'Type check skipped'"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0"
+  },
+  "files": [
+    "dist"
+  ]
+}

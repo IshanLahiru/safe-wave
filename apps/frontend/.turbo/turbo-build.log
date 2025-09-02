@@ -1,0 +1,21 @@
+
+> frontend@1.0.0 build
+> expo export
+
+[31mError: Cannot find module '/Users/ishanlahiru/Documents/work-with-darshana/safe-wave/node_modules/isexe/index.js'. Please verify that the package.json has a valid "main" entry[39m
+[90mError: Cannot find module '/Users/ishanlahiru/Documents/work-with-darshana/safe-wave/node_modules/isexe/index.js'. Please verify that the package.json has a valid "main" entry[39m
+[90m    at tryPackage (node:internal/modules/cjs/loader:444:19)[39m
+[90m    at Function.Module._findPath (node:internal/modules/cjs/loader:715:18)[39m
+[90m    at Function.Module._resolveFilename (node:internal/modules/cjs/loader:1130:27)[39m
+[90m    at Function.Module._load (node:internal/modules/cjs/loader:985:27)[39m
+[90m    at Module.require (node:internal/modules/cjs/loader:1235:19)[39m
+[90m    at require (node:internal/modules/helpers:176:18)[39m
+[90m    at Object.<anonymous> (/Users/ishanlahiru/Documents/work-with-darshana/safe-wave/node_modules/cross-spawn/node_modules/which/which.js:7:15)[39m
+[90m    at Module._compile (node:internal/modules/cjs/loader:1376:14)[39m
+[90m    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1435:10)[39m
+[90m    at Module.load (node:internal/modules/cjs/loader:1207:32)[39m
+[37;40mnpm[0m [0m[31;40mERR![0m [0m[35mLifecycle script `build` failed with error:[0m 
+[0m[37;40mnpm[0m [0m[31;40mERR![0m [0m[35mError: command failed[0m 
+[0m[37;40mnpm[0m [0m[31;40mERR![0m [0m[35m  in workspace: frontend@1.0.0[0m 
+[0m[37;40mnpm[0m [0m[31;40mERR![0m [0m[35m  at location: /Users/ishanlahiru/Documents/work-with-darshana/safe-wave/apps/frontend[0m 
+[0m
