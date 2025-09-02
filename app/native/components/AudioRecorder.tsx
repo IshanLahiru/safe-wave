@@ -1,12 +1,5 @@
 import React, { useState, useRef } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Text,
-  ActivityIndicator,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
@@ -18,7 +11,10 @@ interface AudioRecorderProps {
   onAnalysisComplete?: (analysis: any) => void;
 }
 
-export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete }: AudioRecorderProps) {
+export default function AudioRecorder({
+  onRecordingComplete,
+  onAnalysisComplete,
+}: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -45,7 +41,6 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
       setTimeout(() => {
         stopRecording();
       }, 10000);
-
     } catch (error) {
       Alert.alert('Error', 'Failed to start recording');
     }
@@ -95,7 +90,6 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
       }
 
       Alert.alert('Success', 'Audio uploaded and analysis started!');
-
     } catch (error) {
       console.error('Upload error:', error);
 
@@ -131,12 +125,10 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.title}>
+        <ThemedText type='title' style={styles.title}>
           🎤 Voice Message
         </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Record your thoughts and feelings
-        </ThemedText>
+        <ThemedText style={styles.subtitle}>Record your thoughts and feelings</ThemedText>
       </View>
 
       <View style={styles.recordingSection}>
@@ -146,25 +138,19 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
             onPress={isRecording ? stopRecording : startRecording}
             disabled={isUploading}
           >
-            <IconSymbol
-              size={32}
-              name={isRecording ? "stop.fill" : "mic.fill"}
-              color="white"
-            />
+            <IconSymbol size={32} name={isRecording ? 'stop.fill' : 'mic.fill'} color='white' />
           </TouchableOpacity>
         ) : (
           <View style={styles.audioPreview}>
-            <IconSymbol size={48} name="waveform" color={theme.primary} />
+            <IconSymbol size={48} name='waveform' color={theme.primary} />
             <ThemedText style={styles.audioText}>Audio recorded</ThemedText>
-            <Text style={styles.durationText}>
-              Duration: {formatTime(recordingTime)}
-            </Text>
+            <Text style={styles.durationText}>Duration: {formatTime(recordingTime)}</Text>
           </View>
         )}
 
         {isRecording && (
           <View style={styles.recordingInfo}>
-            <ActivityIndicator size="small" color={theme.primary} />
+            <ActivityIndicator size='small' color={theme.primary} />
             <ThemedText style={styles.recordingText}>
               Recording... {formatTime(recordingTime)}
             </ThemedText>
@@ -180,9 +166,9 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
             disabled={isUploading}
           >
             {isUploading ? (
-              <ActivityIndicator size="small" color="white" />
+              <ActivityIndicator size='small' color='white' />
             ) : (
-              <IconSymbol size={20} name="arrow.up.circle.fill" color="white" />
+              <IconSymbol size={20} name='arrow.up.circle.fill' color='white' />
             )}
             <ThemedText style={styles.uploadButtonText}>
               {isUploading ? 'Analyzing...' : 'Upload & Analyze'}
@@ -201,8 +187,8 @@ export default function AudioRecorder({ onRecordingComplete, onAnalysisComplete 
 
       <View style={styles.info}>
         <ThemedText style={styles.infoText}>
-          💡 Tip: Speak naturally about your day, feelings, or concerns.
-          Our AI will analyze your message and provide insights.
+          💡 Tip: Speak naturally about your day, feelings, or concerns. Our AI will analyze your
+          message and provide insights.
         </ThemedText>
       </View>
     </View>

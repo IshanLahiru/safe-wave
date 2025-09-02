@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, EmailStr
+
 
 # Base User Schema
 class UserBase(BaseModel):
@@ -8,9 +10,11 @@ class UserBase(BaseModel):
     name: str
     role: str = "user"
 
+
 # Create User Schema
 class UserCreate(UserBase):
     pass
+
 
 # Update User Schema
 class UserUpdate(BaseModel):
@@ -23,6 +27,7 @@ class UserUpdate(BaseModel):
     care_person_email: Optional[EmailStr] = None
     preferences: Optional[Dict[str, Any]] = None
     onboarding_answers: Optional[Dict[str, Any]] = None
+
 
 # User Response Schema
 class UserResponse(BaseModel):
@@ -41,14 +46,17 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 # Login Schema
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+
 # Signup Schema
 class UserSignup(UserBase):
     password: str
+
 
 # Token Schema
 class Token(BaseModel):
@@ -57,13 +65,16 @@ class Token(BaseModel):
     token_type: str
     expires_in: int
 
+
 # Refresh Token Schema
 class RefreshToken(BaseModel):
     refresh_token: str
 
+
 # Token Data Schema
 class TokenData(BaseModel):
     email: Optional[str] = None
+
 
 # Onboarding Schema
 class OnboardingData(BaseModel):

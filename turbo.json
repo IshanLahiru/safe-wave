@@ -26,6 +26,12 @@
     },
     "update-ip": {
       "cache": false
+    },
+    "format": {
+      "cache": false
+    },
+    "format:check": {
+      "cache": false
     }
   }
 }

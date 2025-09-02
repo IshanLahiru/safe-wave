@@ -22,33 +22,36 @@ export default function TabLayout() {
           },
           default: {},
         }),
-      }}>
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name='index'
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name='house.fill' color={color} />,
         }}
       />
       <Tabs.Screen
-        name="checkin"
+        name='checkin'
         options={{
           title: 'Check In',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="mic.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name='mic.fill' color={color} />,
         }}
       />
       <Tabs.Screen
-        name="analytics"
+        name='analytics'
         options={{
           title: 'Analytics',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={color} />,
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name='chart.line.uptrend.xyaxis' color={color} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name='profile'
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name='person.fill' color={color} />,
         }}
       />
     </Tabs>

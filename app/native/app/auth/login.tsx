@@ -71,7 +71,9 @@ export default function LoginScreen() {
         console.log('✅ Backend is reachable');
       } catch (healthError) {
         console.error('❌ Backend connectivity test failed:', healthError);
-        setErrorMessage('Cannot connect to server. Please check if the backend is running and accessible.');
+        setErrorMessage(
+          'Cannot connect to server. Please check if the backend is running and accessible.'
+        );
         return;
       }
 
@@ -97,7 +99,8 @@ export default function LoginScreen() {
 
       if (error instanceof Error) {
         if (error.message.includes('Network request failed')) {
-          errorMsg = 'Cannot connect to server. Please check your internet connection and if the backend is running.';
+          errorMsg =
+            'Cannot connect to server. Please check your internet connection and if the backend is running.';
         } else if (error.message.includes('timeout')) {
           errorMsg = 'Request timed out. The server might be slow or overloaded.';
         } else if (error.message.includes('401')) {
@@ -119,36 +122,40 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <ThemedView style={styles.header}>
           <ThemedView style={styles.logoContainer}>
-            <IconSymbol size={60} name="waveform" color={Colors.dark.primary} />
+            <IconSymbol size={60} name='waveform' color={Colors.dark.primary} />
           </ThemedView>
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type='title' style={styles.title}>
             Welcome Back
           </ThemedText>
-          <ThemedText type="body" style={styles.subtitle}>
+          <ThemedText type='body' style={styles.subtitle}>
             Sign in to continue your safe journey
           </ThemedText>
 
           {/* Backend Status Indicator */}
           <View style={styles.backendStatusContainer}>
-            <View style={[
-              styles.backendStatusDot,
-              {
-                backgroundColor: backendStatus === 'online' ? Colors.dark.success :
-                  backendStatus === 'offline' ? Colors.dark.danger :
-                    Colors.dark.warning
-              }
-            ]} />
-            <ThemedText type="caption" style={styles.backendStatusText}>
-              {backendStatus === 'online' ? 'Online' :
-                backendStatus === 'offline' ? 'Offline' :
-                  'Checking...'}
+            <View
+              style={[
+                styles.backendStatusDot,
+                {
+                  backgroundColor:
+                    backendStatus === 'online'
+                      ? Colors.dark.success
+                      : backendStatus === 'offline'
+                        ? Colors.dark.danger
+                        : Colors.dark.warning,
+                },
+              ]}
+            />
+            <ThemedText type='caption' style={styles.backendStatusText}>
+              {backendStatus === 'online'
+                ? 'Online'
+                : backendStatus === 'offline'
+                  ? 'Offline'
+                  : 'Checking...'}
             </ThemedText>
           </View>
         </ThemedView>
@@ -156,8 +163,8 @@ export default function LoginScreen() {
         {/* Form */}
         <ThemedView style={styles.form}>
           <ModernInput
-            label="Email Address"
-            placeholder="Enter your email"
+            label='Email Address'
+            placeholder='Enter your email'
             value={email}
             onChangeText={setEmail}
             style={styles.input}
@@ -165,8 +172,8 @@ export default function LoginScreen() {
 
           <View style={styles.passwordContainer}>
             <ModernInput
-              label="Password"
-              placeholder="Enter your password"
+              label='Password'
+              placeholder='Enter your password'
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -178,7 +185,7 @@ export default function LoginScreen() {
             >
               <IconSymbol
                 size={20}
-                name={showPassword ? "eye.slash.fill" : "eye.fill"}
+                name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
                 color={Colors.dark.primary}
               />
             </TouchableOpacity>
@@ -196,7 +203,7 @@ export default function LoginScreen() {
           {/* Error Message */}
           {errorMessage ? (
             <View style={styles.errorContainer}>
-              <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#FF3B30" />
+              <IconSymbol size={16} name='exclamationmark.triangle.fill' color='#FF3B30' />
               <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
             </View>
           ) : null}
@@ -208,9 +215,7 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-            <ThemedText style={styles.signupButtonText}>
-              Create New Account
-            </ThemedText>
+            <ThemedText style={styles.signupButtonText}>Create New Account</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ScrollView>
@@ -361,5 +366,4 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-
 });

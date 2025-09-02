@@ -7,6 +7,9 @@
     "dev": "python main.py",
     "start": "python main.py",
     "update-ip": "python scripts/update_network_ip.py",
+    "format": "black . && isort .",
+    "format:check": "black --check . && isort --check-only .",
+    "lint": "flake8 . && mypy .",
     "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true"
   },
   "engines": {

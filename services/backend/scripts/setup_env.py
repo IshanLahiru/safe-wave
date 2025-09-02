@@ -8,9 +8,11 @@ import os
 import secrets
 import sys
 
+
 def generate_secret_key():
     """Generate a secure secret key"""
     return secrets.token_urlsafe(32)
+
 
 def create_env_file():
     """Create .env file with secure values"""
@@ -58,9 +60,9 @@ ENABLE_AUDIO_STREAMING=true
 ENABLE_TRANSCRIPTION=true
 ENABLE_LLM_ANALYSIS=true
 """
-    
+
     try:
-        with open('.env', 'w') as f:
+        with open(".env", "w") as f:
             f.write(env_content)
         print("✅ Created .env file with secure values")
         print("⚠️  IMPORTANT: Update the following values:")
@@ -73,17 +75,18 @@ ENABLE_LLM_ANALYSIS=true
         print(f"❌ Failed to create .env: {e}")
         return False
 
+
 def main():
     """Main function"""
     print("🚀 Safe Wave API Environment Setup")
     print("=" * 40)
-    
-    if os.path.exists('.env'):
+
+    if os.path.exists(".env"):
         response = input("⚠️  .env already exists. Overwrite? (y/N): ")
-        if response.lower() != 'y':
+        if response.lower() != "y":
             print("❌ Setup cancelled")
             sys.exit(0)
-    
+
     if create_env_file():
         print("\n🎉 Environment setup complete!")
         print("📝 Next steps:")
@@ -93,6 +96,7 @@ def main():
     else:
         print("\n❌ Setup failed. Please check the error above.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

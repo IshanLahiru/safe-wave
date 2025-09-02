@@ -3,17 +3,16 @@
 Script to seed the database with stress-reduction content
 """
 
-import sys
 import os
+import sys
 from datetime import datetime, timezone
 
 # Add the app directory to the path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from app.core.database import SessionLocal
-from app.models.content import (
-    ContentCategory, Video, MealPlan, Quote, Article
-)
+from app.models.content import Article, ContentCategory, MealPlan, Quote, Video
+
 
 def seed_content():
     """Seed the database with stress-reduction content"""
@@ -29,43 +28,43 @@ def seed_content():
                 "description": "Guided meditation and mindfulness practices",
                 "icon": "brain.head.profile",
                 "color": "#4CAF50",
-                "sort_order": 1
+                "sort_order": 1,
             },
             {
                 "name": "Relaxation & Sleep",
                 "description": "Content to help you relax and sleep better",
                 "icon": "bed.double.fill",
                 "color": "#2196F3",
-                "sort_order": 2
+                "sort_order": 2,
             },
             {
                 "name": "Stress Relief",
                 "description": "Techniques and activities to reduce stress",
                 "icon": "heart.fill",
                 "color": "#FF9800",
-                "sort_order": 3
+                "sort_order": 3,
             },
             {
                 "name": "Healthy Eating",
                 "description": "Nutritious meals that support mental health",
                 "icon": "leaf.fill",
                 "color": "#8BC34A",
-                "sort_order": 4
+                "sort_order": 4,
             },
             {
                 "name": "Exercise & Movement",
                 "description": "Physical activities for mental wellness",
                 "icon": "figure.walk",
                 "color": "#E91E63",
-                "sort_order": 5
+                "sort_order": 5,
             },
             {
                 "name": "Inspiration & Motivation",
                 "description": "Uplifting content to boost your mood",
                 "icon": "star.fill",
                 "color": "#FFD700",
-                "sort_order": 6
-            }
+                "sort_order": 6,
+            },
         ]
 
         # Create categories
@@ -91,7 +90,7 @@ def seed_content():
                 "mood_boost": 8.5,
                 "relaxation_score": 9.0,
                 "tags": ["meditation", "beginners", "stress-relief"],
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "title": "Deep Breathing Exercise for Anxiety",
@@ -104,7 +103,7 @@ def seed_content():
                 "mood_boost": 7.5,
                 "relaxation_score": 8.5,
                 "tags": ["breathing", "anxiety", "calm"],
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "title": "Sleep Music: Deep Relaxation",
@@ -117,7 +116,7 @@ def seed_content():
                 "mood_boost": 6.5,
                 "relaxation_score": 9.5,
                 "tags": ["sleep", "relaxation", "music"],
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "title": "Gentle Yoga for Stress Relief",
@@ -130,7 +129,7 @@ def seed_content():
                 "mood_boost": 8.0,
                 "relaxation_score": 8.0,
                 "tags": ["yoga", "gentle", "stress-relief"],
-                "is_featured": False
+                "is_featured": False,
             },
             {
                 "title": "Mindful Walking Meditation",
@@ -143,8 +142,8 @@ def seed_content():
                 "mood_boost": 7.0,
                 "relaxation_score": 7.5,
                 "tags": ["walking", "meditation", "mindfulness"],
-                "is_featured": False
-            }
+                "is_featured": False,
+            },
         ]
 
         for video_data in videos:
@@ -167,24 +166,27 @@ def seed_content():
                 "protein": 6.0,
                 "carbs": 28.0,
                 "fat": 4.0,
-                "stress_reduction_benefits": ["chamomile reduces anxiety", "honey provides natural energy"],
+                "stress_reduction_benefits": [
+                    "chamomile reduces anxiety",
+                    "honey provides natural energy",
+                ],
                 "mood_boost_ingredients": ["chamomile", "honey", "whole grain bread"],
                 "ingredients": [
                     "1 chamomile tea bag",
                     "1 slice whole grain bread",
                     "1 tbsp honey",
                     "1 tsp butter",
-                    "1 cup hot water"
+                    "1 cup hot water",
                 ],
                 "instructions": [
                     "Boil water and steep chamomile tea for 3-5 minutes",
                     "Toast bread until golden brown",
                     "Spread with butter and drizzle with honey",
-                    "Enjoy with your calming tea"
+                    "Enjoy with your calming tea",
                 ],
                 "tips": "Take your time to savor each bite and sip mindfully",
                 "image_url": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=400",
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "title": "Stress-Relief Smoothie Bowl",
@@ -198,7 +200,10 @@ def seed_content():
                 "protein": 12.0,
                 "carbs": 45.0,
                 "fat": 8.0,
-                "stress_reduction_benefits": ["bananas contain tryptophan", "berries are rich in antioxidants"],
+                "stress_reduction_benefits": [
+                    "bananas contain tryptophan",
+                    "berries are rich in antioxidants",
+                ],
                 "mood_boost_ingredients": ["banana", "berries", "almonds", "dark chocolate"],
                 "ingredients": [
                     "1 frozen banana",
@@ -206,18 +211,18 @@ def seed_content():
                     "1/4 cup almond milk",
                     "1 tbsp almond butter",
                     "1 tbsp dark chocolate chips",
-                    "1 tbsp granola"
+                    "1 tbsp granola",
                 ],
                 "instructions": [
                     "Blend frozen banana, berries, and almond milk until smooth",
                     "Pour into a bowl",
                     "Top with almond butter, chocolate chips, and granola",
-                    "Enjoy immediately"
+                    "Enjoy immediately",
                 ],
                 "tips": "The cold temperature and creamy texture can be very soothing",
                 "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400",
-                "is_featured": True
-            }
+                "is_featured": True,
+            },
         ]
 
         for meal_data in meal_plans:
@@ -236,7 +241,7 @@ def seed_content():
                 "tags": ["peace", "inner-peace", "mindfulness"],
                 "mood_boost": 8.5,
                 "inspiration_level": 9.0,
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "text": "The only way to do great work is to love what you do.",
@@ -246,7 +251,7 @@ def seed_content():
                 "tags": ["passion", "work", "motivation"],
                 "mood_boost": 7.5,
                 "inspiration_level": 8.5,
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "text": "Happiness is not something ready-made. It comes from your own actions.",
@@ -256,7 +261,7 @@ def seed_content():
                 "tags": ["happiness", "actions", "mindfulness"],
                 "mood_boost": 8.0,
                 "inspiration_level": 8.0,
-                "is_featured": False
+                "is_featured": False,
             },
             {
                 "text": "Take life day by day and be grateful for the little things.",
@@ -266,7 +271,7 @@ def seed_content():
                 "tags": ["gratitude", "daily-life", "mindfulness"],
                 "mood_boost": 7.0,
                 "inspiration_level": 7.5,
-                "is_featured": False
+                "is_featured": False,
             },
             {
                 "text": "The present moment is filled with joy and happiness. If you are attentive, you will see it.",
@@ -276,8 +281,8 @@ def seed_content():
                 "tags": ["present-moment", "joy", "mindfulness"],
                 "mood_boost": 8.5,
                 "inspiration_level": 8.0,
-                "is_featured": False
-            }
+                "is_featured": False,
+            },
         ]
 
         for quote_data in quotes:
@@ -315,14 +320,14 @@ def seed_content():
                     "Practice in a quiet space",
                     "Start with just 2-3 minutes",
                     "Focus on the sensation of breathing",
-                    "Be patient with yourself"
+                    "Be patient with yourself",
                 ],
                 "practical_exercises": [
                     "Morning breathing routine",
                     "Mid-day stress reset",
-                    "Evening relaxation practice"
+                    "Evening relaxation practice",
                 ],
-                "is_featured": True
+                "is_featured": True,
             },
             {
                 "title": "The Science of Sleep: How to Improve Your Rest Quality",
@@ -357,15 +362,15 @@ def seed_content():
                     "Create a bedtime ritual",
                     "Use calming scents like lavender",
                     "Try progressive muscle relaxation",
-                    "Keep a sleep journal"
+                    "Keep a sleep journal",
                 ],
                 "practical_exercises": [
                     "Evening wind-down routine",
                     "Sleep environment audit",
-                    "Sleep schedule optimization"
+                    "Sleep schedule optimization",
                 ],
-                "is_featured": True
-            }
+                "is_featured": True,
+            },
         ]
 
         for article_data in articles:
@@ -390,9 +395,11 @@ def seed_content():
         print(f"❌ Error seeding content: {e}")
         db.rollback()
         import traceback
+
         traceback.print_exc()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_content()

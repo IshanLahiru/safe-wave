@@ -1,9 +1,11 @@
+import logging
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
+
 from app.core.config import settings
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -16,12 +18,13 @@ engine = create_engine(
     pool_pre_ping=True,  # Verify connections before use
     pool_recycle=3600,  # Recycle connections every hour
     pool_timeout=30,  # Timeout for getting connection from pool
-    echo=False  # Set to True for SQL debugging
+    echo=False,  # Set to True for SQL debugging
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()
@@ -42,6 +45,7 @@ def get_db():
         except:
             pass
 
+
 def get_db_with_retry(max_retries=3):
     """Get database session with retry logic for connection issues"""
     for attempt in range(max_retries):
@@ -56,10 +60,11 @@ def get_db_with_retry(max_retries=3):
                 db.close()
             except:
                 pass
-            
+
             if attempt == max_retries - 1:
                 logger.error("All database connection attempts failed")
                 raise
             else:
                 import time
+
                 time.sleep(1)  # Wait before retry

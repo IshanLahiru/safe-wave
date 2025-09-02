@@ -16,6 +16,11 @@
     "build:frontend": "turbo run build --filter=native",
     "lint": "turbo run lint",
     "lint:frontend": "turbo run lint --filter=native",
+    "lint:backend": "turbo run lint --filter=backend",
+    "format": "turbo run format",
+    "format:frontend": "turbo run format --filter=native",
+    "format:backend": "turbo run format --filter=backend",
+    "format:check": "turbo run format:check",
     "test": "turbo run test",
     "clean": "turbo run clean",
     "update-ip": "turbo run update-ip --filter=backend"

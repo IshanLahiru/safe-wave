@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, String, Text, Float, Boolean, DateTime, JSON, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 from app.core.database import Base
+
 
 class Audio(Base):
     __tablename__ = "audios"
@@ -13,33 +15,35 @@ class Audio(Base):
     file_size = Column(Integer, nullable=False)
     duration = Column(Float, nullable=True)  # Duration in seconds
     content_type = Column(String, nullable=False)
-    
+
     # Transcription
     transcription = Column(Text, nullable=True)
     transcription_confidence = Column(Float, nullable=True)
-    transcription_status = Column(String, default="pending")  # pending, processing, completed, failed
-    
+    transcription_status = Column(
+        String, default="pending"
+    )  # pending, processing, completed, failed
+
     # Analysis
     analysis_status = Column(String, default="pending")  # pending, processing, completed, failed
     risk_level = Column(String, nullable=True)  # low, medium, high, critical
     mental_health_indicators = Column(JSON, nullable=True)
     summary = Column(Text, nullable=True)
     recommendations = Column(JSON, nullable=True)
-    
+
     # Metadata
     description = Column(String, nullable=True)
     mood_rating = Column(Integer, nullable=True)
     tags = Column(JSON, nullable=True)
-    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     transcribed_at = Column(DateTime(timezone=True), nullable=True)
     analyzed_at = Column(DateTime(timezone=True), nullable=True)
-    
+
     # Relationships
     user = relationship("User", back_populates="audios")
-    
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -63,5 +67,5 @@ class Audio(Base):
             "createdAt": self.created_at.isoformat() if self.created_at else None,
             "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
             "transcribedAt": self.transcribed_at.isoformat() if self.transcribed_at else None,
-            "analyzedAt": self.analyzed_at.isoformat() if self.analyzed_at else None
+            "analyzedAt": self.analyzed_at.isoformat() if self.analyzed_at else None,
         }

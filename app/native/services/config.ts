@@ -2,17 +2,19 @@
 export const API_CONFIG = {
   // Use network IP for mobile/simulator, localhost for web development
   BASE_URL: __DEV__ ? 'http://192.168.31.14:9000' : 'http://192.168.31.14:9000', // Backend server URL for API calls
-  FILE_BASE_URL: __DEV__ ? 'http://192.168.31.14:9000/uploads' : 'http://192.168.31.14:9000/uploads', // Local storage URL for file access
+  FILE_BASE_URL: __DEV__
+    ? 'http://192.168.31.14:9000/uploads'
+    : 'http://192.168.31.14:9000/uploads', // Local storage URL for file access
   TIMEOUT: 30000, // 30 seconds for audio uploads
   RETRY_ATTEMPTS: 3,
-  
+
   // Fallback URLs for different environments
   FALLBACK_URLS: [
     'http://192.168.31.14:9000',
     'http://localhost:9000',
     'http://192.168.31.14:9000', // Android emulator
-    'http://192.168.31.14:9000'
-  ]
+    'http://192.168.31.14:9000',
+  ],
 };
 
 // Audio Configuration

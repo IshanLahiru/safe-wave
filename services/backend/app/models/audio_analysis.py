@@ -1,40 +1,42 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, Boolean, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 from app.core.database import Base
+
 
 class AudioAnalysis(Base):
     __tablename__ = "audio_analyses"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    
+
     # Audio file information
     audio_file_path = Column(String, nullable=False)
     audio_duration = Column(Integer)  # Duration in seconds
     file_size = Column(Integer)  # File size in bytes
-    
+
     # Transcription
     transcription = Column(Text)
     transcription_confidence = Column(Integer)  # 0-100
-    
+
     # AI Analysis
     llm_analysis = Column(JSON)  # Structured analysis results
     risk_level = Column(String)  # 'low', 'medium', 'high', 'critical'
     mental_health_indicators = Column(JSON)  # Specific indicators found
-    
+
     # Alert information
     alert_sent = Column(Boolean, default=False)
     alert_sent_at = Column(DateTime(timezone=True))
     care_person_notified = Column(Boolean, default=False)
-    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     analyzed_at = Column(DateTime(timezone=True))
-    
+
     # Relationships
     # user = relationship("User", back_populates="audio_analyses")
-    
+
     def to_dict(self):
         return {
             "id": self.id,

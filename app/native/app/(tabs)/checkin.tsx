@@ -57,279 +57,346 @@ interface AudioRecording {
 }
 
 // Memoized recording card component for performance
-const RecordingCard = React.memo(({
-  recording,
-  onPlay,
-  onToggleExpanded,
-  formatDuration,
-  formatTimestamp,
-  showRiskTooltip,
-  onRiskTooltipToggle
-}: {
-  recording: AudioRecording;
-  onPlay: (recording: AudioRecording) => void;
-  onToggleExpanded: (recordingId: string) => void;
-  formatDuration: (seconds: number) => string;
-  formatTimestamp: (date: Date) => string;
-  showRiskTooltip: string | null;
-  onRiskTooltipToggle: (recordingId: string) => void;
-}) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const expansionAnim = useRef(new Animated.Value(0)).current;
+const RecordingCard = React.memo(
+  ({
+    recording,
+    onPlay,
+    onToggleExpanded,
+    formatDuration,
+    formatTimestamp,
+    showRiskTooltip,
+    onRiskTooltipToggle,
+  }: {
+    recording: AudioRecording;
+    onPlay: (recording: AudioRecording) => void;
+    onToggleExpanded: (recordingId: string) => void;
+    formatDuration: (seconds: number) => string;
+    formatTimestamp: (date: Date) => string;
+    showRiskTooltip: string | null;
+    onRiskTooltipToggle: (recordingId: string) => void;
+  }) => {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const expansionAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(expansionAnim, {
-      toValue: recording.isExpanded ? 1 : 0,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [recording.isExpanded, expansionAnim]);
-
-  const handlePressIn = useCallback(() => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-      tension: 300,
-      friction: 10,
-    }).start();
-  }, [scaleAnim]);
-
-  const handlePressOut = useCallback(() => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      tension: 300,
-      friction: 10,
-    }).start();
-  }, [scaleAnim]);
-
-  const handlePress = useCallback(() => {
-    // Use LayoutAnimation only on mobile platforms
-    if (isMobile) {
-      LayoutAnimation.configureNext({
+    useEffect(() => {
+      Animated.timing(expansionAnim, {
+        toValue: recording.isExpanded ? 1 : 0,
         duration: 300,
-        create: { type: 'easeInEaseOut', property: 'opacity' },
-        update: { type: 'spring', springDamping: 0.7 },
-        delete: { type: 'easeInEaseOut', property: 'opacity' },
-      });
-    }
-    onToggleExpanded(recording.id);
-  }, [recording.id, onToggleExpanded]);
+        useNativeDriver: false,
+      }).start();
+    }, [recording.isExpanded, expansionAnim]);
 
-  const handlePlayPress = useCallback(() => {
-    onPlay(recording);
-  }, [recording, onPlay]);
+    const handlePressIn = useCallback(() => {
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 10,
+      }).start();
+    }, [scaleAnim]);
 
-  const transcriptionHeight = expansionAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 120], // Adjust based on content
-  });
+    const handlePressOut = useCallback(() => {
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 300,
+        friction: 10,
+      }).start();
+    }, [scaleAnim]);
 
-  return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
-      <Pressable
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        onPress={() => onToggleExpanded(recording.id)}
-        style={({ pressed }) => [
-          styles.recordingCard,
-          pressed && styles.recordingCardPressed,
-        ]}
-      >
-        <ModernCard style={{
-          ...styles.cardContent,
-          ...(recording.risk_level ? {
-            borderLeftWidth: 4,
-            borderLeftColor: recording.risk_level === 'critical' ? '#ff4444' :
-              recording.risk_level === 'high' ? '#ff8800' :
-                recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
-          } : {})
-        }}>
-          {/* Risk Level Corner Indicator */}
-          {recording.risk_level && (
-            <View style={[
-              styles.riskCornerIndicator,
-              {
-                backgroundColor: recording.risk_level === 'critical' ? '#ff4444' :
-                  recording.risk_level === 'high' ? '#ff8800' :
-                    recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
-              }
-            ]} />
-          )}
+    const handlePress = useCallback(() => {
+      // Use LayoutAnimation only on mobile platforms
+      if (isMobile) {
+        LayoutAnimation.configureNext({
+          duration: 300,
+          create: { type: 'easeInEaseOut', property: 'opacity' },
+          update: { type: 'spring', springDamping: 0.7 },
+          delete: { type: 'easeInEaseOut', property: 'opacity' },
+        });
+      }
+      onToggleExpanded(recording.id);
+    }, [recording.id, onToggleExpanded]);
 
-          <View style={styles.recordingHeader}>
-            <View style={styles.recordingInfo}>
-              <ThemedText style={styles.recordingTime}>
-                {formatTimestamp(recording.timestamp)}
-              </ThemedText>
+    const handlePlayPress = useCallback(() => {
+      onPlay(recording);
+    }, [recording, onPlay]);
+
+    const transcriptionHeight = expansionAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 120], // Adjust based on content
+    });
+
+    return (
+      <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+        <Pressable
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          onPress={() => onToggleExpanded(recording.id)}
+          style={({ pressed }) => [styles.recordingCard, pressed && styles.recordingCardPressed]}
+        >
+          <ModernCard
+            style={{
+              ...styles.cardContent,
+              ...(recording.risk_level
+                ? {
+                    borderLeftWidth: 4,
+                    borderLeftColor:
+                      recording.risk_level === 'critical'
+                        ? '#ff4444'
+                        : recording.risk_level === 'high'
+                          ? '#ff8800'
+                          : recording.risk_level === 'medium'
+                            ? '#ffaa00'
+                            : '#4CAF50',
+                  }
+                : {}),
+            }}
+          >
+            {/* Risk Level Corner Indicator */}
+            {recording.risk_level && (
+              <View
+                style={[
+                  styles.riskCornerIndicator,
+                  {
+                    backgroundColor:
+                      recording.risk_level === 'critical'
+                        ? '#ff4444'
+                        : recording.risk_level === 'high'
+                          ? '#ff8800'
+                          : recording.risk_level === 'medium'
+                            ? '#ffaa00'
+                            : '#4CAF50',
+                  },
+                ]}
+              />
+            )}
+
+            <View style={styles.recordingHeader}>
+              <View style={styles.recordingInfo}>
+                <ThemedText style={styles.recordingTime}>
+                  {formatTimestamp(recording.timestamp)}
+                </ThemedText>
+              </View>
+
+              {/* Risk Level Chip - Only Visible When Collapsed */}
+              {recording.risk_level && !recording.isExpanded && (
+                <View
+                  style={[
+                    styles.riskLevelChip,
+                    {
+                      backgroundColor:
+                        recording.risk_level === 'critical'
+                          ? '#ff4444' + '20'
+                          : recording.risk_level === 'high'
+                            ? '#ff8800' + '20'
+                            : recording.risk_level === 'medium'
+                              ? '#ffaa00' + '20'
+                              : '#4CAF50' + '20',
+                      borderColor:
+                        recording.risk_level === 'critical'
+                          ? '#ff4444'
+                          : recording.risk_level === 'high'
+                            ? '#ff8800'
+                            : recording.risk_level === 'medium'
+                              ? '#ffaa00'
+                              : '#4CAF50',
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={
+                      recording.risk_level === 'critical'
+                        ? 'warning'
+                        : recording.risk_level === 'high'
+                          ? 'alert-circle'
+                          : recording.risk_level === 'medium'
+                            ? 'information-circle'
+                            : 'checkmark-circle'
+                    }
+                    size={14}
+                    color={
+                      recording.risk_level === 'critical'
+                        ? '#ff4444'
+                        : recording.risk_level === 'high'
+                          ? '#ff8800'
+                          : recording.risk_level === 'medium'
+                            ? '#ffaa00'
+                            : '#4CAF50'
+                    }
+                  />
+                  <ThemedText
+                    style={[
+                      styles.riskLevelChipText,
+                      {
+                        color:
+                          recording.risk_level === 'critical'
+                            ? '#ff4444'
+                            : recording.risk_level === 'high'
+                              ? '#ff8800'
+                              : recording.risk_level === 'medium'
+                                ? '#ffaa00'
+                                : '#4CAF50',
+                      },
+                    ]}
+                  >
+                    {recording.risk_level === 'critical'
+                      ? 'Critical'
+                      : recording.risk_level === 'high'
+                        ? 'High'
+                        : recording.risk_level === 'medium'
+                          ? 'Medium'
+                          : 'Low'}
+                  </ThemedText>
+                </View>
+              )}
             </View>
 
-            {/* Risk Level Chip - Only Visible When Collapsed */}
-            {recording.risk_level && !recording.isExpanded && (
-              <View style={[
-                styles.riskLevelChip,
-                {
-                  backgroundColor: recording.risk_level === 'critical' ? '#ff4444' + '20' :
-                    recording.risk_level === 'high' ? '#ff8800' + '20' :
-                      recording.risk_level === 'medium' ? '#ffaa00' + '20' : '#4CAF50' + '20',
-                  borderColor: recording.risk_level === 'critical' ? '#ff4444' :
-                    recording.risk_level === 'high' ? '#ff8800' :
-                      recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
-                }
-              ]}>
-                <Ionicons
-                  name={recording.risk_level === 'critical' ? 'warning' :
-                    recording.risk_level === 'high' ? 'alert-circle' :
-                      recording.risk_level === 'medium' ? 'information-circle' : 'checkmark-circle'}
-                  size={14}
-                  color={recording.risk_level === 'critical' ? '#ff4444' :
-                    recording.risk_level === 'high' ? '#ff8800' :
-                      recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'}
-                />
-                <ThemedText style={[
-                  styles.riskLevelChipText,
-                  {
-                    color: recording.risk_level === 'critical' ? '#ff4444' :
-                      recording.risk_level === 'high' ? '#ff8800' :
-                        recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
-                  }
-                ]}>
-                  {recording.risk_level === 'critical' ? 'Critical' :
-                    recording.risk_level === 'high' ? 'High' :
-                      recording.risk_level === 'medium' ? 'Medium' : 'Low'}
+            {/* Progress and Status Indicators */}
+            {recording.is_uploading && (
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[styles.progressFill, { width: `${recording.upload_progress || 0}%` }]}
+                  />
+                </View>
+                <ThemedText style={styles.progressText}>
+                  Uploading... {Math.round(recording.upload_progress || 0)}%
                 </ThemedText>
               </View>
             )}
-          </View>
 
-
-
-          {/* Progress and Status Indicators */}
-          {recording.is_uploading && (
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: `${recording.upload_progress || 0}%` }]} />
+            {recording.is_transcribing && (
+              <View style={styles.statusContainer}>
+                <Ionicons name='mic' size={16} color={Colors.light.primary} />
+                <ThemedText style={styles.statusText}>Transcribing audio...</ThemedText>
               </View>
-              <ThemedText style={styles.progressText}>
-                Uploading... {Math.round(recording.upload_progress || 0)}%
-              </ThemedText>
-            </View>
-          )}
+            )}
 
-          {recording.is_transcribing && (
-            <View style={styles.statusContainer}>
-              <Ionicons name="mic" size={16} color={Colors.light.primary} />
-              <ThemedText style={styles.statusText}>
-                Transcribing audio...
-              </ThemedText>
-            </View>
-          )}
+            {recording.is_analyzing && (
+              <View style={styles.statusContainer}>
+                <Ionicons name='analytics' size={16} color={Colors.light.primary} />
+                <ThemedText style={styles.statusText}>Analyzing content...</ThemedText>
+              </View>
+            )}
 
-          {recording.is_analyzing && (
-            <View style={styles.statusContainer}>
-              <Ionicons name="analytics" size={16} color={Colors.light.primary} />
-              <ThemedText style={styles.statusText}>
-                Analyzing content...
-              </ThemedText>
-            </View>
-          )}
-
-
-
-          {/* Transcription Display - Only When Expanded */}
-          {recording.isExpanded && recording.transcription && recording.transcription !== 'Processing transcription...' && (
-            <View style={styles.transcriptionPreview}>
-              <ThemedText style={styles.transcriptionLabel}>
-                Transcription:
-              </ThemedText>
-              <ThemedText style={styles.transcriptionPreviewText}>
-                {recording.transcription}
-              </ThemedText>
-
-              {recording.confidence && (
-                <ThemedText style={styles.confidenceText}>
-                  Confidence: {Math.round(recording.confidence * 100)}%
-                </ThemedText>
-              )}
-
-              {/* Risk Level Indicator - Left Side After Transcription */}
-              {recording.risk_level && (
-                <TouchableOpacity
-                  style={styles.riskButton}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    onRiskTooltipToggle(recording.id);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons
-                    name={recording.risk_level === 'critical' ? 'warning' :
-                      recording.risk_level === 'high' ? 'alert-circle' :
-                        recording.risk_level === 'medium' ? 'information-circle' : 'checkmark-circle'}
-                    size={20}
-                    color={recording.risk_level === 'critical' ? '#ff4444' :
-                      recording.risk_level === 'high' ? '#ff8800' :
-                        recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'}
-                  />
-                  <ThemedText style={[
-                    styles.riskButtonText,
-                    {
-                      color: recording.risk_level === 'critical' ? '#ff4444' :
-                        recording.risk_level === 'high' ? '#ff8800' :
-                          recording.risk_level === 'medium' ? '#ffaa00' : '#4CAF50'
-                    }
-                  ]}>
-                    {recording.risk_level === 'critical' ? 'Critical' :
-                      recording.risk_level === 'high' ? 'High' :
-                        recording.risk_level === 'medium' ? 'Medium' : 'Low'} Risk
+            {/* Transcription Display - Only When Expanded */}
+            {recording.isExpanded &&
+              recording.transcription &&
+              recording.transcription !== 'Processing transcription...' && (
+                <View style={styles.transcriptionPreview}>
+                  <ThemedText style={styles.transcriptionLabel}>Transcription:</ThemedText>
+                  <ThemedText style={styles.transcriptionPreviewText}>
+                    {recording.transcription}
                   </ThemedText>
-                </TouchableOpacity>
+
+                  {recording.confidence && (
+                    <ThemedText style={styles.confidenceText}>
+                      Confidence: {Math.round(recording.confidence * 100)}%
+                    </ThemedText>
+                  )}
+
+                  {/* Risk Level Indicator - Left Side After Transcription */}
+                  {recording.risk_level && (
+                    <TouchableOpacity
+                      style={styles.riskButton}
+                      onPress={e => {
+                        e.stopPropagation();
+                        onRiskTooltipToggle(recording.id);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={
+                          recording.risk_level === 'critical'
+                            ? 'warning'
+                            : recording.risk_level === 'high'
+                              ? 'alert-circle'
+                              : recording.risk_level === 'medium'
+                                ? 'information-circle'
+                                : 'checkmark-circle'
+                        }
+                        size={20}
+                        color={
+                          recording.risk_level === 'critical'
+                            ? '#ff4444'
+                            : recording.risk_level === 'high'
+                              ? '#ff8800'
+                              : recording.risk_level === 'medium'
+                                ? '#ffaa00'
+                                : '#4CAF50'
+                        }
+                      />
+                      <ThemedText
+                        style={[
+                          styles.riskButtonText,
+                          {
+                            color:
+                              recording.risk_level === 'critical'
+                                ? '#ff4444'
+                                : recording.risk_level === 'high'
+                                  ? '#ff8800'
+                                  : recording.risk_level === 'medium'
+                                    ? '#ffaa00'
+                                    : '#4CAF50',
+                          },
+                        ]}
+                      >
+                        {recording.risk_level === 'critical'
+                          ? 'Critical'
+                          : recording.risk_level === 'high'
+                            ? 'High'
+                            : recording.risk_level === 'medium'
+                              ? 'Medium'
+                              : 'Low'}{' '}
+                        Risk
+                      </ThemedText>
+                    </TouchableOpacity>
+                  )}
+                </View>
               )}
-            </View>
-          )}
 
-
-
-
-
-          {/* Tooltip */}
-          {recording.risk_level && showRiskTooltip === recording.id && (
-            <View style={styles.riskTooltip}>
-              <View style={styles.riskTooltipArrow} />
-              <View style={styles.riskTooltipContent}>
-                <ThemedText style={styles.riskTooltipTitle}>
-                  {recording.risk_level === 'critical' ? 'Critical Risk Detected' :
-                    recording.risk_level === 'high' ? 'High Risk Detected' :
-                      recording.risk_level === 'medium' ? 'Medium Risk Detected' : 'Low Risk Detected'}
-                </ThemedText>
-                <ThemedText style={styles.riskTooltipText}>
-                  {recording.risk_level === 'critical' ?
-                    'Care person has been notified. Please seek immediate support if needed.' :
-                    recording.risk_level === 'high' ?
-                      'Significant concerns detected. Care person has been notified. Consider seeking support.' :
-                      recording.risk_level === 'medium' ?
-                        'Moderate concerns detected. Monitor your mental health and consider talking to someone.' :
-                        'Minimal concerns detected. Continue monitoring your mental health and maintain healthy coping strategies.'}
-                </ThemedText>
+            {/* Tooltip */}
+            {recording.risk_level && showRiskTooltip === recording.id && (
+              <View style={styles.riskTooltip}>
+                <View style={styles.riskTooltipArrow} />
+                <View style={styles.riskTooltipContent}>
+                  <ThemedText style={styles.riskTooltipTitle}>
+                    {recording.risk_level === 'critical'
+                      ? 'Critical Risk Detected'
+                      : recording.risk_level === 'high'
+                        ? 'High Risk Detected'
+                        : recording.risk_level === 'medium'
+                          ? 'Medium Risk Detected'
+                          : 'Low Risk Detected'}
+                  </ThemedText>
+                  <ThemedText style={styles.riskTooltipText}>
+                    {recording.risk_level === 'critical'
+                      ? 'Care person has been notified. Please seek immediate support if needed.'
+                      : recording.risk_level === 'high'
+                        ? 'Significant concerns detected. Care person has been notified. Consider seeking support.'
+                        : recording.risk_level === 'medium'
+                          ? 'Moderate concerns detected. Monitor your mental health and consider talking to someone.'
+                          : 'Minimal concerns detected. Continue monitoring your mental health and maintain healthy coping strategies.'}
+                  </ThemedText>
+                </View>
               </View>
-            </View>
-          )}
+            )}
 
-
-
-          {!recording.transcription && !recording.is_uploading && !recording.is_transcribing && !recording.is_analyzing && (
-            <View style={styles.uploadingContainer}>
-              <Ionicons name="cloud-upload" size={16} color={Colors.light.text} />
-              <ThemedText style={styles.uploadingText}>
-                Processing transcription...
-              </ThemedText>
-            </View>
-          )}
-        </ModernCard>
-      </Pressable>
-    </Animated.View >
-  );
-});
+            {!recording.transcription &&
+              !recording.is_uploading &&
+              !recording.is_transcribing &&
+              !recording.is_analyzing && (
+                <View style={styles.uploadingContainer}>
+                  <Ionicons name='cloud-upload' size={16} color={Colors.light.text} />
+                  <ThemedText style={styles.uploadingText}>Processing transcription...</ThemedText>
+                </View>
+              )}
+          </ModernCard>
+        </Pressable>
+      </Animated.View>
+    );
+  }
+);
 
 export default function CheckinScreen() {
   const colorScheme = useColorScheme();
@@ -358,7 +425,10 @@ export default function CheckinScreen() {
     (async () => {
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission required', 'Please grant audio recording permissions to use this feature.');
+        Alert.alert(
+          'Permission required',
+          'Please grant audio recording permissions to use this feature.'
+        );
       }
     })();
 
@@ -376,8 +446,6 @@ export default function CheckinScreen() {
       }
     };
   }, []);
-
-
 
   const loadRecordings = useCallback(async () => {
     try {
@@ -426,7 +494,6 @@ export default function CheckinScreen() {
         setRecordings([]);
         console.log('📱 No recordings found');
       }
-
     } catch (error) {
       console.error('Failed to load recordings:', error);
       setRecordings([]);
@@ -443,11 +510,11 @@ export default function CheckinScreen() {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           const mediaRecorder = new MediaRecorder(stream, {
-            mimeType: 'audio/webm;codecs=opus'
+            mimeType: 'audio/webm;codecs=opus',
           });
 
           const chunks: Blob[] = [];
-          mediaRecorder.ondataavailable = (event) => {
+          mediaRecorder.ondataavailable = event => {
             if (event.data.size > 0) {
               chunks.push(event.data);
             }
@@ -465,7 +532,7 @@ export default function CheckinScreen() {
               stopAndUnloadAsync: async () => {
                 stream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
                 URL.revokeObjectURL(url);
-              }
+              },
             };
 
             recordingRef.current = webRecording as any;
@@ -473,7 +540,6 @@ export default function CheckinScreen() {
 
           mediaRecorder.start();
           (recordingRef.current as any) = { mediaRecorder, stream, chunks };
-
         } catch (webError) {
           console.error('Web recording failed:', webError);
           Alert.alert('Error', 'Failed to access microphone. Please check permissions.');
@@ -517,7 +583,6 @@ export default function CheckinScreen() {
           useNativeDriver: true,
         })
       ).start();
-
     } catch (error) {
       console.error('Failed to start recording:', error);
       Alert.alert('Error', 'Failed to start recording. Please try again.');
@@ -549,7 +614,7 @@ export default function CheckinScreen() {
           webRecording.mediaRecorder.stop();
 
           // Wait for the ondataavailable event to complete
-          await new Promise<void>((resolve) => {
+          await new Promise<void>(resolve => {
             webRecording.mediaRecorder.onstop = () => {
               const chunks = webRecording.chunks || [];
               const blob = new Blob(chunks, { type: 'audio/webm' });
@@ -588,7 +653,6 @@ export default function CheckinScreen() {
 
       recordingRef.current = null;
       setRecordingDuration(0);
-
     } catch (error) {
       console.error('Failed to stop recording:', error);
       Alert.alert('Error', 'Failed to stop recording. Please try again.');
@@ -640,13 +704,13 @@ export default function CheckinScreen() {
         prev.map(r =>
           r.id === recording.id
             ? {
-              ...r,
-              transcription: response.transcription || 'Processing transcription...',
-              transcription_status: response.transcription ? 'completed' : 'processing',
-              risk_level: response.riskLevel,
-              analysis_status: response.analyzedAt ? 'completed' : 'processing',
-              file_path: response.audioFilePath,
-            }
+                ...r,
+                transcription: response.transcription || 'Processing transcription...',
+                transcription_status: response.transcription ? 'completed' : 'processing',
+                risk_level: response.riskLevel,
+                analysis_status: response.analyzedAt ? 'completed' : 'processing',
+                file_path: response.audioFilePath,
+              }
             : r
         )
       );
@@ -655,7 +719,6 @@ export default function CheckinScreen() {
       await saveRecordingsToStorage();
 
       Alert.alert('Success', 'Recording uploaded successfully!');
-
     } catch (error) {
       console.error('Upload failed:', error);
       Alert.alert('Error', 'Failed to upload recording. Please try again.');
@@ -663,9 +726,7 @@ export default function CheckinScreen() {
       // Update recording to show error state
       setRecordings(prev =>
         prev.map(r =>
-          r.id === recording.id
-            ? { ...r, transcription: 'Upload failed. Please try again.' }
-            : r
+          r.id === recording.id ? { ...r, transcription: 'Upload failed. Please try again.' } : r
         )
       );
     } finally {
@@ -694,7 +755,7 @@ export default function CheckinScreen() {
           ...r,
           isPlaying: false,
           playbackProgress: 0,
-          playbackPosition: 0
+          playbackPosition: 0,
         }))
       );
 
@@ -747,10 +808,10 @@ export default function CheckinScreen() {
                 prev.map(r =>
                   r.id === recording.id
                     ? {
-                      ...r,
-                      playbackProgress: progress,
-                      playbackPosition: position
-                    }
+                        ...r,
+                        playbackProgress: progress,
+                        playbackPosition: position,
+                      }
                     : r
                 )
               );
@@ -772,7 +833,7 @@ export default function CheckinScreen() {
                 ...r,
                 isPlaying: false,
                 playbackProgress: 0,
-                playbackPosition: 0
+                playbackPosition: 0,
               }))
             );
             soundRef.current = null;
@@ -785,7 +846,7 @@ export default function CheckinScreen() {
                 ...r,
                 isPlaying: false,
                 playbackProgress: 0,
-                playbackPosition: 0
+                playbackPosition: 0,
               }))
             );
             soundRef.current = null;
@@ -837,10 +898,10 @@ export default function CheckinScreen() {
               prev.map(r =>
                 r.id === recording.id
                   ? {
-                    ...r,
-                    playbackProgress: progress,
-                    playbackPosition: position
-                  }
+                      ...r,
+                      playbackProgress: progress,
+                      playbackPosition: position,
+                    }
                   : r
               )
             );
@@ -852,7 +913,7 @@ export default function CheckinScreen() {
                   ...r,
                   isPlaying: false,
                   playbackProgress: 0,
-                  playbackPosition: 0
+                  playbackPosition: 0,
                 }))
               );
               soundRef.current = null;
@@ -860,7 +921,6 @@ export default function CheckinScreen() {
           }
         });
       }
-
     } catch (error) {
       console.error('Failed to play recording:', error);
       Alert.alert('Error', 'Failed to play recording. Please try again.');
@@ -887,7 +947,7 @@ export default function CheckinScreen() {
           ...r,
           isPlaying: false,
           playbackProgress: 0,
-          playbackPosition: 0
+          playbackPosition: 0,
         }))
       );
     }
@@ -895,11 +955,7 @@ export default function CheckinScreen() {
 
   const toggleExpanded = useCallback((recordingId: string) => {
     setRecordings(prev =>
-      prev.map(r =>
-        r.id === recordingId
-          ? { ...r, isExpanded: !r.isExpanded }
-          : r
-      )
+      prev.map(r => (r.id === recordingId ? { ...r, isExpanded: !r.isExpanded } : r))
     );
   }, []);
 
@@ -924,19 +980,22 @@ export default function CheckinScreen() {
     }
   }, []);
 
-  const saveRecordingsToStorage = useCallback(async (recordingsToSave?: AudioRecording[]) => {
-    try {
-      const recordingsToStore = recordingsToSave || recordings;
-      const serializedRecordings = recordingsToStore.map(r => ({
-        ...r,
-        timestamp: r.timestamp.toISOString(),
-      }));
-      await AsyncStorage.setItem('safeWave_recordings', JSON.stringify(serializedRecordings));
-      console.log('💾 Saved recordings to storage:', serializedRecordings.length);
-    } catch (error) {
-      console.error('Failed to save recordings to storage:', error);
-    }
-  }, [recordings]);
+  const saveRecordingsToStorage = useCallback(
+    async (recordingsToSave?: AudioRecording[]) => {
+      try {
+        const recordingsToStore = recordingsToSave || recordings;
+        const serializedRecordings = recordingsToStore.map(r => ({
+          ...r,
+          timestamp: r.timestamp.toISOString(),
+        }));
+        await AsyncStorage.setItem('safeWave_recordings', JSON.stringify(serializedRecordings));
+        console.log('💾 Saved recordings to storage:', serializedRecordings.length);
+      } catch (error) {
+        console.error('Failed to save recordings to storage:', error);
+      }
+    },
+    [recordings]
+  );
 
   const refreshRecordings = useCallback(async () => {
     try {
@@ -994,12 +1053,12 @@ export default function CheckinScreen() {
           prev.map(r =>
             r.id === data.audio_id.toString()
               ? {
-                ...r,
-                transcription_status: data.status,
-                transcription: data.transcription || r.transcription,
-                confidence: data.confidence,
-                is_transcribing: data.status === 'processing'
-              }
+                  ...r,
+                  transcription_status: data.status,
+                  transcription: data.transcription || r.transcription,
+                  confidence: data.confidence,
+                  is_transcribing: data.status === 'processing',
+                }
               : r
           )
         );
@@ -1011,11 +1070,11 @@ export default function CheckinScreen() {
           prev.map(r =>
             r.id === data.audio_id.toString()
               ? {
-                ...r,
-                analysis_status: data.status,
-                risk_level: data.risk_level,
-                is_analyzing: data.status === 'processing'
-              }
+                  ...r,
+                  analysis_status: data.status,
+                  risk_level: data.risk_level,
+                  is_analyzing: data.status === 'processing',
+                }
               : r
           )
         );
@@ -1098,17 +1157,22 @@ export default function CheckinScreen() {
   }, [showScrollButton, scrollButtonPulseAnim, scrollButtonFadeAnim]);
 
   // Memoized render function for FlatList
-  const renderRecordingItem = useCallback(({ item }: { item: AudioRecording }) => (
-    <RecordingCard
-      recording={item}
-      onPlay={playRecording}
-      onToggleExpanded={toggleExpanded}
-      formatDuration={formatDuration}
-      formatTimestamp={formatTimestamp}
-      showRiskTooltip={showRiskTooltip}
-      onRiskTooltipToggle={(recordingId) => setShowRiskTooltip(showRiskTooltip === recordingId ? null : recordingId)}
-    />
-  ), [playRecording, toggleExpanded, formatDuration, formatTimestamp, showRiskTooltip]);
+  const renderRecordingItem = useCallback(
+    ({ item }: { item: AudioRecording }) => (
+      <RecordingCard
+        recording={item}
+        onPlay={playRecording}
+        onToggleExpanded={toggleExpanded}
+        formatDuration={formatDuration}
+        formatTimestamp={formatTimestamp}
+        showRiskTooltip={showRiskTooltip}
+        onRiskTooltipToggle={recordingId =>
+          setShowRiskTooltip(showRiskTooltip === recordingId ? null : recordingId)
+        }
+      />
+    ),
+    [playRecording, toggleExpanded, formatDuration, formatTimestamp, showRiskTooltip]
+  );
 
   // Scroll handling functions
   const handleScroll = useCallback((event: any) => {
@@ -1122,26 +1186,30 @@ export default function CheckinScreen() {
   }, []);
 
   // FlatList optimization functions
-  const getItemLayout = useCallback((data: any, index: number) => ({
-    length: 120, // Estimated item height
-    offset: 120 * index,
-    index,
-  }), []);
+  const getItemLayout = useCallback(
+    (data: any, index: number) => ({
+      length: 120, // Estimated item height
+      offset: 120 * index,
+      index,
+    }),
+    []
+  );
 
   const keyExtractor = useCallback((item: AudioRecording) => item.id, []);
 
   // Memoized empty component
-  const EmptyComponent = useMemo(() => (
-    <View style={styles.emptyState}>
-      <Ionicons name="mic-outline" size={48} color={Colors.light.text} />
-      <ThemedText style={styles.emptyStateTitle}>
-        No recordings yet
-      </ThemedText>
-      <ThemedText style={styles.emptyStateText}>
-        Start recording to see your voice check-ins here
-      </ThemedText>
-    </View>
-  ), []);
+  const EmptyComponent = useMemo(
+    () => (
+      <View style={styles.emptyState}>
+        <Ionicons name='mic-outline' size={48} color={Colors.light.text} />
+        <ThemedText style={styles.emptyStateTitle}>No recordings yet</ThemedText>
+        <ThemedText style={styles.emptyStateText}>
+          Start recording to see your voice check-ins here
+        </ThemedText>
+      </View>
+    ),
+    []
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1152,17 +1220,15 @@ export default function CheckinScreen() {
           {
             transform: [
               {
-                translateY: scrollOffset > 0 ? -Math.min(scrollOffset * 1.2, 200) : 0
-              }
+                translateY: scrollOffset > 0 ? -Math.min(scrollOffset * 1.2, 200) : 0,
+              },
             ],
             opacity: scrollOffset > 0 ? Math.max(0, 1 - scrollOffset * 0.005) : 1,
-          }
+          },
         ]}
       >
         <ThemedText style={styles.title}>Voice Check-in</ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Record your thoughts and feelings
-        </ThemedText>
+        <ThemedText style={styles.subtitle}>Record your thoughts and feelings</ThemedText>
       </Animated.View>
 
       {/* Recording Section */}
@@ -1172,15 +1238,15 @@ export default function CheckinScreen() {
           {
             transform: [
               {
-                translateY: scrollOffset > 0 ? -Math.min(scrollOffset * 1.8, 800) : 0
+                translateY: scrollOffset > 0 ? -Math.min(scrollOffset * 1.8, 800) : 0,
               },
               {
-                scale: scrollOffset > 0 ? Math.max(0.2, 1 - scrollOffset * 0.004) : 1
-              }
+                scale: scrollOffset > 0 ? Math.max(0.2, 1 - scrollOffset * 0.004) : 1,
+              },
             ],
             opacity: scrollOffset > 0 ? Math.max(0.02, 1 - scrollOffset * 0.005) : 1,
             zIndex: scrollOffset > 20 ? -1 : 1,
-          }
+          },
         ]}
       >
         <View style={styles.recordingVisualizer}>
@@ -1192,11 +1258,7 @@ export default function CheckinScreen() {
                   styles.recordingWave,
                   styles.wave1,
                   {
-                    transform: [
-                      { translateX: -60 },
-                      { translateY: -60 },
-                      { scale: waveAnimation }
-                    ],
+                    transform: [{ translateX: -60 }, { translateY: -60 }, { scale: waveAnimation }],
                     opacity: waveAnimation.interpolate({
                       inputRange: [0, 1],
                       outputRange: [0.3, 0.8],
@@ -1216,8 +1278,8 @@ export default function CheckinScreen() {
                         scale: waveAnimation.interpolate({
                           inputRange: [0, 1],
                           outputRange: [0.8, 1.2],
-                        })
-                      }
+                        }),
+                      },
                     ],
                     opacity: waveAnimation.interpolate({
                       inputRange: [0, 1],
@@ -1231,10 +1293,7 @@ export default function CheckinScreen() {
 
           {/* Recording button */}
           <TouchableOpacity
-            style={[
-              styles.recordButton,
-              isRecording && styles.recordingButton,
-            ]}
+            style={[styles.recordButton, isRecording && styles.recordingButton]}
             onPress={isRecording ? stopRecording : startRecording}
             disabled={isUploading}
           >
@@ -1248,10 +1307,7 @@ export default function CheckinScreen() {
               ]}
             >
               <View style={styles.smileEmojiContainer}>
-                <ThemedText style={[
-                  styles.smileEmoji,
-                  isRecording && styles.recordingEmoji
-                ]}>
+                <ThemedText style={[styles.smileEmoji, isRecording && styles.recordingEmoji]}>
                   😊
                 </ThemedText>
               </View>
@@ -1266,40 +1322,32 @@ export default function CheckinScreen() {
               <ThemedText style={styles.recordingText}>
                 Recording... {formatDuration(recordingDuration)}
               </ThemedText>
-              <ThemedText style={styles.recordingHint}>
-                Tap to stop recording
-              </ThemedText>
+              <ThemedText style={styles.recordingHint}>Tap to stop recording</ThemedText>
             </>
           ) : isUploading ? (
             <>
-              <ThemedText style={styles.recordingText}>
-                Uploading and transcribing...
-              </ThemedText>
-              <ThemedText style={styles.recordingHint}>
-                Please wait
-              </ThemedText>
+              <ThemedText style={styles.recordingText}>Uploading and transcribing...</ThemedText>
+              <ThemedText style={styles.recordingHint}>Please wait</ThemedText>
             </>
           ) : (
             <>
-              <ThemedText style={styles.recordingText}>
-                Ready to record
-              </ThemedText>
-              <ThemedText style={styles.recordingHint}>
-                Tap the smile to start
-              </ThemedText>
+              <ThemedText style={styles.recordingText}>Ready to record</ThemedText>
+              <ThemedText style={styles.recordingHint}>Tap the smile to start</ThemedText>
             </>
           )}
         </View>
       </Animated.View>
 
       {/* Recordings List */}
-      <View style={[
-        styles.recordingsSection,
-        {
-          zIndex: scrollOffset > 20 ? 2 : 0,
-          marginTop: scrollOffset > 0 ? -Math.min(scrollOffset * 1.8, 600) : 0,
-        }
-      ]}>
+      <View
+        style={[
+          styles.recordingsSection,
+          {
+            zIndex: scrollOffset > 20 ? 2 : 0,
+            marginTop: scrollOffset > 0 ? -Math.min(scrollOffset * 1.8, 600) : 0,
+          },
+        ]}
+      >
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
             <ThemedText style={styles.sectionTitle}>Recent</ThemedText>
@@ -1308,7 +1356,7 @@ export default function CheckinScreen() {
               onPress={refreshRecordings}
               activeOpacity={0.7}
             >
-              <Ionicons name="refresh" size={20} color={Colors.light.primary} />
+              <Ionicons name='refresh' size={20} color={Colors.light.primary} />
             </TouchableOpacity>
           </View>
           <ThemedText style={styles.recordingsCount}>
@@ -1348,7 +1396,7 @@ export default function CheckinScreen() {
                 opacity: showScrollButton ? 1 : 0,
                 transform: [
                   { scale: showScrollButton ? 1 : 0.8 },
-                  { translateY: showScrollButton ? 0 : 20 }
+                  { translateY: showScrollButton ? 0 : 20 },
                 ],
               },
             ]}
@@ -1360,17 +1408,31 @@ export default function CheckinScreen() {
                 activeOpacity={0.8}
               >
                 <View style={styles.doubleArrowContainer}>
-                  <Animated.View style={{
-                    transform: [{ scale: scrollButtonPulseAnim }],
-                    opacity: scrollButtonFadeAnim
-                  }}>
-                    <Ionicons name="chevron-up" size={28} color={Colors.light.background} style={styles.arrow1} />
+                  <Animated.View
+                    style={{
+                      transform: [{ scale: scrollButtonPulseAnim }],
+                      opacity: scrollButtonFadeAnim,
+                    }}
+                  >
+                    <Ionicons
+                      name='chevron-up'
+                      size={28}
+                      color={Colors.light.background}
+                      style={styles.arrow1}
+                    />
                   </Animated.View>
-                  <Animated.View style={{
-                    transform: [{ scale: scrollButtonPulseAnim }],
-                    opacity: scrollButtonFadeAnim
-                  }}>
-                    <Ionicons name="chevron-up" size={28} color={Colors.light.background} style={styles.arrow2} />
+                  <Animated.View
+                    style={{
+                      transform: [{ scale: scrollButtonPulseAnim }],
+                      opacity: scrollButtonFadeAnim,
+                    }}
+                  >
+                    <Ionicons
+                      name='chevron-up'
+                      size={28}
+                      color={Colors.light.background}
+                      style={styles.arrow2}
+                    />
                   </Animated.View>
                 </View>
               </TouchableOpacity>
@@ -1598,8 +1660,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 
-
-
   transcriptionPreview: {
     marginTop: 12,
     paddingTop: 12,
@@ -1734,7 +1794,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
     borderRadius: 2,
   },
-
 
   progressText: {
     fontSize: 12,

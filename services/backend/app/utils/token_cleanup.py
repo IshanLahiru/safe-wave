@@ -5,9 +5,12 @@ This can be run as a cron job or scheduled task
 """
 
 import asyncio
+
 from sqlalchemy.orm import Session
+
 from app.core.database import SessionLocal
 from app.services.token_service import TokenService
+
 
 async def cleanup_expired_tokens():
     """Clean up expired blacklisted tokens"""
@@ -18,6 +21,7 @@ async def cleanup_expired_tokens():
         return count
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     asyncio.run(cleanup_expired_tokens())

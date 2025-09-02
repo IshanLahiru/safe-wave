@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+  useCallback,
+} from 'react';
 import apiService, { OnboardingData, UserPreferences } from '../services/api';
 
 export interface User {
@@ -153,7 +160,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           hasAccessToken: !!accessToken,
           hasRefreshToken: !!refreshToken,
           accessTokenLength: accessToken?.length || 0,
-          refreshTokenLength: refreshToken?.length || 0
+          refreshTokenLength: refreshToken?.length || 0,
         });
 
         if (accessToken && refreshToken) {
@@ -410,14 +417,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         emergencyContact: {
           name: answers.emergency_contact_name,
           email: answers.emergency_contact_email,
-          relationship: answers.emergency_contact_relationship
+          relationship: answers.emergency_contact_relationship,
         },
         carePersonEmail: answers.care_person_email,
         preferences: {
           checkinFrequency: answers.checkin_frequency || 'Daily',
           darkMode: user.preferences?.darkMode || false,
-          language: user.preferences?.language || 'en'
-        }
+          language: user.preferences?.language || 'en',
+        },
       };
 
       setUser(updatedUser);
@@ -441,7 +448,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         backendUpdates.emergency_contact_email = updates.emergencyContact.email;
         backendUpdates.emergency_contact_relationship = updates.emergencyContact.relationship;
       }
-      if (updates.carePersonEmail !== undefined) backendUpdates.care_person_email = updates.carePersonEmail;
+      if (updates.carePersonEmail !== undefined)
+        backendUpdates.care_person_email = updates.carePersonEmail;
 
       const updatedUserData = await apiService.updateUserProfile(backendUpdates);
 
@@ -492,9 +500,5 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     refreshUser,
   };
 
-  return (
-    <UserContext.Provider value={value}>
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };

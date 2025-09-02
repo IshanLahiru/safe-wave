@@ -1,6 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
+
 
 class DocumentBase(BaseModel):
     title: Optional[str] = None
@@ -8,8 +10,10 @@ class DocumentBase(BaseModel):
     category: Optional[str] = None
     tags: Optional[List[str]] = None
 
+
 class DocumentCreate(DocumentBase):
     pass
+
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None
@@ -24,6 +28,7 @@ class DocumentUpdate(BaseModel):
     mental_health_indicators: Optional[Dict[str, Any]] = None
     summary: Optional[str] = None
     recommendations: Optional[List[str]] = None
+
 
 class DocumentResponse(DocumentBase):
     id: int
@@ -48,8 +53,10 @@ class DocumentResponse(DocumentBase):
     class Config:
         from_attributes = True
 
+
 class DocumentProcessingRequest(BaseModel):
     document_id: int
+
 
 class DocumentAnalysisRequest(BaseModel):
     document_id: int

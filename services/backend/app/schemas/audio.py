@@ -1,14 +1,18 @@
-from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
+
 
 class AudioBase(BaseModel):
     description: Optional[str] = None
     mood_rating: Optional[int] = None
     tags: Optional[List[str]] = None
 
+
 class AudioCreate(AudioBase):
     pass
+
 
 class AudioUpdate(BaseModel):
     description: Optional[str] = None
@@ -22,6 +26,7 @@ class AudioUpdate(BaseModel):
     mental_health_indicators: Optional[Dict[str, Any]] = None
     summary: Optional[str] = None
     recommendations: Optional[List[str]] = None
+
 
 class AudioResponse(AudioBase):
     id: int
@@ -47,8 +52,10 @@ class AudioResponse(AudioBase):
     class Config:
         from_attributes = True
 
+
 class AudioTranscriptionRequest(BaseModel):
     audio_id: int
+
 
 class AudioAnalysisRequest(BaseModel):
     audio_id: int

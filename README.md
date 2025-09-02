@@ -116,6 +116,42 @@ npm run test
 npm run clean
 ```
 
+### Code Formatting
+
+```bash
+# Format all code (frontend + backend)
+npm run format
+
+# Check formatting without making changes
+npm run format:check
+
+# Format only frontend
+npm run format:frontend
+
+# Format only backend
+npm run format:backend
+```
+
+**Formatting Configuration:**
+- **Frontend (TypeScript/JavaScript)**: Uses Prettier with 2-space indentation
+- **Backend (Python)**: Uses Black + isort with 4-space indentation (Python standard)
+- **Consistent**: Line length of 100 characters across both projects
+- **Automated**: Integrated with Turborepo for monorepo-wide formatting
+
+**Frontend Formatting Rules:**
+- 2-space indentation (tabWidth: 2)
+- Single quotes for strings
+- Trailing commas where valid
+- 100 character line length
+- Automatic semicolon insertion
+
+**Backend Formatting Rules:**
+- 4-space indentation (Python standard)
+- 100 character line length
+- Import sorting with isort
+- Black code formatting
+- Type checking with mypy
+
 ### Network IP Configuration
 
 ```bash
@@ -123,16 +159,29 @@ npm run clean
 npm run update-ip
 ```
 
-This script automatically:
-- Detects your current network IP address
-- Updates the frontend configuration to use the network IP
-- Ensures the backend is accessible from mobile devices on the same network
-- Provides test URLs and next steps
+This cross-platform script automatically:
+- **Detects your current network IP address** on Windows, Linux, and macOS
+- **Updates the frontend configuration** to use the network IP
+- **Ensures the backend is accessible** from mobile devices on the same network
+- **Provides test URLs and next steps** for verification
+
+**Cross-Platform Support:**
+- **Windows**: Uses `ipconfig` and PowerShell commands
+- **Linux**: Uses `ifconfig` and `ip addr` commands
+- **macOS**: Uses `ifconfig` command
+- **Fallback**: Python socket methods for any OS
 
 **Use this when:**
 - You want to test the app on a physical mobile device
 - Your mobile device can't access `localhost` from the computer
 - You're developing on a local network and need cross-device access
+- You're switching between different networks (home, office, etc.)
+
+**Features:**
+- Prioritizes common local network ranges (192.168.x.x)
+- Validates IP addresses before updating configurations
+- Handles multiple network adapters intelligently
+- Provides detailed system information for troubleshooting
 
 ## Development Workflow
 

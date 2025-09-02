@@ -55,11 +55,14 @@ export default function SignupScreen() {
         console.log('✅ Signup successful, navigation will be handled by root layout');
         // Navigation will be handled by the root layout
       } else {
-        setErrorMessage('An account with this email already exists. Please try a different email or sign in.');
+        setErrorMessage(
+          'An account with this email already exists. Please try a different email or sign in.'
+        );
       }
     } catch (error) {
       console.error('💥 Signup error caught:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Network error. Please check your connection.';
+      const errorMsg =
+        error instanceof Error ? error.message : 'Network error. Please check your connection.';
       setErrorMessage(errorMsg);
     }
   };
@@ -70,19 +73,16 @@ export default function SignupScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <ThemedView style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <IconSymbol size={24} name="chevron.left" color={theme.tint} />
+            <IconSymbol size={24} name='chevron.left' color={theme.tint} />
           </TouchableOpacity>
           <ThemedView style={styles.logoContainer}>
-            <IconSymbol size={60} name="person.badge.plus" color={theme.tint} />
+            <IconSymbol size={60} name='person.badge.plus' color={theme.tint} />
           </ThemedView>
-          <ThemedText type="title" style={styles.title}>
+          <ThemedText type='title' style={styles.title}>
             Create Account
           </ThemedText>
           <ThemedText style={styles.subtitle}>
@@ -93,42 +93,47 @@ export default function SignupScreen() {
         {/* Form */}
         <ThemedView style={styles.form}>
           <ThemedView style={styles.inputContainer}>
-            <IconSymbol size={20} name="person.fill" color={theme.tint} style={styles.inputIcon} />
+            <IconSymbol size={20} name='person.fill' color={theme.tint} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: theme.text }]}
-              placeholder="Full name"
+              placeholder='Full name'
               placeholderTextColor={theme.icon}
               value={name}
               onChangeText={setName}
-              autoCapitalize="words"
+              autoCapitalize='words'
               autoCorrect={false}
             />
           </ThemedView>
 
           <ThemedView style={styles.inputContainer}>
-            <IconSymbol size={20} name="envelope.fill" color={theme.tint} style={styles.inputIcon} />
+            <IconSymbol
+              size={20}
+              name='envelope.fill'
+              color={theme.tint}
+              style={styles.inputIcon}
+            />
             <TextInput
               style={[styles.input, { color: theme.text }]}
-              placeholder="Email address"
+              placeholder='Email address'
               placeholderTextColor={theme.icon}
               value={email}
               onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
+              keyboardType='email-address'
+              autoCapitalize='none'
               autoCorrect={false}
             />
           </ThemedView>
 
           <ThemedView style={styles.inputContainer}>
-            <IconSymbol size={20} name="lock.fill" color={theme.tint} style={styles.inputIcon} />
+            <IconSymbol size={20} name='lock.fill' color={theme.tint} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: theme.text }]}
-              placeholder="Password"
+              placeholder='Password'
               placeholderTextColor={theme.icon}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
-              autoCapitalize="none"
+              autoCapitalize='none'
               autoCorrect={false}
             />
             <TouchableOpacity
@@ -137,22 +142,22 @@ export default function SignupScreen() {
             >
               <IconSymbol
                 size={20}
-                name={showPassword ? "eye.slash.fill" : "eye.fill"}
+                name={showPassword ? 'eye.slash.fill' : 'eye.fill'}
                 color={theme.tint}
               />
             </TouchableOpacity>
           </ThemedView>
 
           <ThemedView style={styles.inputContainer}>
-            <IconSymbol size={20} name="lock.fill" color={theme.tint} style={styles.inputIcon} />
+            <IconSymbol size={20} name='lock.fill' color={theme.tint} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { color: theme.text }]}
-              placeholder="Confirm password"
+              placeholder='Confirm password'
               placeholderTextColor={theme.icon}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry={!showConfirmPassword}
-              autoCapitalize="none"
+              autoCapitalize='none'
               autoCorrect={false}
             />
             <TouchableOpacity
@@ -161,7 +166,7 @@ export default function SignupScreen() {
             >
               <IconSymbol
                 size={20}
-                name={showConfirmPassword ? "eye.slash.fill" : "eye.fill"}
+                name={showConfirmPassword ? 'eye.slash.fill' : 'eye.fill'}
                 color={theme.tint}
               />
             </TouchableOpacity>
@@ -180,7 +185,7 @@ export default function SignupScreen() {
           {/* Error Message */}
           {errorMessage ? (
             <ThemedView style={styles.errorContainer}>
-              <IconSymbol size={16} name="exclamationmark.triangle.fill" color="#FF3B30" />
+              <IconSymbol size={16} name='exclamationmark.triangle.fill' color='#FF3B30' />
               <ThemedText style={styles.errorText}>{errorMessage}</ThemedText>
             </ThemedView>
           ) : null}
@@ -192,9 +197,7 @@ export default function SignupScreen() {
           </ThemedView>
 
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <ThemedText style={styles.loginButtonText}>
-              Already have an account? Sign In
-            </ThemedText>
+            <ThemedText style={styles.loginButtonText}>Already have an account? Sign In</ThemedText>
           </TouchableOpacity>
         </ThemedView>
       </ScrollView>

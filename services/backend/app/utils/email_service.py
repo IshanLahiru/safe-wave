@@ -1,10 +1,12 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from app.core.config import settings
 import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class EmailService:
     def __init__(self):
@@ -13,34 +15,35 @@ class EmailService:
         self.smtp_username = settings.SMTP_USERNAME
         self.smtp_password = settings.SMTP_PASSWORD
         self.from_email = settings.FROM_EMAIL
-    
+
     def send_email(self, to_email: str, subject: str, body: str) -> bool:
         """Send email using configured SMTP settings"""
         try:
             # Create message
             msg = MIMEMultipart()
-            msg['From'] = self.from_email
-            msg['To'] = to_email
-            msg['Subject'] = subject
-            
+            msg["From"] = self.from_email
+            msg["To"] = to_email
+            msg["Subject"] = subject
+
             # Add body
-            msg.attach(MIMEText(body, 'plain'))
-            
+            msg.attach(MIMEText(body, "plain"))
+
             # Send email
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
-            
+
             logger.info(f"Email sent successfully to {to_email}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {e}")
             return False
-    
-    def send_critical_alert(self, to_email: str, user_name: str, risk_level: str, 
-                           alert_message: str) -> bool:
+
+    def send_critical_alert(
+        self, to_email: str, user_name: str, risk_level: str, alert_message: str
+    ) -> bool:
         """Send critical mental health alert"""
         subject = f"🚨 CRITICAL ALERT - {user_name} needs immediate attention"
         body = f"""
@@ -58,11 +61,18 @@ class EmailService:
         Best regards,
         Safe Wave Crisis Alert System
         """
-        
+
         return self.send_email(to_email, subject, body)
-    
-    def send_immediate_voice_alert(self, to_email: str, user_name: str, transcription: str, 
-                                  confidence: float, audio_id: int, recipient_type: str = "care person") -> bool:
+
+    def send_immediate_voice_alert(
+        self,
+        to_email: str,
+        user_name: str,
+        transcription: str,
+        confidence: float,
+        audio_id: int,
+        recipient_type: str = "care person",
+    ) -> bool:
         """Send immediate voice alert when user uploads audio"""
         # Customize subject and greeting based on recipient type
         if recipient_type == "emergency contact":
@@ -73,7 +83,7 @@ class EmailService:
             subject = f"🎤 VOICE ALERT - {user_name} has uploaded voice audio"
             greeting = f"Voice Alert for {user_name}"
             recipient_note = "You are receiving this alert as a care person for this user."
-        
+
         # Log the transcription content being sent in email
         logger.info("=" * 80)
         logger.info("📧 IMMEDIATE VOICE ALERT EMAIL")
@@ -81,12 +91,12 @@ class EmailService:
         logger.info(f"👤 User: {user_name}")
         logger.info(f"📧 Recipient: {to_email}")
         logger.info(f"👥 Recipient type: {recipient_type}")
-        logger.info(f"🎯 Transcribed text: \"{transcription}\"")
+        logger.info(f'🎯 Transcribed text: "{transcription}"')
         logger.info(f"📊 Text length: {len(transcription)} characters")
         logger.info(f"🔍 Word count: {len(transcription.split()) if transcription else 0}")
         logger.info(f"🎯 Confidence: {confidence:.4f}")
         logger.info("=" * 80)
-        
+
         body = f"""
         {greeting}
         
@@ -108,22 +118,28 @@ class EmailService:
         Best regards,
         Safe Wave Team
         """
-        
+
         return self.send_email(to_email, subject, body)
-    
-    def send_onboarding_analysis_alert(self, to_email: str, user_name: str, 
-                                     onboarding_analysis: dict, audio_analysis_failed: bool = True,
-                                     recipient_type: str = "care person", transcription: str = None) -> bool:
+
+    def send_onboarding_analysis_alert(
+        self,
+        to_email: str,
+        user_name: str,
+        onboarding_analysis: dict,
+        audio_analysis_failed: bool = True,
+        recipient_type: str = "care person",
+        transcription: str = None,
+    ) -> bool:
         """Send onboarding analysis alert when audio analysis fails"""
-        risk_level = onboarding_analysis.get('risk_level', 'unknown')
-        urgency = onboarding_analysis.get('urgency_level', 'unknown')
-        
+        risk_level = onboarding_analysis.get("risk_level", "unknown")
+        urgency = onboarding_analysis.get("urgency_level", "unknown")
+
         # Customize subject based on recipient type
         if audio_analysis_failed:
             subject = f"⚠️ Audio Analysis Failed - Onboarding Assessment for {user_name}"
         else:
             subject = f"📊 Onboarding Assessment Update for {user_name}"
-        
+
         # Customize greeting based on recipient type
         if recipient_type == "emergency contact":
             greeting = f"Emergency Contact Alert for {user_name}"
@@ -131,7 +147,7 @@ class EmailService:
         else:
             greeting = f"Mental Health Assessment Alert for {user_name}"
             recipient_note = "You are receiving this alert as a care person for this user."
-        
+
         # Log the transcription content being sent in email
         if transcription:
             logger.info("=" * 80)
@@ -140,11 +156,11 @@ class EmailService:
             logger.info(f"👤 User: {user_name}")
             logger.info(f"📧 Recipient: {to_email}")
             logger.info(f"👥 Recipient type: {recipient_type}")
-            logger.info(f"🎯 Transcribed text: \"{transcription}\"")
+            logger.info(f'🎯 Transcribed text: "{transcription}"')
             logger.info(f"📊 Text length: {len(transcription)} characters")
             logger.info(f"🔍 Word count: {len(transcription.split()) if transcription else 0}")
             logger.info("=" * 80)
-        
+
         body = f"""
         {greeting}
         
@@ -182,11 +198,10 @@ class EmailService:
         Best regards,
         Safe Wave Team
         """
-        
+
         return self.send_email(to_email, subject, body)
-    
-    def send_daily_summary(self, to_email: str, user_name: str, 
-                           daily_insights: dict) -> bool:
+
+    def send_daily_summary(self, to_email: str, user_name: str, daily_insights: dict) -> bool:
         """Send daily mental health summary to care person"""
         subject = f"Daily Mental Health Summary - {user_name}"
         body = f"""
@@ -204,5 +219,5 @@ class EmailService:
         Best regards,
         Safe Wave Team
         """
-        
+
         return self.send_email(to_email, subject, body)

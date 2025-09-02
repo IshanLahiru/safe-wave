@@ -6,7 +6,7 @@ export default function BlurTabBarBackground() {
   return (
     <BlurView
       // Use dark tint for consistent dark theme
-      tint="dark"
+      tint='dark'
       intensity={80}
       style={StyleSheet.absoluteFill}
     />

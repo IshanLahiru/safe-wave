@@ -76,7 +76,7 @@ class ApiService {
   private accessToken: string | null = null;
   private refreshTokenValue: string | null = null;
   private tokenExpiry: number | null = null;
-  
+
   // Authentication state management
   private authStateListeners: Array<(isAuthenticated: boolean) => void> = [];
   private isAuthenticated: boolean = false;
@@ -84,7 +84,7 @@ class ApiService {
   setTokens(accessToken: string, refreshToken: string, expiresIn: number) {
     this.accessToken = accessToken;
     this.refreshTokenValue = refreshToken;
-    this.tokenExpiry = Date.now() + (expiresIn * 1000);
+    this.tokenExpiry = Date.now() + expiresIn * 1000;
     // Store tokens in AsyncStorage for persistence
     this.storeTokens(accessToken, refreshToken, expiresIn);
     // Update authentication state
@@ -151,7 +151,7 @@ class ApiService {
           const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
           const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
           const expiryStr = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRY);
-          
+
           if (expiryStr) {
             this.tokenExpiry = parseInt(expiryStr, 10);
           }
@@ -161,28 +161,30 @@ class ApiService {
           this.refreshTokenValue = refreshToken;
 
           // Validate token format (basic check)
-          const isValidAccessToken = accessToken && accessToken.length > 50 && accessToken.includes('.');
-          const isValidRefreshToken = refreshToken && refreshToken.length > 50 && refreshToken.includes('.');
+          const isValidAccessToken =
+            accessToken && accessToken.length > 50 && accessToken.includes('.');
+          const isValidRefreshToken =
+            refreshToken && refreshToken.length > 50 && refreshToken.includes('.');
 
           console.log('🔍 Token validation (web):', {
             accessTokenValid: isValidAccessToken,
             refreshTokenValid: isValidRefreshToken,
             accessTokenLength: accessToken?.length || 0,
-            refreshTokenLength: refreshToken?.length || 0
+            refreshTokenLength: refreshToken?.length || 0,
           });
 
           const hasValidTokens = Boolean(isValidAccessToken && isValidRefreshToken);
           this.updateAuthState(hasValidTokens);
-          
+
           return {
             accessToken: isValidAccessToken ? accessToken : null,
-            refreshToken: isValidRefreshToken ? refreshToken : null
+            refreshToken: isValidRefreshToken ? refreshToken : null,
           };
         } catch (webError) {
           console.log('⚠️ Web localStorage failed, falling back to in-memory tokens');
           return {
             accessToken: this.accessToken,
-            refreshToken: this.refreshTokenValue
+            refreshToken: this.refreshTokenValue,
           };
         }
       }
@@ -190,7 +192,7 @@ class ApiService {
       // Native environment - use AsyncStorage
       const [accessToken, refreshToken] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN),
-        AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN)
+        AsyncStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN),
       ]);
 
       // Also load expiry time
@@ -204,24 +206,26 @@ class ApiService {
       this.refreshTokenValue = refreshToken;
 
       // Validate token format (basic check)
-      const isValidAccessToken = accessToken && accessToken.length > 50 && accessToken.includes('.');
-      const isValidRefreshToken = refreshToken && refreshToken.length > 50 && refreshToken.includes('.');
+      const isValidAccessToken =
+        accessToken && accessToken.length > 50 && accessToken.includes('.');
+      const isValidRefreshToken =
+        refreshToken && refreshToken.length > 50 && refreshToken.includes('.');
 
       console.log('🔍 Token validation (native):', {
         accessTokenValid: isValidAccessToken,
         refreshTokenValid: isValidRefreshToken,
         accessTokenLength: accessToken?.length || 0,
-        refreshTokenLength: refreshToken?.length || 0
+        refreshTokenLength: refreshToken?.length || 0,
       });
 
       // Return only valid tokens
       // Update authentication state based on token validity
       const hasValidTokens = Boolean(isValidAccessToken && isValidRefreshToken);
       this.updateAuthState(hasValidTokens);
-      
+
       return {
         accessToken: isValidAccessToken ? accessToken : null,
-        refreshToken: isValidRefreshToken ? refreshToken : null
+        refreshToken: isValidRefreshToken ? refreshToken : null,
       };
     } catch (error) {
       console.error('❌ Error loading stored tokens:', error);
@@ -232,8 +236,8 @@ class ApiService {
 
   private async storeTokens(accessToken: string, refreshToken: string, expiresIn: number) {
     try {
-      const expiry = Date.now() + (expiresIn * 1000);
-      
+      const expiry = Date.now() + expiresIn * 1000;
+
       // Web environment - use localStorage
       if (Platform.OS === 'web') {
         try {
@@ -248,7 +252,7 @@ class ApiService {
         await Promise.all([
           AsyncStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken),
           AsyncStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken),
-          AsyncStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, expiry.toString())
+          AsyncStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRY, expiry.toString()),
         ]);
       }
 
@@ -261,7 +265,7 @@ class ApiService {
       // Fallback to in-memory storage
       this.accessToken = accessToken;
       this.refreshTokenValue = refreshToken;
-      this.tokenExpiry = Date.now() + (expiresIn * 1000);
+      this.tokenExpiry = Date.now() + expiresIn * 1000;
     }
   }
 
@@ -301,7 +305,7 @@ class ApiService {
         await Promise.all([
           AsyncStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN),
           AsyncStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN),
-          AsyncStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY)
+          AsyncStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRY),
         ]);
       }
     } catch (error) {
@@ -326,15 +330,12 @@ class ApiService {
     return headers;
   }
 
-  public async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  public async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-    
+
     try {
       // Check network connectivity first
-      if (!await this.checkNetworkConnectivity()) {
+      if (!(await this.checkNetworkConnectivity())) {
         throw new Error('No network connection available. Please check your internet connection.');
       }
 
@@ -356,21 +357,21 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        
+
         // If unauthorized, try to refresh token once
         if (response.status === 401 && this.refreshTokenValue) {
           try {
             console.log('🔄 Received 401, attempting token refresh...');
             await this.refreshToken();
             console.log('✅ Token refreshed, retrying request...');
-            
+
             // Retry the request with new token
             const retryResponse = await fetch(url, {
               ...options,
               headers: this.getHeaders(),
               signal: controller.signal,
             });
-            
+
             if (retryResponse.ok) {
               console.log('✅ Request retry successful after token refresh');
               return retryResponse.json();
@@ -383,7 +384,7 @@ class ApiService {
             await this.clearTokens();
           }
         }
-        
+
         switch (response.status) {
           case 401:
             throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
@@ -411,7 +412,7 @@ class ApiService {
   private shouldRefreshToken(): boolean {
     // Refresh token if it expires in the next 5 minutes
     if (!this.tokenExpiry) return false;
-    const fiveMinutesFromNow = Date.now() + (5 * 60 * 1000);
+    const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
     return this.tokenExpiry <= fiveMinutesFromNow;
   }
 
@@ -456,17 +457,19 @@ class ApiService {
   async login(credentials: LoginRequest): Promise<TokenResponse> {
     try {
       // Check network connectivity first
-      if (!await this.checkNetworkConnectivity()) {
-        throw new Error('No network connection. Please check your internet connection and try again.');
+      if (!(await this.checkNetworkConnectivity())) {
+        throw new Error(
+          'No network connection. Please check your internet connection and try again.'
+        );
       }
 
       // Skip token validation for login endpoint
       const url = `${API_CONFIG.BASE_URL}/auth/login`;
       console.log('🔐 Attempting login to:', url);
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -475,7 +478,7 @@ class ApiService {
         body: JSON.stringify(credentials),
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -506,7 +509,7 @@ class ApiService {
     }
 
     console.log('🔄 Attempting token refresh...');
-    
+
     try {
       // Skip token validation for refresh endpoint
       const url = `${API_CONFIG.BASE_URL}/auth/refresh`;
@@ -570,17 +573,19 @@ class ApiService {
   async signup(userData: SignupRequest): Promise<TokenResponse> {
     try {
       // Check network connectivity first
-      if (!await this.checkNetworkConnectivity()) {
-        throw new Error('No network connection. Please check your internet connection and try again.');
+      if (!(await this.checkNetworkConnectivity())) {
+        throw new Error(
+          'No network connection. Please check your internet connection and try again.'
+        );
       }
 
       // Skip token validation for signup endpoint
       const url = `${API_CONFIG.BASE_URL}/auth/signup`;
       console.log('🔐 Attempting signup to:', url);
-      
-            const controller = new AbortController();
+
+      const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -589,7 +594,7 @@ class ApiService {
         body: JSON.stringify(userData),
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
 
       if (!response.ok) {
@@ -634,7 +639,7 @@ class ApiService {
   // Test connection to find working backend URL
   async testConnection(): Promise<{ working: boolean; url?: string; error?: string }> {
     const { FALLBACK_URLS } = await import('./config');
-    
+
     for (const url of FALLBACK_URLS) {
       try {
         console.log(`🔍 Testing connection to: ${url}`);
@@ -642,7 +647,7 @@ class ApiService {
           method: 'GET',
           signal: AbortSignal.timeout(5000), // 5 second timeout
         });
-        
+
         if (response.ok) {
           console.log(`✅ Connection successful to: ${url}`);
           return { working: true, url };
@@ -651,7 +656,7 @@ class ApiService {
         console.log(`❌ Connection failed to: ${url}:`, error);
       }
     }
-    
+
     return { working: false, error: 'No working backend URL found' };
   }
 
@@ -660,9 +665,9 @@ class ApiService {
     try {
       console.log('🔄 Force reloading tokens from storage...');
       console.log('🌐 Platform:', Platform.OS);
-      
+
       const { accessToken, refreshToken } = await this.getStoredTokens();
-      
+
       if (accessToken && refreshToken) {
         console.log('✅ Tokens reloaded successfully');
         return true;
@@ -699,7 +704,7 @@ class ApiService {
         // Mobile environment
         switch (operation) {
           case 'get':
-            return await AsyncStorage.getItem(key) as T;
+            return (await AsyncStorage.getItem(key)) as T;
           case 'set':
             if (value) await AsyncStorage.removeItem(key);
             return null;
@@ -722,26 +727,26 @@ class ApiService {
     try {
       const testKey = '__storage_test__';
       const testValue = 'test_value';
-      
+
       if (isWeb) {
         // Test localStorage
         try {
           localStorage.setItem(testKey, testValue);
           const retrieved = localStorage.getItem(testKey);
           localStorage.removeItem(testKey);
-          
+
           return {
             platform: 'web',
             storageAvailable: true,
             storageType: 'localStorage',
-            testResult: retrieved === testValue
+            testResult: retrieved === testValue,
           };
         } catch (error) {
           return {
             platform: 'web',
             storageAvailable: false,
             storageType: 'localStorage',
-            testResult: false
+            testResult: false,
           };
         }
       } else if (isMobile) {
@@ -750,28 +755,28 @@ class ApiService {
           await AsyncStorage.setItem(testKey, testValue);
           const retrieved = await AsyncStorage.getItem(testKey);
           await AsyncStorage.removeItem(testKey);
-          
+
           return {
             platform: 'mobile',
             storageAvailable: true,
             storageType: 'AsyncStorage',
-            testResult: retrieved === testValue
+            testResult: retrieved === testValue,
           };
         } catch (error) {
           return {
             platform: 'mobile',
             storageAvailable: false,
             storageType: 'AsyncStorage',
-            testResult: false
+            testResult: false,
           };
         }
       }
-      
+
       return {
         platform: 'unknown',
         storageAvailable: false,
         storageType: 'none',
-        testResult: false
+        testResult: false,
       };
     } catch (error) {
       console.error('❌ Storage availability check failed:', error);
@@ -779,7 +784,7 @@ class ApiService {
         platform: Platform.OS,
         storageAvailable: false,
         storageType: 'error',
-        testResult: false
+        testResult: false,
       };
     }
   }
@@ -813,7 +818,7 @@ class ApiService {
   // Audio endpoints
   async uploadAudio(formData: FormData): Promise<AudioAnalysis> {
     const url = `${API_CONFIG.BASE_URL}/audio/upload`;
-    
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.TIMEOUT);
@@ -821,7 +826,7 @@ class ApiService {
       // Debug: Log what's being sent
       console.log('🌐 API uploadAudio - URL:', url);
       console.log('🌐 API uploadAudio - FormData debugging:');
-      
+
       // React Native doesn't support FormData.entries(), so we log differently
       if (Platform.OS === 'web') {
         // Web platform - can use entries() safely
@@ -831,7 +836,7 @@ class ApiService {
             console.log(`  ${key}:`, value);
             console.log(`  ${key} type:`, typeof value);
             console.log(`  ${key} constructor:`, value?.constructor?.name);
-            
+
             // Additional logging for file objects
             if (key === 'file') {
               if (value instanceof File) {
@@ -851,12 +856,12 @@ class ApiService {
         console.log('📱 React Native platform detected');
         console.log('📱 FormData type:', typeof formData);
         console.log('📱 FormData constructor:', formData.constructor.name);
-        
+
         // Log the specific entries we know about
         const fileEntry = formData.get('file');
         const descEntry = formData.get('description');
         const moodEntry = formData.get('mood_rating');
-        
+
         console.log('📱 File entry:', fileEntry);
         console.log('📱 Description entry:', descEntry);
         console.log('📱 Mood rating entry:', moodEntry);
@@ -865,7 +870,7 @@ class ApiService {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${this.accessToken}`,
           // Don't set Content-Type for FormData - let the browser set it with boundary
           // React Native will automatically set the correct Content-Type with boundary
         },
@@ -892,8 +897,6 @@ class ApiService {
     }
   }
 
-
-
   async getAudioAnalyses(): Promise<AudioAnalysis[]> {
     return this.request('/audio/list');
   }
@@ -908,12 +911,12 @@ class ApiService {
     try {
       const wsUrl = API_CONFIG.BASE_URL.replace('http', 'ws') + `/audio/ws/${userId}`;
       const ws = new WebSocket(wsUrl);
-      
+
       ws.onopen = () => {
         console.log('🔌 WebSocket connected for real-time updates');
       };
-      
-      ws.onmessage = (event) => {
+
+      ws.onmessage = event => {
         try {
           const data = JSON.parse(event.data);
           onMessage(data);
@@ -921,15 +924,15 @@ class ApiService {
           console.error('Failed to parse WebSocket message:', error);
         }
       };
-      
-      ws.onerror = (error) => {
+
+      ws.onerror = error => {
         console.error('WebSocket error:', error);
       };
-      
+
       ws.onclose = () => {
         console.log('WebSocket connection closed');
       };
-      
+
       return ws;
     } catch (error) {
       console.error('Failed to create WebSocket connection:', error);
@@ -981,12 +984,12 @@ class ApiService {
       // Try to fetch a simple endpoint to check connectivity
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for connectivity check
-      
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/health/`, {
         method: 'GET',
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
       return response.ok;
     } catch (error) {
@@ -1000,32 +1003,32 @@ class ApiService {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
-      
+
       const response = await fetch(`${API_CONFIG.BASE_URL}/health/`, {
         method: 'GET',
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (response.ok) {
         return {
           status: 'online',
           details: 'Backend server is running and accessible',
-          url: API_CONFIG.BASE_URL
+          url: API_CONFIG.BASE_URL,
         };
       } else {
         return {
           status: 'error',
           details: `Server responded with status: ${response.status}`,
-          url: API_CONFIG.BASE_URL
+          url: API_CONFIG.BASE_URL,
         };
       }
     } catch (error) {
       return {
         status: 'offline',
         details: error instanceof Error ? error.message : 'Network request failed',
-        url: API_CONFIG.BASE_URL
+        url: API_CONFIG.BASE_URL,
       };
     }
   }
