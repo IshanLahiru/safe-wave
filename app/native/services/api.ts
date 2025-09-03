@@ -110,6 +110,26 @@ class ApiService {
     return this.accessToken;
   }
 
+  async getAccessTokenAsync(): Promise<string | null> {
+    // If we have a token in memory, return it
+    if (this.accessToken) {
+      return this.accessToken;
+    }
+
+    // Try to get stored tokens
+    try {
+      const { accessToken } = await this.getStoredTokens();
+      if (accessToken) {
+        this.accessToken = accessToken;
+        return accessToken;
+      }
+    } catch (error) {
+      console.error('Failed to get stored access token:', error);
+    }
+
+    return null;
+  }
+
   getRefreshToken(): string | null {
     return this.refreshTokenValue;
   }

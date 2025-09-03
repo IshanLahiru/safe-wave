@@ -170,6 +170,19 @@ export default function ProfileScreen() {
             <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.settingRow}
+            onPress={() => router.push('/medical-documents')}
+          >
+            <View style={styles.settingLeft}>
+              <IconSymbol size={20} name='heart.fill' color={Colors.dark.primary} />
+              <ThemedText type='body' style={styles.settingLabel}>
+                Medical Documents
+              </ThemedText>
+            </View>
+            <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.settingRow}>
             <View style={styles.settingLeft}>
               <IconSymbol size={20} name='lock.fill' color={Colors.dark.primary} />

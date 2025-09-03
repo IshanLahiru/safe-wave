@@ -114,6 +114,7 @@ function AppContent() {
         {/* Always include all screens to prevent navigation errors */}
         <Stack.Screen name='(tabs)' />
         <Stack.Screen name='onboarding-questionnaire' />
+        <Stack.Screen name='medical-documents' />
         <Stack.Screen name='auth/login' />
         <Stack.Screen name='auth/signup' />
         <Stack.Screen name='+not-found' />
