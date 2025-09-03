@@ -30,6 +30,9 @@ langchain-openai==0.0.2
 # Redis for caching
 redis==5.0.1
 
+# Docker SDK for container management
+docker==7.0.0
+
 # Development and formatting tools
 black==23.12.1
 isort==5.13.2

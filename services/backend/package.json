@@ -25,7 +25,13 @@
     "alembic:upgrade": "alembic upgrade head",
     "alembic:downgrade": "alembic downgrade -1",
     "alembic:history": "alembic history --verbose",
-    "alembic:current": "alembic current --verbose"
+    "alembic:current": "alembic current --verbose",
+    "docker:up": "python scripts/docker_manager.py up",
+    "docker:down": "python scripts/docker_manager.py down",
+    "docker:stop": "python scripts/docker_manager.py stop",
+    "docker:restart": "python scripts/docker_manager.py restart",
+    "docker:status": "python scripts/docker_manager.py status",
+    "docker:logs": "python scripts/docker_manager.py logs"
   },
   "engines": {
     "python": ">=3.8"
