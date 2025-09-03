@@ -27,11 +27,11 @@ export const useDocumentWebSocket = ({
   const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const getWebSocketUrl = async () => {
-    // Get the backend URL using the same logic as the API
+    // Figure out the backend URL
     const { getBackendUrl } = await import('@/services/config');
     const baseUrl = await getBackendUrl();
 
-    // Get the authentication token
+    // Get the user's login token
     const { apiService } = await import('@/services/api');
     const token = await apiService.getAccessTokenAsync();
 
@@ -39,7 +39,7 @@ export const useDocumentWebSocket = ({
       throw new Error('No authentication token available');
     }
 
-    // Convert HTTP URL to WebSocket URL
+    // Change http to ws for WebSocket connection
     const wsUrl = baseUrl.replace(/^https?:/, baseUrl.startsWith('https:') ? 'wss:' : 'ws:');
     return `${wsUrl}/documents/ws/${userId}?token=${encodeURIComponent(token)}`;
   };

@@ -151,7 +151,7 @@ Based on these answers, provide a comprehensive mental health risk assessment in
     "care_person_alert": "detailed message for care person"
 }}"""
 
-        # Use OpenAI API with version 1.3.0+ format
+        # Call OpenAI to analyze the text
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
@@ -164,7 +164,7 @@ Based on these answers, provide a comprehensive mental health risk assessment in
 
         analysis_data = json.loads(content)
 
-        # Ensure transcription is included
+        # Make sure we include the original transcription
         if transcription:
             analysis_data["transcription"] = transcription
 

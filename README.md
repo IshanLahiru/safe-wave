@@ -15,19 +15,19 @@ safe-wave/
 
 ## Prerequisites
 
-- **Node.js** (>=18.0.0)
-- **npm** (>=10.0.0)
-- **Python** (>=3.8)
-- **Expo CLI** (for mobile development)
+- Node.js (version 18 or newer)
+- npm (version 10 or newer)
+- Python (version 3.8 or newer)
+- Expo CLI (if you want to run on mobile)
 
 ## Setup
 
-1. **Install dependencies:**
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-2. **Install Python dependencies for backend:**
+2. Install Python dependencies for backend:
    ```bash
    cd services/backend
    pip install -r requirements.txt
@@ -49,11 +49,11 @@ cd app/native
 npm run dev
 ```
 
-This will start the Expo development server. You can then:
+This starts the Expo development server. You can then:
 - Press `w` to open in web browser
 - Press `a` to open Android emulator
 - Press `i` to open iOS simulator
-- Scan QR code with Expo Go app on your phone
+- Scan the QR code with Expo Go app on your phone
 
 ### Backend Only
 
@@ -78,17 +78,17 @@ To run both frontend and backend simultaneously:
 npm run dev:all
 ```
 
-This will start both services in parallel using Turborepo's task orchestration.
+This starts both services at the same time using Turborepo.
 
 ## Other Available Commands
 
 ### Build
 
 ```bash
-# Build frontend (backend has no build step)
+# Build frontend (backend doesn't need a build step)
 npm run build
 
-# Build frontend only
+# Build just the frontend
 npm run build:frontend
 ```
 
@@ -105,7 +105,7 @@ npm run lint:frontend
 ### Testing
 
 ```bash
-# Run tests on all projects (if available)
+# Run tests on all projects (if we have any)
 npm run test
 ```
 
@@ -132,20 +132,20 @@ npm run format:frontend
 npm run format:backend
 ```
 
-**Formatting Configuration:**
-- **Frontend (TypeScript/JavaScript)**: Uses Prettier with 2-space indentation
-- **Backend (Python)**: Uses Black + isort with 4-space indentation (Python standard)
-- **Consistent**: Line length of 100 characters across both projects
-- **Automated**: Integrated with Turborepo for monorepo-wide formatting
+Formatting Configuration:
+- Frontend (TypeScript/JavaScript): Uses Prettier with 2-space indentation
+- Backend (Python): Uses Black and isort with 4-space indentation (Python standard)
+- Both projects use 100 character line length
+- Integrated with Turborepo for formatting everything at once
 
-**Frontend Formatting Rules:**
-- 2-space indentation (tabWidth: 2)
+Frontend Formatting Rules:
+- 2-space indentation
 - Single quotes for strings
-- Trailing commas where valid
+- Trailing commas where they make sense
 - 100 character line length
 - Automatic semicolon insertion
 
-**Backend Formatting Rules:**
+Backend Formatting Rules:
 - 4-space indentation (Python standard)
 - 100 character line length
 - Import sorting with isort
@@ -159,17 +159,17 @@ npm run format:backend
 npm run update-ip
 ```
 
-This cross-platform script automatically:
-- **Detects your current network IP address** on Windows, Linux, and macOS
-- **Updates the frontend configuration** to use the network IP
-- **Ensures the backend is accessible** from mobile devices on the same network
-- **Provides test URLs and next steps** for verification
+This script automatically:
+- Detects your current network IP address on Windows, Linux, and macOS
+- Updates the frontend configuration to use the network IP
+- Makes sure the backend is accessible from mobile devices on the same network
+- Gives you test URLs and next steps for verification
 
-**Cross-Platform Support:**
-- **Windows**: Uses `ipconfig` and PowerShell commands
-- **Linux**: Uses `ifconfig` and `ip addr` commands
-- **macOS**: Uses `ifconfig` command
-- **Fallback**: Python socket methods for any OS
+Cross-Platform Support:
+- Windows: Uses `ipconfig` and PowerShell commands
+- Linux: Uses `ifconfig` and `ip addr` commands
+- macOS: Uses `ifconfig` command
+- Fallback: Python socket methods for any OS
 
 **Use this when:**
 - You want to test the app on a physical mobile device

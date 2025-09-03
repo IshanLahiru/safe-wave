@@ -4,11 +4,11 @@
 
 set -e
 
-# Default port
+# Use port 9000 if none specified
 PORT=${1:-9000}
 FORCE=${2:-""}
 
-# Colors for output
+# Color codes to make output look nice
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -18,12 +18,12 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🔍 Safe Wave Port Killer${NC}"
 echo -e "Checking port ${YELLOW}${PORT}${NC}..."
 
-# Check if port is in use
+# See if anything is using the port
 if command -v lsof >/dev/null 2>&1; then
-    # macOS/Linux with lsof
+    # macOS/Linux systems
     PIDS=$(lsof -ti :${PORT} 2>/dev/null || true)
 elif command -v netstat >/dev/null 2>&1; then
-    # Windows or systems without lsof
+    # Windows or other systems
     PIDS=$(netstat -ano 2>/dev/null | grep ":${PORT}" | grep "LISTENING" | awk '{print $5}' | sort -u || true)
 else
     echo -e "${RED}❌ No suitable tools found (lsof or netstat)${NC}"

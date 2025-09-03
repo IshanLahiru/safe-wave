@@ -86,9 +86,9 @@ CREATE TABLE email_alerts (
 
 ---
 
-## 📊 **Migration History**
+## Migration History
 
-### **Migration 001: Initial Database Structure**
+### Migration 001: Initial Database Structure
 ```
 Revision ID: 001
 Revises: <base>

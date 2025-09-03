@@ -175,7 +175,7 @@ status = manager.check_container_status()
 
 ## Port Management
 
-Sometimes processes get stuck on backend ports, preventing Docker containers from starting. Use the port killer scripts to clean up:
+Sometimes processes get stuck on backend ports and won't let Docker containers start. Use the port killer scripts to clean them up:
 
 ### Python Port Killer
 

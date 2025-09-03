@@ -181,10 +181,10 @@ FROM_EMAIL=noreply@safewave.com
 
 ### Common Issues
 
-1. **Docker not running**: Start Docker Desktop
-2. **Port conflicts**: Use port killer scripts to free up ports
-3. **Permission denied**: Add user to docker group or use sudo
-4. **Build failures**: Use `--build` flag to force rebuild
+1. Docker not running: Start Docker Desktop
+2. Port conflicts: Use port killer scripts to free up ports
+3. Permission denied: Add user to docker group or use sudo
+4. Build failures: Use `--build` flag to force rebuild
 
 ### Port Conflict Resolution
 

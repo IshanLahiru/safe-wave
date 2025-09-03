@@ -19,22 +19,22 @@ import { Colors, Shadows, Spacing, BorderRadius } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 import { useDocumentWebSocket, DocumentUploadProgress } from '@/hooks/useDocumentWebSocket';
-// Allowed extensions and size limit for client-side validation (kept minimal and local to this screen)
+// What file types we allow and max size
 const ALLOWED_EXTS = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.txt'];
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
-// Helper: get file extension in lower-case (including dot)
+// Get the file extension from a filename
 function getExt(name: string | undefined): string {
   return name ? name.substring(name.lastIndexOf('.')).toLowerCase() : '';
 }
 
-// Helper: extension allow-list check
+// Check if the file type is allowed
 function isAllowedExt(name: string | undefined): boolean {
   const ext = getExt(name);
   return ALLOWED_EXTS.includes(ext);
 }
 
-// Helper: derive a filename from a URI (used when DocumentPicker doesn't provide a name)
+// Get a filename from a file path when the picker doesn't give us one
 function nameFromUri(uri: string, fallback = 'document'): string {
   try {
     const last = uri.split(/[\\/]/).pop() || fallback;
@@ -161,7 +161,7 @@ const wsUserId: number | null = (() => {
 
             if (response.ok) {
                 const data = await response.json();
-                // Filter for medical documents
+                // Only show medical documents
                 const medicalDocs = data.filter((doc: MedicalDocument) =>
                     doc.category === 'medical' ||
                     doc.tags?.includes('medical') ||
@@ -181,18 +181,18 @@ const wsUserId: number | null = (() => {
     };
 
     const handleFileUpload = async () => {
-        // Use platform-safe interval type (number in browsers, Timeout in Node)
+        // Keep track of progress animation interval
         let progressInterval: ReturnType<typeof setInterval> | null = null;
 
         try {
-            // Check authentication first
+            // Make sure user is logged in
             const token = await apiService.getAccessTokenAsync();
             if (!token) {
                 Alert.alert('Authentication Required', 'Please log in to upload documents.');
                 return;
             }
 
-            // Pick document
+            // Open file picker
             const result = await DocumentPicker.getDocumentAsync({
                 type: Platform.OS === 'web'
                     ? ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/*', 'text/plain']
@@ -208,10 +208,10 @@ const wsUserId: number | null = (() => {
             const file = result.assets[0];
             console.log('Selected file:', file);
 
-            // Determine candidate filename and validate extension
+            // Check if the file type is allowed
             const candName = file.name || nameFromUri(file.uri);
             if (!isAllowedExt(candName)) {
-                // Client-side extension validation aligned with backend rules
+                // Make sure file type is supported
                 setErrorMsg('Unsupported file type. Allowed: PDF, DOC, DOCX, JPG, JPEG, PNG, TXT');
                 setSelectedName(null);
                 setIsUploading(false);

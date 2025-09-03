@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 async def authenticate_websocket_user(token: str, db: Session) -> User:
-    """Authenticate user from WebSocket token (supports email or user id in 'sub')."""
+    """Check if the WebSocket token is valid and get the user info"""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         sub = payload.get("sub")
@@ -30,7 +30,7 @@ async def authenticate_websocket_user(token: str, db: Session) -> User:
         user: Optional[User] = None
         sub_str = str(sub)
 
-        # Resolve subject: if contains '@' -> treat as email; if digits -> treat as user id
+        # Figure out if the token has an email or user ID
         if "@" in sub_str:
             user = db.query(User).filter(User.email == sub_str).first()
         elif sub_str.isdigit():
@@ -47,7 +47,7 @@ async def authenticate_websocket_user(token: str, db: Session) -> User:
         raise HTTPException(status_code=401, detail="Invalid token")
 
 
-# WebSocket connection manager for document upload progress
+# Manages WebSocket connections for real-time upload progress
 class DocumentConnectionManager:
     def __init__(self):
         self.active_connections: Dict[int, WebSocket] = {}
@@ -74,10 +74,9 @@ class DocumentConnectionManager:
 document_manager = DocumentConnectionManager()
 
 
-# Note for maintainers:
-# - Enforces allowed extensions {.pdf, .doc, .docx, .jpg, .jpeg, .png, .txt} and 10MB max size.
-# - Reads the uploaded file bytes once, writes from memory (no stream reuse), and persists metadata.
-# - Returns a DocumentResponse via model_validate(db_obj) to ensure snake_case serialization from ORM.
+# File upload endpoint - handles document uploads with progress tracking
+# Only allows certain file types and limits size to 10MB
+# Reads the file once and saves it, then stores info in database
 @router.post("/upload", response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile = File(...),
@@ -88,9 +87,9 @@ async def upload_document(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Upload document file with multipart form data"""
+    """Handle file uploads and send progress updates via WebSocket"""
     try:
-        # Send upload start notification
+        # Let the frontend know we started uploading
         await document_manager.send_personal_message(
             {
                 "type": "upload_started",

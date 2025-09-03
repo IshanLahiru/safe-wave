@@ -2,8 +2,9 @@
 """
 Port Process Killer Script for Safe Wave Backend
 
-This script helps kill processes running on specific ports, particularly useful
-for cleaning up stuck backend processes or when ports are occupied.
+This script helps kill processes that are hogging ports, which is super useful
+when your backend crashes and leaves processes running, or when Docker doesn't
+clean up properly.
 
 Usage:
     python scripts/kill_port.py                    # Kill default backend port (9000)
@@ -13,10 +14,10 @@ Usage:
     python scripts/kill_port.py 9000 --force       # Force kill with SIGKILL
 
 Common use cases:
-    - Backend port is occupied after crash
-    - Docker containers not releasing ports properly
-    - Development server stuck and won't restart
-    - Multiple processes competing for the same port
+    - Backend port is stuck after a crash
+    - Docker containers aren't releasing ports properly
+    - Development server is stuck and won't restart
+    - Multiple processes are fighting for the same port
 """
 
 import argparse
@@ -29,19 +30,19 @@ from typing import List, Dict, Optional
 
 
 class PortKiller:
-    """Manages killing processes on specific ports across different operating systems."""
+    """Handles killing processes on ports for different operating systems"""
     
     def __init__(self):
         self.system = platform.system().lower()
         self.common_ports = [9000, 8000, 5000, 3000, 8080, 5432]  # Backend, dev servers, postgres
         
     def find_processes_on_port(self, port: int) -> List[Dict[str, str]]:
-        """Find all processes using the specified port."""
+        """Find all processes that are using a specific port"""
         processes = []
         
         try:
             if self.system == "darwin" or self.system == "linux":
-                # Use lsof for macOS and Linux
+                # Use lsof command for macOS and Linux
                 result = subprocess.run(
                     ["lsof", "-ti", f":{port}"],
                     capture_output=True,
@@ -59,7 +60,7 @@ class PortKiller:
                                 processes.append(process_info)
                                 
             elif self.system == "windows":
-                # Use netstat for Windows
+                # Use netstat command for Windows
                 result = subprocess.run(
                     ["netstat", "-ano"],
                     capture_output=True,

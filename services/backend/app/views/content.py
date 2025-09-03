@@ -691,7 +691,7 @@ async def get_public_progress(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to get progress")
 
 
-# Public endpoints for content (no authentication required)
+# Public endpoints that don't need login
 @router.get("/videos/public")
 async def get_videos_public(
     category_id: Optional[int] = Query(None),
@@ -701,7 +701,7 @@ async def get_videos_public(
     offset: int = Query(0),
     db: Session = Depends(get_db),
 ):
-    """Get stress-reduction videos without authentication"""
+    """Get stress-reduction videos without needing to log in"""
     try:
         query = db.query(Video).filter(Video.is_active == True)
 
