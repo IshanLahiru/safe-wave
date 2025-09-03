@@ -120,6 +120,12 @@ npm run docker:stop
 npm run docker:restart
 npm run docker:status
 npm run docker:logs
+
+# Port management
+npm run kill:port          # Kill processes on port 9000
+npm run kill:port:force     # Force kill processes on port 9000
+npm run kill:all            # Kill processes on all common backend ports
+npm run kill:list           # List processes on common ports
 ```
 
 ### Programmatic Usage
@@ -165,6 +171,63 @@ manager.show_logs(service="api", follow=False, tail=50)
 
 # Get detailed status
 status = manager.check_container_status()
+```
+
+## Port Management
+
+Sometimes processes get stuck on backend ports, preventing Docker containers from starting. Use the port killer scripts to clean up:
+
+### Python Port Killer
+
+```bash
+# Check what's running on common ports
+python scripts/kill_port.py --list
+
+# Kill processes on default backend port (9000)
+python scripts/kill_port.py
+
+# Kill processes on specific port
+python scripts/kill_port.py 8000
+
+# Force kill without confirmation
+python scripts/kill_port.py 9000 --force
+
+# Kill processes on all common backend ports
+python scripts/kill_port.py --all
+
+# Check specific ports only
+python scripts/kill_port.py --list --ports 3000 8000 9000
+```
+
+### Shell Script (Quick Access)
+
+```bash
+# Kill processes on port 9000
+./scripts/kill_port.sh
+
+# Kill processes on specific port
+./scripts/kill_port.sh 8080
+
+# Force kill without confirmation
+./scripts/kill_port.sh 9000 --force
+```
+
+### NPM Scripts (From Backend Directory)
+
+```bash
+npm run kill:port          # Kill port 9000
+npm run kill:port:force     # Force kill port 9000
+npm run kill:all            # Kill all common ports
+npm run kill:list           # List processes on ports
+```
+
+### NPM Scripts (From Root Directory)
+
+```bash
+npm run kill:port          # Kill port 9000
+npm run kill:port:force     # Force kill port 9000
+npm run kill:all            # Kill all common ports
+npm run kill:list           # List processes on ports
 ```
 
 ## Environment Configuration

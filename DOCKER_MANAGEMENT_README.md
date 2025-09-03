@@ -61,6 +61,10 @@ python scripts/docker_manager.py down
 | `npm run docker:restart` | Restart containers |
 | `npm run docker:logs` | View container logs (follow mode) |
 | `npm run docker:ps` | Check running containers |
+| `npm run kill:port` | Kill processes on backend port (9000) |
+| `npm run kill:port:force` | Force kill processes on backend port |
+| `npm run kill:all` | Kill processes on all common backend ports |
+| `npm run kill:list` | List processes on common backend ports |
 
 ### Python Scripts (Backend Level)
 
@@ -178,9 +182,27 @@ FROM_EMAIL=noreply@safewave.com
 ### Common Issues
 
 1. **Docker not running**: Start Docker Desktop
-2. **Port conflicts**: Change ports in `.env` file
+2. **Port conflicts**: Use port killer scripts to free up ports
 3. **Permission denied**: Add user to docker group or use sudo
 4. **Build failures**: Use `--build` flag to force rebuild
+
+### Port Conflict Resolution
+
+If you get "port already in use" errors:
+
+```bash
+# Check what's using the ports
+npm run kill:list
+
+# Kill processes on backend port
+npm run kill:port
+
+# Kill all backend-related ports
+npm run kill:all
+
+# Then restart Docker
+npm run docker:up
+```
 
 ### Useful Commands
 

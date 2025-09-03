@@ -39,7 +39,11 @@
     "docker:stop": "cd services/backend && docker-compose stop",
     "docker:restart": "cd services/backend && docker-compose restart",
     "docker:logs": "cd services/backend && docker-compose logs -f",
-    "docker:ps": "cd services/backend && docker-compose ps"
+    "docker:ps": "cd services/backend && docker-compose ps",
+    "kill:port": "cd services/backend && python scripts/kill_port.py",
+    "kill:port:force": "cd services/backend && python scripts/kill_port.py --force",
+    "kill:all": "cd services/backend && python scripts/kill_port.py --all",
+    "kill:list": "cd services/backend && python scripts/kill_port.py --list"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

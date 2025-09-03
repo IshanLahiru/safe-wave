@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class DocumentBase(BaseModel):
@@ -50,8 +50,8 @@ class DocumentResponse(DocumentBase):
     processed_at: Optional[datetime] = None
     analyzed_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    # Enable Pydantic v2 ORM mode for model_validate(db_obj)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DocumentProcessingRequest(BaseModel):

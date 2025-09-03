@@ -31,7 +31,11 @@
     "docker:stop": "python scripts/docker_manager.py stop",
     "docker:restart": "python scripts/docker_manager.py restart",
     "docker:status": "python scripts/docker_manager.py status",
-    "docker:logs": "python scripts/docker_manager.py logs"
+    "docker:logs": "python scripts/docker_manager.py logs",
+    "kill:port": "python scripts/kill_port.py",
+    "kill:port:force": "python scripts/kill_port.py --force",
+    "kill:all": "python scripts/kill_port.py --all",
+    "kill:list": "python scripts/kill_port.py --list"
   },
   "engines": {
     "python": ">=3.8"
