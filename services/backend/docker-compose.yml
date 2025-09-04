@@ -1,72 +1,21 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:15
+  db:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-safewave}
-      POSTGRES_USER: ${POSTGRES_USER:-user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app_password}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app} -h 127.0.0.1 -p 5432"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
     restart: unless-stopped
-
-  api:
-    build: .
-    ports:
-      - "${API_PORT:-9000}:9000"
-    environment:
-      # Database configuration - let the application auto-detect Docker environment
-      # The config.py will automatically use postgres:5432 when running in Docker
-      - POSTGRES_DB=${POSTGRES_DB:-safewave}
-      - POSTGRES_USER=${POSTGRES_USER:-user}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - DOCKER_CONTAINER=true
-      
-      # Security configuration
-      - SECRET_KEY=${SECRET_KEY}
-      - ALGORITHM=${ALGORITHM:-HS256}
-      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
-      - REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
-      
-      # API configuration
-      - DEBUG=${DEBUG:-true}
-      - API_V1_STR=${API_V1_STR:-/api/v1}
-      - PROJECT_NAME=${PROJECT_NAME:-Safe Wave API}
-      
-      # External service configuration
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-meta-llama/llama-3.1-405b-instruct:free}
-      
-      # Email configuration
-      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
-      - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USERNAME=${SMTP_USERNAME}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - FROM_EMAIL=${FROM_EMAIL:-noreply@safewave.com}
-      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
-      
-      # File storage configuration
-      - UPLOAD_BASE_DIR=${UPLOAD_BASE_DIR:-uploads}
-      - AUDIO_UPLOAD_DIR=${AUDIO_UPLOAD_DIR:-uploads/audio}
-      - DOCUMENT_UPLOAD_DIR=${DOCUMENT_UPLOAD_DIR:-uploads/documents}
-    depends_on:
-      - postgres
-    volumes:
-      - .:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 9000 --reload
 
 volumes:
   postgres_data:
-    driver: local
-
-networks:
-  default:
-    name: safewave-network
