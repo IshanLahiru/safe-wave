@@ -3,7 +3,7 @@ import os
 import uuid
 from typing import Dict, List, Any, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
@@ -12,6 +12,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.document import DocumentResponse
 from app.views.auth import get_current_user
+from app.controllers.document_controller import document_controller
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -100,33 +101,16 @@ async def upload_document(
             current_user.id,
         )
 
-        if not file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
-
-        # Validate file extension (align with onboarding rules)
-        allowed_extensions = {".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".txt"}
-        ext = os.path.splitext(file.filename or "")[1].lower()
-        if ext not in allowed_extensions:
-            raise HTTPException(status_code=400, detail="Unsupported file type")
-
         # Send progress update
         await document_manager.send_personal_message(
             {
                 "type": "upload_progress",
                 "filename": file.filename,
-                "message": "Reading file content",
+                "message": "Validating file",
                 "progress": 25
             },
             current_user.id,
         )
-
-        content = await file.read()
-        file_size = len(content)
-
-        # Enforce 10MB max size for this endpoint
-        max_size = 10 * 1024 * 1024
-        if file_size > max_size:
-            raise HTTPException(status_code=413, detail="File too large")
 
         # Send progress update
         await document_manager.send_personal_message(
@@ -139,13 +123,6 @@ async def upload_document(
             current_user.id,
         )
 
-        os.makedirs(settings.DOCUMENT_UPLOAD_DIR, exist_ok=True)
-        unique_filename = f"{uuid.uuid4()}_{file.filename}"
-        file_path = os.path.join(settings.DOCUMENT_UPLOAD_DIR, unique_filename)
-
-        with open(file_path, "wb") as f:
-            f.write(content)
-
         # Send progress update
         await document_manager.send_personal_message(
             {
@@ -157,25 +134,16 @@ async def upload_document(
             current_user.id,
         )
 
-        tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else []
-
-        from app.models.document import Document
-
-        db_document = Document(
-            user_id=current_user.id,
-            filename=file.filename,
-            file_path=file_path,
-            file_size=file_size,
-            content_type=file.content_type or "application/octet-stream",
-            title=title or file.filename,
+        # Use controller to handle the upload process
+        db_document = await document_controller.process_upload(
+            db=db,
+            user=current_user,
+            file=file,
+            title=title,
             description=description,
             category=category,
-            tags=tag_list,
+            tags=tags
         )
-
-        db.add(db_document)
-        db.commit()
-        db.refresh(db_document)
 
         # Send completion notification
         await document_manager.send_personal_message(
@@ -217,14 +185,7 @@ async def get_user_documents(
 ):
     """Get all document files for current user"""
     try:
-        from app.models.document import Document
-
-        documents = (
-            db.query(Document)
-            .filter(Document.user_id == current_user.id)
-            .order_by(Document.created_at.desc())
-            .all()
-        )
+        documents = document_controller.get_user_documents(db, current_user)
         return [DocumentResponse.model_validate(doc) for doc in documents]
     except Exception as e:
         logger.error(f"Failed to get user documents: {e}")
@@ -237,13 +198,7 @@ async def get_document(
 ):
     """Get specific document"""
     try:
-        from app.models.document import Document
-
-        document = (
-            db.query(Document)
-            .filter(Document.id == document_id, Document.user_id == current_user.id)
-            .first()
-        )
+        document = document_controller.get_document_by_id(db, current_user, document_id)
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
         return DocumentResponse.model_validate(document)
@@ -260,23 +215,13 @@ async def delete_document(
 ):
     """Delete document"""
     try:
-        from app.models.document import Document
-
-        document = (
-            db.query(Document)
-            .filter(Document.id == document_id, Document.user_id == current_user.id)
-            .first()
-        )
+        document = document_controller.get_document_by_id(db, current_user, document_id)
         if not document:
             raise HTTPException(status_code=404, detail="Document not found")
 
-        # Delete file if it exists
-        if os.path.exists(document.file_path):
-            os.remove(document.file_path)
-
-        # Delete database record
-        db.delete(document)
-        db.commit()
+        success = document_controller.delete_document(db, document)
+        if not success:
+            raise HTTPException(status_code=500, detail="Failed to delete document")
 
         return {"message": "Document deleted successfully"}
 
@@ -383,7 +328,7 @@ async def websocket_endpoint(
         try:
             while True:
                 # Keep connection alive and listen for client messages
-                data = await websocket.receive_text()
+                _ = await websocket.receive_text()  # Receive but don't use the data
                 # Echo back a heartbeat to keep connection alive
                 await websocket.send_json({"type": "heartbeat", "message": "connected"})
         except WebSocketDisconnect:

@@ -1,7 +1,8 @@
 import React from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
@@ -13,7 +14,7 @@ import OnboardingAnalysisTest from '@/components/OnboardingAnalysisTest';
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useUser();
-  const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsetsSafe();
 
   const handleOnboardingQuestionnaire = () => {
     router.push('/onboarding-questionnaire');

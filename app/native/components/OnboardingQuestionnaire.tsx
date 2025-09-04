@@ -26,7 +26,8 @@ const safeDocumentPicker = {
     }
 };
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -163,7 +164,7 @@ const QUESTIONS: Question[] = [
 
 export default function OnboardingQuestionnaire() {
     const router = useRouter();
-    const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsetsSafe();
     const colorScheme = useColorScheme();
     const theme = Colors.dark; // Use dark theme consistently
     const { user, completeOnboarding } = useUser();

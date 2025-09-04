@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
@@ -59,7 +60,7 @@ interface MedicalDocument {
 
 export default function MedicalDocumentsScreen() {
     const router = useRouter();
-    const insets = useSafeAreaInsets();
+    const insets = useSafeAreaInsetsSafe();
     const { user } = useUser();
     const theme = Colors.dark;
 

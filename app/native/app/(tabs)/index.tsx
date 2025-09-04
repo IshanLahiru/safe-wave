@@ -11,7 +11,8 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
@@ -147,7 +148,7 @@ interface HomeContent {
 
 export default function HomeScreen() {
   const { user } = useUser();
-  const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsetsSafe();
   const [homeContent, setHomeContent] = useState<HomeContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

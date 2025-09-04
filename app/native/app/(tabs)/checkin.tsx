@@ -16,7 +16,7 @@ import {
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedView } from '../../components/ThemedView';
 import { ThemedText } from '../../components/ThemedText';
 import { ModernCard } from '../../components/ui/ModernCard';
@@ -397,10 +397,11 @@ const RecordingCard = React.memo(
     );
   }
 );
+RecordingCard.displayName = 'RecordingCard';
 
 export default function CheckinScreen() {
   const colorScheme = useColorScheme();
-  const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsetsSafe();
   const [isRecording, setIsRecording] = useState(false);
   const [recordings, setRecordings] = useState<AudioRecording[]>([]);
   const [currentRecording, setCurrentRecording] = useState<AudioRecording | null>(null);
@@ -409,7 +410,7 @@ export default function CheckinScreen() {
   const [webSocket, setWebSocket] = useState<WebSocket | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const [showRiskTooltip, setShowRiskTooltip] = useState<string | null>(null);
-  const [scrollOffset, setScrollOffset] = useState(0);
+  // scrollOffset removed; using native-driven scrollY instead
   const flatListRef = useRef<FlatList>(null);
   const scrollButtonPulseAnim = useRef(new Animated.Value(1)).current;
   const scrollButtonFadeAnim = useRef(new Animated.Value(1)).current;
@@ -421,29 +422,58 @@ export default function CheckinScreen() {
   const waveAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Request audio permissions
+    // Request audio permissions and configure audio session
     (async () => {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== 'granted') {
+      try {
+        // Request permissions first
+        const { status } = await Audio.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert(
+            'Permission required',
+            'Please grant audio recording permissions to use this feature.'
+          );
+          return;
+        }
+
+        // Configure audio mode with proper settings for recording
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+
+        console.log('✅ Audio session configured successfully');
+      } catch (error) {
+        console.error('❌ Failed to configure audio session:', error);
         Alert.alert(
-          'Permission required',
-          'Please grant audio recording permissions to use this feature.'
+          'Audio Setup Error',
+          'Failed to configure audio recording. Please restart the app and try again.'
         );
       }
     })();
-
-    // Configure audio mode
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      shouldDuckAndroid: true,
-    });
 
     return () => {
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
       }
+
+      // Cleanup audio session on unmount
+      (async () => {
+        try {
+          // Reset audio mode to default
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: false,
+            playsInSilentModeIOS: false,
+            staysActiveInBackground: false,
+            shouldDuckAndroid: false,
+          });
+          console.log('✅ Audio session cleaned up');
+        } catch (error) {
+          console.error('❌ Failed to cleanup audio session:', error);
+        }
+      })();
     };
   }, []);
 
@@ -547,11 +577,54 @@ export default function CheckinScreen() {
           return;
         }
       } else {
-        // Mobile recording using Expo Audio
-        const { recording } = await Audio.Recording.createAsync(
-          Audio.RecordingOptionsPresets.HIGH_QUALITY
-        );
-        recordingRef.current = recording;
+        // Mobile recording using Expo Audio with better error handling
+        try {
+          // Ensure audio session is properly configured before recording
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: true,
+            playsInSilentModeIOS: true,
+            staysActiveInBackground: false,
+            shouldDuckAndroid: true,
+            playThroughEarpieceAndroid: false,
+          });
+
+          // Create recording with high quality preset
+          const { recording } = await Audio.Recording.createAsync(
+            Audio.RecordingOptionsPresets.HIGH_QUALITY
+          );
+          recordingRef.current = recording;
+          console.log('✅ Recording started successfully');
+        } catch (recordingError: any) {
+          console.error('❌ Failed to start recording:', recordingError);
+
+          // Handle specific iOS session activation errors
+          if (recordingError?.message?.includes('Session activation failed') ||
+            recordingError?.message?.includes('561017449')) {
+            Alert.alert(
+              'Audio Session Error',
+              'Unable to start recording. Please close other audio apps and try again.',
+              [
+                { text: 'OK', style: 'default' },
+                {
+                  text: 'Retry',
+                  style: 'default',
+                  onPress: () => {
+                    // Retry after a short delay
+                    setTimeout(() => startRecording(), 1000);
+                  }
+                }
+              ]
+            );
+          } else {
+            Alert.alert(
+              'Recording Error',
+              'Failed to start recording. Please check your microphone permissions and try again.'
+            );
+          }
+
+          setIsRecording(false);
+          return;
+        }
       }
 
       // Start duration timer
@@ -627,9 +700,18 @@ export default function CheckinScreen() {
           });
         }
       } else {
-        // Mobile stop recording
-        await recordingRef.current.stopAndUnloadAsync();
-        uri = recordingRef.current.getURI();
+        // Mobile stop recording with proper error handling
+        try {
+          await recordingRef.current.stopAndUnloadAsync();
+          uri = recordingRef.current.getURI();
+          console.log('✅ Recording stopped successfully');
+        } catch (stopError) {
+          console.error('❌ Failed to stop recording:', stopError);
+          Alert.alert(
+            'Recording Error',
+            'Failed to stop recording properly. The recording may be corrupted.'
+          );
+        }
       }
 
       if (uri) {
@@ -782,8 +864,8 @@ export default function CheckinScreen() {
 
           console.log('🌐 Playing audio on web from URI:', audioUri);
 
-          // Create HTML5 audio element for web
-          const audioElement = new Audio(audioUri);
+          // Create HTML5 audio element for web (avoid Expo Audio name clash)
+          const audioElement = new (globalThis as any).Audio(audioUri) as HTMLAudioElement;
           soundRef.current = audioElement;
 
           // Update playing state
@@ -1174,12 +1256,85 @@ export default function CheckinScreen() {
     [playRecording, toggleExpanded, formatDuration, formatTimestamp, showRiskTooltip]
   );
 
-  // Scroll handling functions
-  const handleScroll = useCallback((event: any) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    setScrollOffset(offsetY);
-    setShowScrollButton(offsetY > 200);
-  }, []);
+  // Native-driven scroll value + derived animations (no per-scroll JS timing)
+  const scrollY = useRef(new Animated.Value(0)).current;
+
+  // Measured heights for interpolation and spacing
+  const [headerHeight, setHeaderHeight] = useState(80);
+  const [heroHeight, setHeroHeight] = useState(380);
+
+  // Control pointer events on the hero to keep list interactive when collapsed
+  const [heroPointerEnabled, setHeroPointerEnabled] = useState(true);
+
+  // Derive transforms/opacity from scrollY
+  const headerTranslateY = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, headerHeight],
+        outputRange: [0, -headerHeight],
+        extrapolate: 'clamp',
+      }),
+    [scrollY, headerHeight]
+  );
+
+  const headerOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, Math.min(40, headerHeight * 0.5), Math.max(80, headerHeight)],
+        outputRange: [1, 0.8, 0],
+        extrapolate: 'clamp',
+      }),
+    [scrollY, headerHeight]
+  );
+
+  const heroTranslateY = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, heroHeight],
+        outputRange: [0, -heroHeight],
+        extrapolate: 'clamp',
+      }),
+    [scrollY, heroHeight]
+  );
+
+  const heroScale = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, heroHeight],
+        outputRange: [1, 0.95],
+        extrapolate: 'clamp',
+      }),
+    [scrollY, heroHeight]
+  );
+
+  const heroOpacity = useMemo(
+    () =>
+      scrollY.interpolate({
+        inputRange: [0, heroHeight * 0.6, heroHeight],
+        outputRange: [1, 0.9, 0.6],
+        extrapolate: 'clamp',
+      }),
+    [scrollY, heroHeight]
+  );
+
+  // Update non-animated flags from scroll value without forcing layout
+  useEffect(() => {
+    const id = scrollY.addListener(({ value }) => {
+      // Toggle scroll-to-top button
+      const shouldShow = value > 200;
+      if (shouldShow !== showScrollButton) {
+        setShowScrollButton(shouldShow);
+      }
+      // Disable hero pointer events after mostly collapsed
+      const enable = value < heroHeight * 0.9;
+      if (enable !== heroPointerEnabled) {
+        setHeroPointerEnabled(enable);
+      }
+    });
+    return () => {
+      scrollY.removeListener(id);
+    };
+  }, [scrollY, heroHeight, showScrollButton, heroPointerEnabled]);
 
   const scrollToTop = useCallback(() => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -1212,183 +1367,181 @@ export default function CheckinScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom + 80 }]}>
+      {/* Hero (header + recording) — absolute overlay with stable zIndex; animations derived from scrollY */}
       <Animated.View
-        style={[
-          styles.header,
-          {
-            transform: [
-              {
-                translateY: scrollOffset > 0 ? -Math.min(scrollOffset * 1.2, 200) : 0,
-              },
-            ],
-            opacity: scrollOffset > 0 ? Math.max(0, 1 - scrollOffset * 0.005) : 1,
-          },
-        ]}
+        pointerEvents={heroPointerEnabled ? 'auto' : 'none'}
+        style={[styles.heroContainer, { top: insets.top }]}
+        onLayout={e => setHeroHeight(e.nativeEvent.layout.height)}
       >
-        <ThemedText style={styles.title}>Voice Check-in</ThemedText>
-        <ThemedText style={styles.subtitle}>Record your thoughts and feelings</ThemedText>
-      </Animated.View>
+        {/* Header */}
+        <Animated.View
+          onLayout={e => setHeaderHeight(e.nativeEvent.layout.height)}
+          style={[
+            styles.header,
+            {
+              transform: [{ translateY: headerTranslateY }],
+              opacity: headerOpacity,
+            },
+          ]}
+        >
+          <ThemedText style={styles.title}>Voice Check-in</ThemedText>
+          <ThemedText style={styles.subtitle}>Record your thoughts and feelings</ThemedText>
+        </Animated.View>
 
-      {/* Recording Section */}
-      <Animated.View
-        style={[
-          styles.recordingSection,
-          {
-            transform: [
-              {
-                translateY: scrollOffset > 0 ? -Math.min(scrollOffset * 1.8, 800) : 0,
-              },
-              {
-                scale: scrollOffset > 0 ? Math.max(0.2, 1 - scrollOffset * 0.004) : 1,
-              },
-            ],
-            opacity: scrollOffset > 0 ? Math.max(0.02, 1 - scrollOffset * 0.005) : 1,
-            zIndex: scrollOffset > 20 ? -1 : 1,
-          },
-        ]}
-      >
-        <View style={styles.recordingVisualizer}>
-          {/* Animated recording waves */}
-          {isRecording && (
-            <>
-              <Animated.View
-                style={[
-                  styles.recordingWave,
-                  styles.wave1,
-                  {
-                    transform: [{ translateX: -60 }, { translateY: -60 }, { scale: waveAnimation }],
-                    opacity: waveAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.3, 0.8],
-                    }),
-                  },
-                ]}
-              />
-              <Animated.View
-                style={[
-                  styles.recordingWave,
-                  styles.wave2,
-                  {
-                    transform: [
-                      { translateX: -80 },
-                      { translateY: -80 },
-                      {
-                        scale: waveAnimation.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.8, 1.2],
-                        }),
-                      },
-                    ],
-                    opacity: waveAnimation.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0.5, 0.9],
-                    }),
-                  },
-                ]}
-              />
-            </>
-          )}
+        {/* Recording Section */}
+        <Animated.View
+          style={[
+            styles.recordingSection,
+            {
+              transform: [{ translateY: heroTranslateY }, { scale: heroScale }],
+              opacity: heroOpacity,
+            },
+          ]}
+        >
+          <View style={styles.recordingVisualizer}>
+            {/* Animated recording waves */}
+            {isRecording && (
+              <>
+                <Animated.View
+                  style={[
+                    styles.recordingWave,
+                    styles.wave1,
+                    {
+                      transform: [{ translateX: -60 }, { translateY: -60 }, { scale: waveAnimation }],
+                      opacity: waveAnimation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.3, 0.8],
+                      }),
+                    },
+                  ]}
+                />
+                <Animated.View
+                  style={[
+                    styles.recordingWave,
+                    styles.wave2,
+                    {
+                      transform: [
+                        { translateX: -80 },
+                        { translateY: -80 },
+                        {
+                          scale: waveAnimation.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0.8, 1.2],
+                          }),
+                        },
+                      ],
+                      opacity: waveAnimation.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0.5, 0.9],
+                      }),
+                    },
+                  ]}
+                />
+              </>
+            )}
 
-          {/* Recording button */}
-          <TouchableOpacity
-            style={[styles.recordButton, isRecording && styles.recordingButton]}
-            onPress={isRecording ? stopRecording : startRecording}
-            disabled={isUploading}
-          >
-            <Animated.View
-              style={[
-                styles.recordButtonInner,
-                {
-                  transform: [{ scale: isRecording ? pulseAnimation : 1 }],
-                  backgroundColor: 'transparent', // No background when not recording
-                },
-              ]}
+            {/* Recording button */}
+            <TouchableOpacity
+              style={[styles.recordButton, isRecording && styles.recordingButton]}
+              onPress={isRecording ? stopRecording : startRecording}
+              disabled={isUploading}
             >
-              <View style={styles.smileEmojiContainer}>
-                <ThemedText
-                  style={[styles.smileEmoji, isRecording && styles.recordingEmoji]}
-                  allowFontScaling={false} // Prevent font scaling issues
-                  numberOfLines={1} // Ensure single line rendering
-                >
-                  😊
-                </ThemedText>
-              </View>
-            </Animated.View>
-          </TouchableOpacity>
-        </View>
+              <Animated.View
+                style={[
+                  styles.recordButtonInner,
+                  {
+                    transform: [{ scale: isRecording ? pulseAnimation : 1 }],
+                    backgroundColor: 'transparent', // No background when not recording
+                  },
+                ]}
+              >
+                <View style={styles.smileEmojiContainer}>
+                  <ThemedText
+                    style={[styles.smileEmoji, isRecording && styles.recordingEmoji]}
+                    allowFontScaling={false} // Prevent font scaling issues
+                    numberOfLines={1} // Ensure single line rendering
+                    adjustsFontSizeToFit={false} // Prevent automatic font size adjustment
+                  >
+                    😊
+                  </ThemedText>
+                </View>
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
 
-        {/* Recording status */}
-        <View style={styles.recordingStatus}>
-          {isRecording ? (
-            <>
-              <ThemedText style={styles.recordingText}>
-                Recording... {formatDuration(recordingDuration)}
-              </ThemedText>
-              <ThemedText style={styles.recordingHint}>Tap to stop recording</ThemedText>
-            </>
-          ) : isUploading ? (
-            <>
-              <ThemedText style={styles.recordingText}>Uploading and transcribing...</ThemedText>
-              <ThemedText style={styles.recordingHint}>Please wait</ThemedText>
-            </>
-          ) : (
-            <>
-              <ThemedText style={styles.recordingText}>Ready to record</ThemedText>
-              <ThemedText style={styles.recordingHint}>Tap the smile to start</ThemedText>
-            </>
-          )}
-        </View>
+          {/* Recording status */}
+          <View style={styles.recordingStatus}>
+            {isRecording ? (
+              <>
+                <ThemedText style={styles.recordingText}>
+                  Recording... {formatDuration(recordingDuration)}
+                </ThemedText>
+                <ThemedText style={styles.recordingHint}>Tap to stop recording</ThemedText>
+              </>
+            ) : isUploading ? (
+              <>
+                <ThemedText style={styles.recordingText}>Uploading and transcribing...</ThemedText>
+                <ThemedText style={styles.recordingHint}>Please wait</ThemedText>
+              </>
+            ) : (
+              <>
+                <ThemedText style={styles.recordingText}>Ready to record</ThemedText>
+                <ThemedText style={styles.recordingHint}>Tap the smile to start</ThemedText>
+              </>
+            )}
+          </View>
+        </Animated.View>
       </Animated.View>
 
       {/* Recordings List */}
-      <View
-        style={[
-          styles.recordingsSection,
-          {
-            zIndex: scrollOffset > 20 ? 2 : 0,
-            marginTop: scrollOffset > 0 ? -Math.min(scrollOffset * 1.8, 600) : 0,
-          },
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
-            <ThemedText style={styles.sectionTitle}>Recent</ThemedText>
-            <TouchableOpacity
-              style={styles.refreshButton}
-              onPress={refreshRecordings}
-              activeOpacity={0.7}
-            >
-              <Ionicons name='refresh' size={20} color={Colors.light.primary} />
-            </TouchableOpacity>
-          </View>
-          <ThemedText style={styles.recordingsCount}>
-            {recordings.length} recording{recordings.length !== 1 ? 's' : ''}
-          </ThemedText>
-        </View>
-
-        <FlatList
+      <View style={styles.recordingsSection}>
+        <Animated.FlatList
           ref={flatListRef}
           data={recordings}
           renderItem={renderRecordingItem}
           keyExtractor={keyExtractor}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.recordingsListContent}
+          ListHeaderComponent={() => (
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <ThemedText style={styles.sectionTitle}>Recent</ThemedText>
+                <TouchableOpacity
+                  style={styles.refreshButton}
+                  onPress={refreshRecordings}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name='refresh' size={20} color={Colors.light.primary} />
+                </TouchableOpacity>
+              </View>
+              <ThemedText style={styles.recordingsCount}>
+                {recordings.length} recording{recordings.length !== 1 ? 's' : ''}
+              </ThemedText>
+            </View>
+          )}
+          contentContainerStyle={[styles.recordingsListContent, { paddingTop: heroHeight + 10, paddingBottom: insets.bottom + 100 }]}
           style={styles.recordingsList}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={5}
-          updateCellsBatchingPeriod={50}
-          initialNumToRender={3}
-          windowSize={5}
+          removeClippedSubviews={false}
+          maxToRenderPerBatch={2}
+          updateCellsBatchingPeriod={150}
+          initialNumToRender={1}
+          windowSize={2}
           getItemLayout={getItemLayout}
           ListEmptyComponent={EmptyComponent}
-          onScroll={handleScroll}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
           scrollEventThrottle={16}
           maintainVisibleContentPosition={{
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 0,
           }}
+          disableVirtualization={false}
+          legacyImplementation={false}
+          overScrollMode="never"
+          bounces={false}
+          scrollIndicatorInsets={{ right: 1 }}
         />
 
         {/* Floating Scroll-to-Top Button */}
@@ -1397,10 +1550,10 @@ export default function CheckinScreen() {
             style={[
               styles.floatingScrollButton,
               {
-                opacity: showScrollButton ? 1 : 0,
+                opacity: 1,
                 transform: [
-                  { scale: showScrollButton ? 1 : 0.8 },
-                  { translateY: showScrollButton ? 0 : 20 },
+                  { scale: 1 },
+                  { translateY: 0 },
                 ],
               },
             ]}
@@ -1444,7 +1597,7 @@ export default function CheckinScreen() {
           </Animated.View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -1455,9 +1608,18 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
 
+  // Stabilize stacking order: absolute hero + constant zIndex; derive transforms from scrollY
+  heroContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+  },
+
   header: {
     alignItems: 'center',
-    paddingTop: 20, // Reduced since we're using safe area insets now
+    paddingTop: 20,
     paddingBottom: 30,
   },
 
@@ -1483,7 +1645,6 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     minHeight: 280,
     position: 'relative',
-    zIndex: 1,
   },
 
   recordingVisualizer: {
@@ -1519,9 +1680,9 @@ const styles = StyleSheet.create({
   },
 
   recordButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100, // Increased width to accommodate emoji properly
+    height: 100, // Increased height to accommodate emoji properly
+    borderRadius: 50,
     backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1534,20 +1695,26 @@ const styles = StyleSheet.create({
 
   recordingButton: {
     backgroundColor: Colors.light.danger,
+    // Ensure the recording button maintains the same dimensions and alignment
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
 
   recordButtonInner: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: 100, // Match parent button width
+    height: 100, // Match parent button height
   },
 
   smileEmojiContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 80,
-    height: 90, // Increased height to prevent emoji clipping
+    width: 100, // Match button width
+    height: 100, // Match button height
     overflow: 'visible', // Prevent clipping
-    paddingVertical: 5, // Add padding to center the emoji better
+    paddingVertical: 0, // Remove padding to ensure perfect centering
   },
 
   smileEmoji: {
@@ -1555,11 +1722,17 @@ const styles = StyleSheet.create({
     color: '#000000', // Black fill
     textAlign: 'center',
     textAlignVertical: 'center', // Better vertical alignment
-    lineHeight: 80,
+    lineHeight: 100, // Match container height for perfect centering
     includeFontPadding: false, // Remove extra padding that causes clipping
     overflow: 'visible', // Ensure emoji is fully visible
     // Additional properties for better emoji rendering
-    ...(Platform.OS === 'android' && { fontFamily: 'sans-serif' }), // Better Android emoji support
+    ...(Platform.OS === 'android' && {
+      fontFamily: 'sans-serif',
+      textAlignVertical: 'center',
+    }), // Better Android emoji support
+    ...(Platform.OS === 'ios' && {
+      fontFamily: 'System',
+    }), // Better iOS emoji support
   },
 
   stopButtonContainer: {
@@ -1928,7 +2101,7 @@ const styles = StyleSheet.create({
   // Floating Scroll Button Styles
   floatingScrollButton: {
     position: 'absolute',
-    bottom: 60, // Moved down more
+    bottom: 100, // Moved down to account for tab bar
     left: '50%',
     marginLeft: -30, // Center the 60px button properly
     zIndex: 1000,
