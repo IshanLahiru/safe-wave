@@ -4,12 +4,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorSchemeSafe } from '@/hooks/useColorSchemeSafe';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 
 export default function OnboardingAnalysisTest() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorSchemeSafe();
   const theme = Colors[colorScheme ?? 'light'];
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);

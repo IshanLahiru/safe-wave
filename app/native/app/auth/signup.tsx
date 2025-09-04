@@ -6,13 +6,13 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUser } from '@/contexts/UserContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorSchemeSafe } from '@/hooks/useColorSchemeSafe';
 import { Colors } from '@/constants/Colors';
 
 export default function SignupScreen() {
   const router = useRouter();
   const { signup, isLoading, user } = useUser();
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorSchemeSafe();
   const theme = Colors[colorScheme ?? 'light'];
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

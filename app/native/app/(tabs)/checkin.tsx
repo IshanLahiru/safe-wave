@@ -21,7 +21,7 @@ import { ThemedView } from '../../components/ThemedView';
 import { ThemedText } from '../../components/ThemedText';
 import { ModernCard } from '../../components/ui/ModernCard';
 import { Colors } from '../../constants/Colors';
-import { useColorScheme } from '../../hooks/useColorScheme';
+import { useColorSchemeSafe } from '../../hooks/useColorSchemeSafe';
 import { apiService } from '../../services/api';
 
 // Web-specific imports and utilities
@@ -400,7 +400,7 @@ const RecordingCard = React.memo(
 RecordingCard.displayName = 'RecordingCard';
 
 export default function CheckinScreen() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorSchemeSafe();
   const insets = useSafeAreaInsetsSafe();
   const [isRecording, setIsRecording] = useState(false);
   const [recordings, setRecordings] = useState<AudioRecording[]>([]);

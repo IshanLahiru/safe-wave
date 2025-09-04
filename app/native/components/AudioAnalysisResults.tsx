@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorSchemeSafe } from '@/hooks/useColorSchemeSafe';
 
 interface AudioAnalysisResultsProps {
   analysis: {
@@ -17,7 +17,7 @@ interface AudioAnalysisResultsProps {
 }
 
 export default function AudioAnalysisResults({ analysis, onClose }: AudioAnalysisResultsProps) {
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorSchemeSafe();
   const theme = Colors[colorScheme ?? 'light'];
 
   const getRiskLevelColor = (level: string) => {

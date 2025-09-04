@@ -3,7 +3,7 @@ import { View, TouchableOpacity, StyleSheet, Alert, Text, ActivityIndicator } fr
 import { ThemedText } from './ThemedText';
 import { IconSymbol } from './ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorSchemeSafe } from '@/hooks/useColorSchemeSafe';
 import apiService from '@/services/api';
 
 interface AudioRecorderProps {
@@ -20,7 +20,7 @@ export default function AudioRecorder({
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioUri, setAudioUri] = useState<string | null>(null);
 
-  const colorScheme = useColorScheme();
+  const colorScheme = useColorSchemeSafe();
   const theme = Colors[colorScheme ?? 'light'];
 
   const recordingRef = useRef<NodeJS.Timeout | null>(null);

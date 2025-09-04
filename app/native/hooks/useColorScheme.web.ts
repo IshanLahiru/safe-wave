@@ -11,11 +11,17 @@ export function useColorScheme() {
     setHasHydrated(true);
   }, []);
 
-  const colorScheme = useRNColorScheme();
+  let colorScheme;
+  try {
+    colorScheme = useRNColorScheme();
+  } catch (error) {
+    console.warn('useRNColorScheme failed, using default dark theme:', error);
+    colorScheme = 'dark';
+  }
 
   if (hasHydrated) {
     return colorScheme;
   }
 
-  return 'light';
+  return 'dark'; // Default to dark theme to match app design
 }

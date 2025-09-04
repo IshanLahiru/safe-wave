@@ -33,7 +33,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { Colors, Shadows, Spacing, BorderRadius } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorSchemeSafe } from '@/hooks/useColorSchemeSafe';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 
@@ -165,7 +165,7 @@ const QUESTIONS: Question[] = [
 export default function OnboardingQuestionnaire() {
     const router = useRouter();
     const insets = useSafeAreaInsetsSafe();
-    const colorScheme = useColorScheme();
+    const colorScheme = useColorSchemeSafe();
     const theme = Colors.dark; // Use dark theme consistently
     const { user, completeOnboarding } = useUser();
 
