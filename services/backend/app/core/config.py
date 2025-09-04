@@ -5,7 +5,7 @@ from typing import Optional, List
 from pathlib import Path
 
 from pydantic_settings import BaseSettings
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator, AliasChoices
 
 
 class Settings(BaseSettings):
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
         description="PostgreSQL host address"
     )
     POSTGRES_PORT: int = Field(
-        default=5433,
+        default=5432,
         description="PostgreSQL port number"
     )
 
@@ -78,7 +78,7 @@ class Settings(BaseSettings):
         description="Host address to bind the server"
     )
     PORT: int = Field(
-        default=9000,
+        default=8000,
         description="Port number for the API server"
     )
     API_PORT: int = Field(
@@ -98,8 +98,9 @@ class Settings(BaseSettings):
 
     # ===== CORS CONFIGURATION =====
     CORS_ORIGINS: str = Field(
-        default="http://localhost:3000,http://localhost:8081,http://localhost:8082",
-        description="Allowed CORS origins - comma-separated list, update for production domains"
+        default="http://localhost:19006,http://localhost:8081,http://localhost:3000",
+        description="Allowed CORS origins - comma-separated list, update for production domains",
+        validation_alias=AliasChoices("BACKEND_CORS_ORIGINS", "CORS_ORIGINS"),
     )
 
     # ===== AI/LLM CONFIGURATION =====
@@ -294,12 +295,12 @@ class Settings(BaseSettings):
             is_docker = (
                 os.path.exists('/.dockerenv') or
                 os.environ.get('DOCKER_CONTAINER') or
-                os.environ.get('POSTGRES_HOST') == 'postgres'
+                os.environ.get('POSTGRES_HOST') == 'db'
             )
             
             if is_docker:
                 # Docker internal networking
-                host = 'postgres'
+                host = 'db'
                 port = 5432
                 print(f"🐳 Docker environment detected - using internal networking: {host}:{port}")
             else:
@@ -308,7 +309,7 @@ class Settings(BaseSettings):
                 port = values.get('POSTGRES_PORT', 5433)
                 print(f"🏠 Local/Production environment - using external access: {host}:{port}")
 
-            database_url = f"postgresql://{user}:{password}@{host}:{port}/{db}"
+            database_url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db}"
             values['DATABASE_URL'] = database_url
             
             # Log database configuration (without password)

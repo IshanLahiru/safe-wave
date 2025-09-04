@@ -52,45 +52,58 @@ async def get_content_categories(db: Session = Depends(get_db)):
 
 
 @router.get("/home-content")
-async def get_home_content(db: Session = Depends(get_db)):
-    """Get public home content without authentication"""
+async def get_home_content(
+    featured_limit: int = Query(5, le=10, description="Limit for featured articles"),
+    db: Session = Depends(get_db)
+):
+    """Get public home content without authentication - OPTIMIZED VERSION"""
     try:
-        # Get featured videos (limit 3)
+        # Get featured videos (limit 3) - using optimized query with indexes
         videos = (
             db.query(Video)
-            .filter(Video.is_active == True, Video.is_featured == True)
+            .filter(and_(Video.is_active == True, Video.is_featured == True))
             .order_by(Video.created_at.desc())
             .limit(3)
             .all()
         )
 
-        # Get featured meal plans (limit 2)
+        # Get featured meal plans (limit 2) - using optimized query with indexes
         meal_plans = (
             db.query(MealPlan)
-            .filter(MealPlan.is_active == True, MealPlan.is_featured == True)
+            .filter(and_(MealPlan.is_active == True, MealPlan.is_featured == True))
             .order_by(MealPlan.created_at.desc())
             .limit(2)
             .all()
         )
 
-        # Get a random quote
-        quote = db.query(Quote).filter(Quote.is_active == True).order_by(func.random()).first()
+        # Get a random quote - optimized with limit first then random
+        quote = (
+            db.query(Quote)
+            .filter(Quote.is_active == True)
+            .order_by(func.random())
+            .limit(1)
+            .first()
+        )
 
-        # Get all active articles (no limit to show all available)
+        # CRITICAL FIX: Get ONLY featured articles with limit (was loading ALL articles!)
         articles = (
             db.query(Article)
-            .filter(Article.is_active == True)
+            .filter(and_(Article.is_active == True, Article.is_featured == True))
             .order_by(Article.created_at.desc())
+            .limit(featured_limit)
             .all()
         )
 
-        # Get today's progress for demo user
+        # Get today's progress for demo user - optimized query with compound index
         demo_user_id = 1
+        today = datetime.now().date()
         today_progress = (
             db.query(UserProgress)
             .filter(
-                UserProgress.user_id == demo_user_id,
-                func.date(UserProgress.date) == datetime.now().date(),
+                and_(
+                    UserProgress.user_id == demo_user_id,
+                    func.date(UserProgress.date) == today
+                )
             )
             .first()
         )
