@@ -2,7 +2,10 @@
 
 ## Overview
 
-This is basically an audio analysis system that takes voice recordings and figures out what people are saying using Whisper AI, then uses OpenAI to analyze if someone might need mental health support. If it detects something serious, it automatically sends emails to their emergency contacts.
+This is basically an audio analysis system that takes voice recordings and
+figures out what people are saying using Whisper AI, then uses OpenAI to analyze
+if someone might need mental health support. If it detects something serious, it
+automatically sends emails to their emergency contacts.
 
 ## Backend Implementation
 
@@ -10,7 +13,8 @@ This is basically an audio analysis system that takes voice recordings and figur
 
 - Links audio files to specific users
 - Keeps track of where audio files are stored and basic info about them
-- Stores what Whisper AI figured out from the speech, including how confident it was
+- Stores what Whisper AI figured out from the speech, including how confident it
+  was
 - Saves the mental health analysis results from OpenAI
 - Categorizes risk levels from low to critical
 - Keeps track of when we sent alerts to emergency contacts

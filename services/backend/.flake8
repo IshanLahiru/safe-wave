@@ -1,0 +1,26 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .venv,
+    __pycache__,
+    .git,
+    scripts/,
+    test_*.py,
+    alembic/,
+    migrations/,
+    check_*.py
+ignore =
+    E203,
+    W503,
+    E501,
+    F401,
+    E712,
+    W293,
+    E402,
+    F811,
+    F541,
+    E722,
+    W291,
+    W292
+per-file-ignores =
+    __init__.py:F401

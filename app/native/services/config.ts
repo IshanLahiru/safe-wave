@@ -39,7 +39,7 @@ function getDynamicBaseUrl(): string {
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
     return 'http://localhost:9000';
   }
-  
+
   // For mobile development, try to detect the best IP
   // This will be determined at runtime
   return 'http://192.168.31.14:9000'; // Default fallback

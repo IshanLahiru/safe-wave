@@ -1,4 +1,6 @@
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON, Column, DateTime, Float, ForeignKey, Integer, String, Text
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -24,7 +26,9 @@ class Audio(Base):
     )  # pending, processing, completed, failed
 
     # Analysis
-    analysis_status = Column(String, default="pending")  # pending, processing, completed, failed
+    analysis_status = Column(
+        String, default="pending"
+    )  # pending, processing, completed, failed
     risk_level = Column(String, nullable=True)  # low, medium, high, critical
     mental_health_indicators = Column(JSON, nullable=True)
     summary = Column(Text, nullable=True)
@@ -65,8 +69,16 @@ class Audio(Base):
             "description": self.description,
             "moodRating": self.mood_rating,
             "tags": self.tags,
-            "createdAt": self.created_at.isoformat() if self.created_at else None,
-            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
-            "transcribedAt": self.transcribed_at.isoformat() if self.transcribed_at else None,
-            "analyzedAt": self.analyzed_at.isoformat() if self.analyzed_at else None,
+            "createdAt": (
+                self.created_at.isoformat() if self.created_at else None
+            ),
+            "updatedAt": (
+                self.updated_at.isoformat() if self.updated_at else None
+            ),
+            "transcribedAt": (
+                self.transcribed_at.isoformat() if self.transcribed_at else None
+            ),
+            "analyzedAt": (
+                self.analyzed_at.isoformat() if self.analyzed_at else None
+            ),
         }

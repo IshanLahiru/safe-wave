@@ -22,7 +22,6 @@ import { useUser } from '@/contexts/UserContext';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
 import { apiService } from '@/services/api';
 
-
 const { width } = Dimensions.get('window');
 
 // Enhanced interfaces for better type safety
@@ -309,10 +308,6 @@ export default function HomeScreen() {
     return '😢';
   };
 
-
-
-
-
   const closeDocumentViewer = () => {
     setShowDocumentViewer(false);
     setSelectedDocument(null);
@@ -372,7 +367,12 @@ export default function HomeScreen() {
   // Meal plan modal functions
   const openMealPlanModal = async (mealPlan: MealPlan) => {
     // If the meal plan doesn't have full details, fetch them
-    if (!mealPlan.ingredients || !mealPlan.instructions || mealPlan.ingredients.length === 0 || mealPlan.instructions.length === 0) {
+    if (
+      !mealPlan.ingredients ||
+      !mealPlan.instructions ||
+      mealPlan.ingredients.length === 0 ||
+      mealPlan.instructions.length === 0
+    ) {
       try {
         setMealPlanModalLoading(true);
         const response = await apiService.request(`/content/meal-plans/${mealPlan.id}`);
@@ -444,10 +444,6 @@ export default function HomeScreen() {
       [field]: value,
     }));
   };
-
-
-
-
 
   // Function to fetch all videos when section is expanded
   const fetchAllVideos = async () => {
@@ -574,11 +570,11 @@ export default function HomeScreen() {
                   <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
                 </View>
                 {homeContent.featured_articles[0]?.stress_reduction_tips &&
-                 homeContent.featured_articles[0].stress_reduction_tips.length > 0 && (
-                  <ThemedText type='body' style={styles.wellnessTipText}>
-                    💡 {homeContent.featured_articles[0].stress_reduction_tips[0]}
-                  </ThemedText>
-                )}
+                  homeContent.featured_articles[0].stress_reduction_tips.length > 0 && (
+                    <ThemedText type='body' style={styles.wellnessTipText}>
+                      💡 {homeContent.featured_articles[0].stress_reduction_tips[0]}
+                    </ThemedText>
+                  )}
                 <View style={styles.wellnessTipFooter}>
                   <ThemedText type='caption' style={styles.wellnessTipSource}>
                     From: {homeContent.featured_articles[0]?.title}
@@ -687,8 +683,8 @@ export default function HomeScreen() {
 
                   {expandedLoading.videos ? (
                     <View style={styles.expandedLoading}>
-                      <ActivityIndicator size="large" color={Colors.dark.primary} />
-                      <ThemedText type="body" style={styles.expandedLoadingText}>
+                      <ActivityIndicator size='large' color={Colors.dark.primary} />
+                      <ThemedText type='body' style={styles.expandedLoadingText}>
                         Loading all videos...
                       </ThemedText>
                     </View>
@@ -711,7 +707,11 @@ export default function HomeScreen() {
                               resizeMode='cover'
                             />
                             <View style={styles.videoOverlay}>
-                              <IconSymbol size={20} name='play.fill' color={Colors.dark.background} />
+                              <IconSymbol
+                                size={20}
+                                name='play.fill'
+                                color={Colors.dark.background}
+                              />
                             </View>
                           </View>
                           <View style={styles.expandedVideoInfo}>
@@ -787,10 +787,7 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             {homeContent.featured_meal_plans.map(meal => (
-              <TouchableOpacity
-                key={meal.id}
-                onPress={() => openMealPlanModal(meal)}
-              >
+              <TouchableOpacity key={meal.id} onPress={() => openMealPlanModal(meal)}>
                 <ModernCard variant='elevated' style={styles.mealCard}>
                   <View style={styles.mealContent}>
                     <View style={styles.mealImageContainer}>
@@ -850,8 +847,8 @@ export default function HomeScreen() {
 
                 {expandedLoading.mealPlans ? (
                   <View style={styles.expandedLoading}>
-                    <ActivityIndicator size="large" color={Colors.dark.primary} />
-                    <ThemedText type="body" style={styles.expandedLoadingText}>
+                    <ActivityIndicator size='large' color={Colors.dark.primary} />
+                    <ThemedText type='body' style={styles.expandedLoadingText}>
                       Loading all meal plans...
                     </ThemedText>
                   </View>
@@ -862,10 +859,7 @@ export default function HomeScreen() {
                         key={`expanded-${meal.id}`}
                         onPress={() => openMealPlanModal(meal)}
                       >
-                        <ModernCard
-                          variant='elevated'
-                          style={styles.expandedMealCard}
-                        >
+                        <ModernCard variant='elevated' style={styles.expandedMealCard}>
                           <View style={styles.expandedMealContent}>
                             <View style={styles.expandedMealImageContainer}>
                               <Image
@@ -891,7 +885,10 @@ export default function HomeScreen() {
                               </ThemedText>
                               <View style={styles.expandedMealMeta}>
                                 <View
-                                  style={[styles.difficulty, { backgroundColor: meal.category.color }]}
+                                  style={[
+                                    styles.difficulty,
+                                    { backgroundColor: meal.category.color },
+                                  ]}
                                 >
                                   <ThemedText type='caption' style={styles.difficultyText}>
                                     {meal.difficulty}
@@ -964,16 +961,23 @@ export default function HomeScreen() {
                       <ThemedText type='caption' style={styles.articleExcerpt} numberOfLines={3}>
                         {article.excerpt}
                       </ThemedText>
-                      {article.stress_reduction_tips && article.stress_reduction_tips.length > 0 && (
-                        <View style={styles.stressTipsPreview}>
-                          <IconSymbol size={14} name='lightbulb' color={Colors.dark.warning} />
-                          <ThemedText type='caption' style={styles.stressTipsText} numberOfLines={1}>
-                            {article.stress_reduction_tips[0]}
-                          </ThemedText>
-                        </View>
-                      )}
+                      {article.stress_reduction_tips &&
+                        article.stress_reduction_tips.length > 0 && (
+                          <View style={styles.stressTipsPreview}>
+                            <IconSymbol size={14} name='lightbulb' color={Colors.dark.warning} />
+                            <ThemedText
+                              type='caption'
+                              style={styles.stressTipsText}
+                              numberOfLines={1}
+                            >
+                              {article.stress_reduction_tips[0]}
+                            </ThemedText>
+                          </View>
+                        )}
                       <View style={styles.articleMeta}>
-                        <View style={[styles.category, { backgroundColor: article.category.color }]}>
+                        <View
+                          style={[styles.category, { backgroundColor: article.category.color }]}
+                        >
                           <ThemedText type='caption' style={styles.categoryText}>
                             {article.category.name}
                           </ThemedText>
@@ -1001,8 +1005,6 @@ export default function HomeScreen() {
                 </ModernCard>
               </TouchableOpacity>
             ))}
-
-
           </View>
         ) : (
           <View style={styles.section}>
@@ -1016,10 +1018,6 @@ export default function HomeScreen() {
             </ModernCard>
           </View>
         )}
-
-
-
-
       </ScrollView>
 
       {/* Meal Plan Details Modal */}
@@ -1049,13 +1047,20 @@ export default function HomeScreen() {
                   <View style={styles.mealPlanModalImageContainer}>
                     <Image
                       source={{
-                        uri: selectedMealPlan.image_url || 'https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=Meal+Plan',
+                        uri:
+                          selectedMealPlan.image_url ||
+                          'https://via.placeholder.com/300x200/4CAF50/FFFFFF?text=Meal+Plan',
                       }}
                       style={styles.mealPlanModalImage}
                       resizeMode='cover'
                     />
                     <View style={styles.mealPlanImageOverlay}>
-                      <View style={[styles.mealPlanCategoryBadge, { backgroundColor: selectedMealPlan.category.color }]}>
+                      <View
+                        style={[
+                          styles.mealPlanCategoryBadge,
+                          { backgroundColor: selectedMealPlan.category.color },
+                        ]}
+                      >
                         <ThemedText type='caption' style={styles.mealPlanCategoryBadgeText}>
                           {selectedMealPlan.category.name}
                         </ThemedText>
@@ -1077,10 +1082,13 @@ export default function HomeScreen() {
                   <View style={styles.mealPlanInfoSection}>
                     <View style={styles.infoRow}>
                       <ThemedText type='body' style={styles.infoText}>
-                        🍳 Difficulty: {selectedMealPlan.difficulty?.charAt(0).toUpperCase() + selectedMealPlan.difficulty?.slice(1) || 'Easy'}
+                        🍳 Difficulty:{' '}
+                        {selectedMealPlan.difficulty?.charAt(0).toUpperCase() +
+                          selectedMealPlan.difficulty?.slice(1) || 'Easy'}
                       </ThemedText>
                       <ThemedText type='body' style={styles.infoText}>
-                        ⏱ {(selectedMealPlan.prep_time || 0) + (selectedMealPlan.cook_time || 0)} mins
+                        ⏱ {(selectedMealPlan.prep_time || 0) + (selectedMealPlan.cook_time || 0)}{' '}
+                        mins
                       </ThemedText>
                     </View>
                     <View style={styles.infoRow}>
@@ -1105,32 +1113,34 @@ export default function HomeScreen() {
                   </View>
 
                   {/* Stress Reduction Benefits */}
-                  {selectedMealPlan.stress_reduction_benefits && selectedMealPlan.stress_reduction_benefits.length > 0 && (
-                    <View style={styles.mealPlanSection}>
-                      <ThemedText type='body' style={styles.sectionTitle}>
-                        🌿 Stress Reduction Benefits
-                      </ThemedText>
-                      {selectedMealPlan.stress_reduction_benefits.map((benefit, index) => (
-                        <ThemedText key={index} type='body' style={styles.listItem}>
-                          • {benefit}
+                  {selectedMealPlan.stress_reduction_benefits &&
+                    selectedMealPlan.stress_reduction_benefits.length > 0 && (
+                      <View style={styles.mealPlanSection}>
+                        <ThemedText type='body' style={styles.sectionTitle}>
+                          🌿 Stress Reduction Benefits
                         </ThemedText>
-                      ))}
-                    </View>
-                  )}
+                        {selectedMealPlan.stress_reduction_benefits.map((benefit, index) => (
+                          <ThemedText key={index} type='body' style={styles.listItem}>
+                            • {benefit}
+                          </ThemedText>
+                        ))}
+                      </View>
+                    )}
 
                   {/* Mood Boost Ingredients */}
-                  {selectedMealPlan.mood_boost_ingredients && selectedMealPlan.mood_boost_ingredients.length > 0 && (
-                    <View style={styles.mealPlanSection}>
-                      <ThemedText type='body' style={styles.sectionTitle}>
-                        😊 Mood Boost Ingredients
-                      </ThemedText>
-                      {selectedMealPlan.mood_boost_ingredients.map((ingredient, index) => (
-                        <ThemedText key={index} type='body' style={styles.listItem}>
-                          • {ingredient}
+                  {selectedMealPlan.mood_boost_ingredients &&
+                    selectedMealPlan.mood_boost_ingredients.length > 0 && (
+                      <View style={styles.mealPlanSection}>
+                        <ThemedText type='body' style={styles.sectionTitle}>
+                          😊 Mood Boost Ingredients
                         </ThemedText>
-                      ))}
-                    </View>
-                  )}
+                        {selectedMealPlan.mood_boost_ingredients.map((ingredient, index) => (
+                          <ThemedText key={index} type='body' style={styles.listItem}>
+                            • {ingredient}
+                          </ThemedText>
+                        ))}
+                      </View>
+                    )}
 
                   {/* Ingredients */}
                   <View style={styles.mealPlanSection}>
@@ -1475,7 +1485,7 @@ export default function HomeScreen() {
                 <View style={styles.notesContainer}>
                   <TextInput
                     style={styles.notesInput}
-                    onChangeText={(text) => handleProgressChange('notes', text)}
+                    onChangeText={text => handleProgressChange('notes', text)}
                     placeholder='How are you feeling? Any achievements or challenges?'
                     placeholderTextColor={Colors.dark.muted}
                     multiline
@@ -1501,15 +1511,15 @@ export default function HomeScreen() {
                 {progressSubmitting ? (
                   <ActivityIndicator size='small' color={Colors.dark.background} />
                 ) : (
-                  <ThemedText style={styles.progressModalButtonPrimaryText}>Save Progress</ThemedText>
+                  <ThemedText style={styles.progressModalButtonPrimaryText}>
+                    Save Progress
+                  </ThemedText>
                 )}
               </TouchableOpacity>
             </View>
           </View>
         </View>
       )}
-
-
 
       {/* Wellness Tip Modal */}
       {showWellnessTipModal && selectedWellnessTip && (
@@ -1539,7 +1549,12 @@ export default function HomeScreen() {
                       by {selectedWellnessTip.author}
                     </ThemedText>
                   )}
-                  <View style={[styles.category, { backgroundColor: selectedWellnessTip.category.color }]}>
+                  <View
+                    style={[
+                      styles.category,
+                      { backgroundColor: selectedWellnessTip.category.color },
+                    ]}
+                  >
                     <ThemedText type='caption' style={styles.categoryText}>
                       {selectedWellnessTip.category.name}
                     </ThemedText>
@@ -1555,42 +1570,44 @@ export default function HomeScreen() {
               </View>
 
               {/* Stress Reduction Tips */}
-              {selectedWellnessTip.stress_reduction_tips && selectedWellnessTip.stress_reduction_tips.length > 0 && (
-                <View style={styles.wellnessTipSection}>
-                  <ThemedText type='body' style={styles.sectionTitle}>
-                    🌿 Stress Reduction Tips
-                  </ThemedText>
-                  {selectedWellnessTip.stress_reduction_tips.map((tip, index) => (
-                    <View key={index} style={styles.tipItem}>
-                      <View style={styles.tipBullet}>
-                        <ThemedText style={styles.tipBulletText}>💡</ThemedText>
+              {selectedWellnessTip.stress_reduction_tips &&
+                selectedWellnessTip.stress_reduction_tips.length > 0 && (
+                  <View style={styles.wellnessTipSection}>
+                    <ThemedText type='body' style={styles.sectionTitle}>
+                      🌿 Stress Reduction Tips
+                    </ThemedText>
+                    {selectedWellnessTip.stress_reduction_tips.map((tip, index) => (
+                      <View key={index} style={styles.tipItem}>
+                        <View style={styles.tipBullet}>
+                          <ThemedText style={styles.tipBulletText}>💡</ThemedText>
+                        </View>
+                        <ThemedText type='body' style={styles.tipText}>
+                          {tip}
+                        </ThemedText>
                       </View>
-                      <ThemedText type='body' style={styles.tipText}>
-                        {tip}
-                      </ThemedText>
-                    </View>
-                  ))}
-                </View>
-              )}
+                    ))}
+                  </View>
+                )}
 
               {/* Practical Exercises */}
-              {selectedWellnessTip.practical_exercises && selectedWellnessTip.practical_exercises.length > 0 && (
-                <View style={styles.wellnessTipSection}>
-                  <ThemedText type='body' style={styles.sectionTitle}>
-                    🏃‍♀️ Practical Exercises
-                  </ThemedText>
-                  {selectedWellnessTip.practical_exercises.map((exercise, index) => (
-                    <View key={index} style={styles.tipItem}>
-                      <View style={styles.tipBullet}>
-                        <ThemedText style={styles.tipBulletText}>✨</ThemedText>
+              {selectedWellnessTip.practical_exercises &&
+                selectedWellnessTip.practical_exercises.length > 0 && (
+                  <View style={styles.wellnessTipSection}>
+                    <ThemedText type='body' style={styles.sectionTitle}>
+                      🏃‍♀️ Practical Exercises
+                    </ThemedText>
+                    {selectedWellnessTip.practical_exercises.map((exercise, index) => (
+                      <View key={index} style={styles.tipItem}>
+                        <View style={styles.tipBullet}>
+                          <ThemedText style={styles.tipBulletText}>✨</ThemedText>
+                        </View>
+                        <ThemedText type='body' style={styles.tipText}>
+                          {exercise}
+                        </ThemedText>
                       </View>
-                      <ThemedText type='body' style={styles.tipText}>
-                        {exercise}
-                      </ThemedText>
-                    </View>
-                  ))}
-                </View>
-              )}
+                    ))}
+                  </View>
+                )}
 
               {/* Tags */}
               {selectedWellnessTip.tags && selectedWellnessTip.tags.length > 0 && (
@@ -1622,10 +1639,7 @@ export default function HomeScreen() {
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={closeWellnessTipModal}
-              >
+              <TouchableOpacity style={styles.modalButton} onPress={closeWellnessTipModal}>
                 <ThemedText style={styles.modalButtonText}>Close</ThemedText>
               </TouchableOpacity>
             </View>
@@ -1661,13 +1675,20 @@ export default function HomeScreen() {
                     <View style={styles.articleModalImageContainer}>
                       <Image
                         source={{
-                          uri: selectedArticle.image_url || 'https://via.placeholder.com/300x200/FF9800/FFFFFF?text=Article',
+                          uri:
+                            selectedArticle.image_url ||
+                            'https://via.placeholder.com/300x200/FF9800/FFFFFF?text=Article',
                         }}
                         style={styles.articleModalImage}
                         resizeMode='cover'
                       />
                       <View style={styles.articleImageOverlay}>
-                        <View style={[styles.articleCategoryBadge, { backgroundColor: selectedArticle.category.color }]}>
+                        <View
+                          style={[
+                            styles.articleCategoryBadge,
+                            { backgroundColor: selectedArticle.category.color },
+                          ]}
+                        >
                           <ThemedText type='caption' style={styles.categoryText}>
                             {selectedArticle.category.name}
                           </ThemedText>
@@ -1729,42 +1750,44 @@ export default function HomeScreen() {
                   )}
 
                   {/* Stress Reduction Tips */}
-                  {selectedArticle.stress_reduction_tips && selectedArticle.stress_reduction_tips.length > 0 && (
-                    <View style={styles.articleSection}>
-                      <ThemedText type='body' style={styles.sectionTitle}>
-                        🌿 Stress Reduction Tips
-                      </ThemedText>
-                      {selectedArticle.stress_reduction_tips.map((tip, index) => (
-                        <View key={index} style={styles.tipItem}>
-                          <View style={styles.tipBullet}>
-                            <ThemedText style={styles.tipBulletText}>💡</ThemedText>
+                  {selectedArticle.stress_reduction_tips &&
+                    selectedArticle.stress_reduction_tips.length > 0 && (
+                      <View style={styles.articleSection}>
+                        <ThemedText type='body' style={styles.sectionTitle}>
+                          🌿 Stress Reduction Tips
+                        </ThemedText>
+                        {selectedArticle.stress_reduction_tips.map((tip, index) => (
+                          <View key={index} style={styles.tipItem}>
+                            <View style={styles.tipBullet}>
+                              <ThemedText style={styles.tipBulletText}>💡</ThemedText>
+                            </View>
+                            <ThemedText type='body' style={styles.tipText}>
+                              {tip}
+                            </ThemedText>
                           </View>
-                          <ThemedText type='body' style={styles.tipText}>
-                            {tip}
-                          </ThemedText>
-                        </View>
-                      ))}
-                    </View>
-                  )}
+                        ))}
+                      </View>
+                    )}
 
                   {/* Practical Exercises */}
-                  {selectedArticle.practical_exercises && selectedArticle.practical_exercises.length > 0 && (
-                    <View style={styles.articleSection}>
-                      <ThemedText type='body' style={styles.sectionTitle}>
-                        🏃‍♀️ Practical Exercises
-                      </ThemedText>
-                      {selectedArticle.practical_exercises.map((exercise, index) => (
-                        <View key={index} style={styles.tipItem}>
-                          <View style={styles.tipBullet}>
-                            <ThemedText style={styles.tipBulletText}>✨</ThemedText>
+                  {selectedArticle.practical_exercises &&
+                    selectedArticle.practical_exercises.length > 0 && (
+                      <View style={styles.articleSection}>
+                        <ThemedText type='body' style={styles.sectionTitle}>
+                          🏃‍♀️ Practical Exercises
+                        </ThemedText>
+                        {selectedArticle.practical_exercises.map((exercise, index) => (
+                          <View key={index} style={styles.tipItem}>
+                            <View style={styles.tipBullet}>
+                              <ThemedText style={styles.tipBulletText}>✨</ThemedText>
+                            </View>
+                            <ThemedText type='body' style={styles.tipText}>
+                              {exercise}
+                            </ThemedText>
                           </View>
-                          <ThemedText type='body' style={styles.tipText}>
-                            {exercise}
-                          </ThemedText>
-                        </View>
-                      ))}
-                    </View>
-                  )}
+                        ))}
+                      </View>
+                    )}
 
                   {/* Tags */}
                   {selectedArticle.tags && selectedArticle.tags.length > 0 && (
@@ -2615,8 +2638,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
-
-
   tipsText: {
     fontSize: 14,
     fontStyle: 'italic',
@@ -2944,7 +2965,6 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     fontWeight: '600',
   },
-
 
   // Form styles
   formSection: {

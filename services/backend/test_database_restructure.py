@@ -178,7 +178,6 @@ def test_email_alert_service():
         else:
             print("❌ EmailAlert service methods missing")
             return False
-            
     except Exception as e:
         print(f"❌ EmailAlert service test failed: {e}")
         return False
@@ -188,7 +187,6 @@ def run_all_tests():
     """Run all tests and provide summary."""
     print("🚀 Starting Database Restructuring Tests")
     print("=" * 50)
-    
     tests = [
         ("Database Connection", test_database_connection),
         ("Table Existence", test_table_existence),
@@ -197,9 +195,7 @@ def run_all_tests():
         ("Database Relationships", test_relationships),
         ("EmailAlert Service", test_email_alert_service),
     ]
-    
     results = []
-    
     for test_name, test_func in tests:
         try:
             result = test_func()
@@ -212,25 +208,20 @@ def run_all_tests():
     print("\n" + "=" * 50)
     print("📊 TEST SUMMARY")
     print("=" * 50)
-    
     passed = 0
     total = len(results)
-    
     for test_name, result in results:
         status = "✅ PASS" if result else "❌ FAIL"
         print(f"{status} - {test_name}")
         if result:
             passed += 1
-    
     print(f"\n🎯 Results: {passed}/{total} tests passed")
-    
     if passed == total:
         print("🎉 ALL TESTS PASSED! Database restructuring is successful!")
         return True
     else:
         print("⚠️  Some tests failed. Please check the issues above.")
         return False
-
 
 if __name__ == "__main__":
     success = run_all_tests()

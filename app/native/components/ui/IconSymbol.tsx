@@ -56,7 +56,7 @@ const MAPPING = {
   xmark: 'close',
   'arrow.up.doc': 'file-upload',
   'doc.text': 'description',
-  'laptopcomputer': 'laptop',
+  laptopcomputer: 'laptop',
   'brain.head.profile': 'psychology',
   'heart.text.square': 'favorite',
   'paintbrush.pointed': 'brush',

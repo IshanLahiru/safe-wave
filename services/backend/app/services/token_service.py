@@ -83,7 +83,7 @@ class TokenService:
             db.commit()
             return count
 
-        except Exception as e:
+        except Exception:
             db.rollback()
             return 0
 

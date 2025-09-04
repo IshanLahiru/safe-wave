@@ -356,7 +356,9 @@ class Settings(BaseSettings):
             print(f"⚠️  WARNING: Localhost CORS origins in production: {localhost_origins}")
 
         if errors:
-            raise ValueError(f"Production validation failed: {'; '.join(errors)}")
+            raise ValueError(
+                f"Production validation failed: {'; '.join(errors)}"
+            )
 
     def _print_config_summary(self):
         """Print configuration summary without sensitive information."""
@@ -364,7 +366,10 @@ class Settings(BaseSettings):
         print(f"   Environment: {self.ENVIRONMENT}")
         print(f"   Debug Mode: {self.DEBUG}")
         print(f"   API Port: {self.PORT}")
-        print(f"   Database: {self.POSTGRES_DB}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}")
+        print(
+            f"   Database: {self.POSTGRES_DB}@{self.POSTGRES_HOST}:"
+            f"{self.POSTGRES_PORT}"
+        )
         print(f"   Upload Directory: {self.UPLOAD_BASE_DIR}")
         print(f"   CORS Origins: {len(self.CORS_ORIGINS)} configured")
 
@@ -377,7 +382,10 @@ class Settings(BaseSettings):
         if self.ENABLE_TRANSCRIPTION:
             features.append("Audio Transcription")
 
-        print(f"   Features: {', '.join(features) if features else 'Basic functionality only'}")
+        features_str = (
+            ', '.join(features) if features else 'Basic functionality only'
+        )
+        print(f"   Features: {features_str}")
 
 
 def get_settings() -> Settings:

@@ -1,4 +1,6 @@
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON, Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -33,7 +35,9 @@ class Video(Base):
     youtube_id = Column(String, nullable=False, unique=True)
     thumbnail_url = Column(String, nullable=True)
     duration = Column(Integer, nullable=True)  # Duration in seconds
-    category_id = Column(Integer, ForeignKey("content_categories.id"), nullable=False)
+    category_id = Column(
+        Integer, ForeignKey("content_categories.id"), nullable=False
+    )
 
     # Video metadata
     view_count = Column(Integer, default=0)
@@ -62,7 +66,9 @@ class MealPlan(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
-    category_id = Column(Integer, ForeignKey("content_categories.id"), nullable=False)
+    category_id = Column(
+        Integer, ForeignKey("content_categories.id"), nullable=False
+    )
 
     # Meal plan details
     difficulty = Column(String, nullable=True)  # easy, medium, hard

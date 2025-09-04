@@ -36,13 +36,13 @@ def get_db():
         logger.error(f"Database connection error: {e}")
         try:
             db.rollback()
-        except:
+        except Exception:
             pass
         raise
     finally:
         try:
             db.close()
-        except:
+        except Exception:
             pass
 
 
@@ -55,10 +55,12 @@ def get_db_with_retry(max_retries=3):
             db.execute(text("SELECT 1"))
             return db
         except Exception as e:
-            logger.warning(f"Database connection attempt {attempt + 1} failed: {e}")
+            logger.warning(
+                f"Database connection attempt {attempt + 1} failed: {e}"
+            )
             try:
                 db.close()
-            except:
+            except Exception:
                 pass
 
             if attempt == max_retries - 1:

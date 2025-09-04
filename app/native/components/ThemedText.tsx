@@ -33,7 +33,7 @@ export function ThemedText({
       {...rest}
       // Global emoji rendering improvements
       includeFontPadding={false}
-      textAlignVertical="center"
+      textAlignVertical='center'
     />
   );
 }

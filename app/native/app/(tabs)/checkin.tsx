@@ -139,16 +139,16 @@ const RecordingCard = React.memo(
               ...styles.cardContent,
               ...(recording.risk_level
                 ? {
-                  borderLeftWidth: 4,
-                  borderLeftColor:
-                    recording.risk_level === 'critical'
-                      ? '#ff4444'
-                      : recording.risk_level === 'high'
-                        ? '#ff8800'
-                        : recording.risk_level === 'medium'
-                          ? '#ffaa00'
-                          : '#4CAF50',
-                }
+                    borderLeftWidth: 4,
+                    borderLeftColor:
+                      recording.risk_level === 'critical'
+                        ? '#ff4444'
+                        : recording.risk_level === 'high'
+                          ? '#ff8800'
+                          : recording.risk_level === 'medium'
+                            ? '#ffaa00'
+                            : '#4CAF50',
+                  }
                 : {}),
             }}
           >
@@ -598,8 +598,10 @@ export default function CheckinScreen() {
           console.error('❌ Failed to start recording:', recordingError);
 
           // Handle specific iOS session activation errors
-          if (recordingError?.message?.includes('Session activation failed') ||
-            recordingError?.message?.includes('561017449')) {
+          if (
+            recordingError?.message?.includes('Session activation failed') ||
+            recordingError?.message?.includes('561017449')
+          ) {
             Alert.alert(
               'Audio Session Error',
               'Unable to start recording. Please close other audio apps and try again.',
@@ -611,8 +613,8 @@ export default function CheckinScreen() {
                   onPress: () => {
                     // Retry after a short delay
                     setTimeout(() => startRecording(), 1000);
-                  }
-                }
+                  },
+                },
               ]
             );
           } else {
@@ -786,13 +788,13 @@ export default function CheckinScreen() {
         prev.map(r =>
           r.id === recording.id
             ? {
-              ...r,
-              transcription: response.transcription || 'Processing transcription...',
-              transcription_status: response.transcription ? 'completed' : 'processing',
-              risk_level: response.riskLevel,
-              analysis_status: response.analyzedAt ? 'completed' : 'processing',
-              file_path: response.audioFilePath,
-            }
+                ...r,
+                transcription: response.transcription || 'Processing transcription...',
+                transcription_status: response.transcription ? 'completed' : 'processing',
+                risk_level: response.riskLevel,
+                analysis_status: response.analyzedAt ? 'completed' : 'processing',
+                file_path: response.audioFilePath,
+              }
             : r
         )
       );
@@ -890,10 +892,10 @@ export default function CheckinScreen() {
                 prev.map(r =>
                   r.id === recording.id
                     ? {
-                      ...r,
-                      playbackProgress: progress,
-                      playbackPosition: position,
-                    }
+                        ...r,
+                        playbackProgress: progress,
+                        playbackPosition: position,
+                      }
                     : r
                 )
               );
@@ -980,10 +982,10 @@ export default function CheckinScreen() {
               prev.map(r =>
                 r.id === recording.id
                   ? {
-                    ...r,
-                    playbackProgress: progress,
-                    playbackPosition: position,
-                  }
+                      ...r,
+                      playbackProgress: progress,
+                      playbackPosition: position,
+                    }
                   : r
               )
             );
@@ -1135,12 +1137,12 @@ export default function CheckinScreen() {
           prev.map(r =>
             r.id === data.audio_id.toString()
               ? {
-                ...r,
-                transcription_status: data.status,
-                transcription: data.transcription || r.transcription,
-                confidence: data.confidence,
-                is_transcribing: data.status === 'processing',
-              }
+                  ...r,
+                  transcription_status: data.status,
+                  transcription: data.transcription || r.transcription,
+                  confidence: data.confidence,
+                  is_transcribing: data.status === 'processing',
+                }
               : r
           )
         );
@@ -1152,11 +1154,11 @@ export default function CheckinScreen() {
           prev.map(r =>
             r.id === data.audio_id.toString()
               ? {
-                ...r,
-                analysis_status: data.status,
-                risk_level: data.risk_level,
-                is_analyzing: data.status === 'processing',
-              }
+                  ...r,
+                  analysis_status: data.status,
+                  risk_level: data.risk_level,
+                  is_analyzing: data.status === 'processing',
+                }
               : r
           )
         );
@@ -1408,7 +1410,11 @@ export default function CheckinScreen() {
                     styles.recordingWave,
                     styles.wave1,
                     {
-                      transform: [{ translateX: -60 }, { translateY: -60 }, { scale: waveAnimation }],
+                      transform: [
+                        { translateX: -60 },
+                        { translateY: -60 },
+                        { scale: waveAnimation },
+                      ],
                       opacity: waveAnimation.interpolate({
                         inputRange: [0, 1],
                         outputRange: [0.3, 0.8],
@@ -1519,7 +1525,10 @@ export default function CheckinScreen() {
               </ThemedText>
             </View>
           )}
-          contentContainerStyle={[styles.recordingsListContent, { paddingTop: heroHeight + 10, paddingBottom: insets.bottom + 100 }]}
+          contentContainerStyle={[
+            styles.recordingsListContent,
+            { paddingTop: heroHeight + 10, paddingBottom: insets.bottom + 100 },
+          ]}
           style={styles.recordingsList}
           removeClippedSubviews={false}
           maxToRenderPerBatch={2}
@@ -1528,10 +1537,9 @@ export default function CheckinScreen() {
           windowSize={2}
           getItemLayout={getItemLayout}
           ListEmptyComponent={EmptyComponent}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
+            useNativeDriver: true,
+          })}
           scrollEventThrottle={16}
           maintainVisibleContentPosition={{
             minIndexForVisible: 0,
@@ -1539,7 +1547,7 @@ export default function CheckinScreen() {
           }}
           disableVirtualization={false}
           legacyImplementation={false}
-          overScrollMode="never"
+          overScrollMode='never'
           bounces={false}
           scrollIndicatorInsets={{ right: 1 }}
         />
@@ -1551,10 +1559,7 @@ export default function CheckinScreen() {
               styles.floatingScrollButton,
               {
                 opacity: 1,
-                transform: [
-                  { scale: 1 },
-                  { translateY: 0 },
-                ],
+                transform: [{ scale: 1 }, { translateY: 0 }],
               },
             ]}
           >

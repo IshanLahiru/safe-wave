@@ -88,7 +88,6 @@ class MinIOService:
 
         try:
             # Generate unique object key
-            file_extension = os.path.splitext(filename)[1]
             object_key = f"audio/{uuid.uuid4()}_{filename}"
 
             # Upload file

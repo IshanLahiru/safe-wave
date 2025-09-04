@@ -204,10 +204,7 @@ export default function ProfileScreen() {
             Support
           </ThemedText>
 
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push('/help-faq')}
-          >
+          <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/help-faq')}>
             <View style={styles.settingLeft}>
               <IconSymbol size={20} name='questionmark.circle.fill' color={Colors.dark.primary} />
               <ThemedText type='body' style={styles.settingLabel}>
@@ -217,10 +214,7 @@ export default function ProfileScreen() {
             <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push('/send-feedback')}
-          >
+          <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/send-feedback')}>
             <View style={styles.settingLeft}>
               <IconSymbol size={20} name='envelope.fill' color={Colors.dark.primary} />
               <ThemedText type='body' style={styles.settingLabel}>
@@ -230,10 +224,7 @@ export default function ProfileScreen() {
             <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.settingRow}
-            onPress={() => router.push('/about')}
-          >
+          <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/about')}>
             <View style={styles.settingLeft}>
               <IconSymbol size={20} name='info.circle.fill' color={Colors.dark.primary} />
               <ThemedText type='body' style={styles.settingLabel}>

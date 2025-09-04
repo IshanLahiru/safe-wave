@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  View,
-  Linking,
-} from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, View, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
@@ -82,107 +76,102 @@ export default function AboutScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: insets.top + 20 }
-        ]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <IconSymbol size={24} name="chevron.left" color={theme.text} />
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <IconSymbol size={24} name='chevron.left' color={theme.text} />
           </TouchableOpacity>
-          <ThemedText type="title" style={styles.headerTitle}>
+          <ThemedText type='title' style={styles.headerTitle}>
             About
           </ThemedText>
         </View>
 
         {/* App Info */}
-        <ModernCard variant="elevated" style={styles.section}>
+        <ModernCard variant='elevated' style={styles.section}>
           <View style={styles.appHeader}>
             <View style={styles.appIcon}>
-              <IconSymbol size={48} name="heart.fill" color={theme.primary} />
+              <IconSymbol size={48} name='heart.fill' color={theme.primary} />
             </View>
             <View style={styles.appInfo}>
-              <ThemedText type="title" style={styles.appName}>
+              <ThemedText type='title' style={styles.appName}>
                 Safe Wave
               </ThemedText>
-              <ThemedText type="body" variant="muted" style={styles.appTagline}>
+              <ThemedText type='body' variant='muted' style={styles.appTagline}>
                 Mental Health Companion
               </ThemedText>
-              <ThemedText type="caption" variant="muted" style={styles.appVersion}>
+              <ThemedText type='caption' variant='muted' style={styles.appVersion}>
                 Version {APP_VERSION} (Build {BUILD_NUMBER})
               </ThemedText>
             </View>
           </View>
-          
-          <ThemedText type="body" variant="muted" style={styles.appDescription}>
-            Safe Wave is a comprehensive mental health companion app that helps you track your 
-            wellbeing, store important medical documents, and stay connected with your care network. 
-            Our AI-powered features provide insights while keeping your privacy and security as our top priority.
+
+          <ThemedText type='body' variant='muted' style={styles.appDescription}>
+            Safe Wave is a comprehensive mental health companion app that helps you track your
+            wellbeing, store important medical documents, and stay connected with your care network.
+            Our AI-powered features provide insights while keeping your privacy and security as our
+            top priority.
           </ThemedText>
         </ModernCard>
 
         {/* Features */}
-        <ModernCard variant="elevated" style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>
+        <ModernCard variant='elevated' style={styles.section}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
             Key Features
           </ThemedText>
-          
+
           <View style={styles.featureItem}>
-            <IconSymbol size={20} name="chart.line.uptrend.xyaxis" color={theme.primary} />
-            <ThemedText type="body" style={styles.featureText}>
+            <IconSymbol size={20} name='chart.line.uptrend.xyaxis' color={theme.primary} />
+            <ThemedText type='body' style={styles.featureText}>
               Daily mood and wellness tracking
             </ThemedText>
           </View>
 
           <View style={styles.featureItem}>
-            <IconSymbol size={20} name="waveform" color={theme.primary} />
-            <ThemedText type="body" style={styles.featureText}>
+            <IconSymbol size={20} name='waveform' color={theme.primary} />
+            <ThemedText type='body' style={styles.featureText}>
               AI-powered audio analysis for mental health insights
             </ThemedText>
           </View>
 
           <View style={styles.featureItem}>
-            <IconSymbol size={20} name="doc.fill" color={theme.primary} />
-            <ThemedText type="body" style={styles.featureText}>
+            <IconSymbol size={20} name='doc.fill' color={theme.primary} />
+            <ThemedText type='body' style={styles.featureText}>
               Secure medical document storage
             </ThemedText>
           </View>
 
           <View style={styles.featureItem}>
-            <IconSymbol size={20} name="person.2.fill" color={theme.primary} />
-            <ThemedText type="body" style={styles.featureText}>
+            <IconSymbol size={20} name='person.2.fill' color={theme.primary} />
+            <ThemedText type='body' style={styles.featureText}>
               Care person integration and emergency alerts
             </ThemedText>
           </View>
 
           <View style={styles.featureItem}>
-            <IconSymbol size={20} name="lock.shield.fill" color={theme.primary} />
-            <ThemedText type="body" style={styles.featureText}>
+            <IconSymbol size={20} name='lock.shield.fill' color={theme.primary} />
+            <ThemedText type='body' style={styles.featureText}>
               End-to-end encryption and privacy protection
             </ThemedText>
           </View>
         </ModernCard>
 
         {/* Team */}
-        <ModernCard variant="elevated" style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>
+        <ModernCard variant='elevated' style={styles.section}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
             Our Team
           </ThemedText>
-          
+
           {teamMembers.map((member, index) => (
             <View key={index} style={styles.teamMember}>
               <IconSymbol size={20} name={member.icon} color={theme.primary} />
               <View style={styles.teamMemberInfo}>
-                <ThemedText type="body" style={styles.teamMemberName}>
+                <ThemedText type='body' style={styles.teamMemberName}>
                   {member.name}
                 </ThemedText>
-                <ThemedText type="caption" variant="muted" style={styles.teamMemberRole}>
+                <ThemedText type='caption' variant='muted' style={styles.teamMemberRole}>
                   {member.role}
                 </ThemedText>
               </View>
@@ -191,72 +180,76 @@ export default function AboutScreen() {
         </ModernCard>
 
         {/* Links */}
-        <ModernCard variant="elevated" style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>
+        <ModernCard variant='elevated' style={styles.section}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
             Links & Resources
           </ThemedText>
-          
+
           <TouchableOpacity style={styles.linkItem} onPress={handleWebsite}>
             <View style={styles.linkLeft}>
-              <IconSymbol size={20} name="globe" color={theme.primary} />
-              <ThemedText type="body" style={styles.linkText}>
+              <IconSymbol size={20} name='globe' color={theme.primary} />
+              <ThemedText type='body' style={styles.linkText}>
                 Website
               </ThemedText>
             </View>
-            <IconSymbol size={16} name="arrow.up.right" color={theme.muted} />
+            <IconSymbol size={16} name='arrow.up.right' color={theme.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.linkItem} onPress={handleSupport}>
             <View style={styles.linkLeft}>
-              <IconSymbol size={20} name="envelope.fill" color={theme.primary} />
-              <ThemedText type="body" style={styles.linkText}>
+              <IconSymbol size={20} name='envelope.fill' color={theme.primary} />
+              <ThemedText type='body' style={styles.linkText}>
                 Support
               </ThemedText>
             </View>
-            <IconSymbol size={16} name="arrow.up.right" color={theme.muted} />
+            <IconSymbol size={16} name='arrow.up.right' color={theme.muted} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.linkItem} onPress={handleGitHub}>
             <View style={styles.linkLeft}>
-              <IconSymbol size={20} name="chevron.left.forwardslash.chevron.right" color={theme.primary} />
-              <ThemedText type="body" style={styles.linkText}>
+              <IconSymbol
+                size={20}
+                name='chevron.left.forwardslash.chevron.right'
+                color={theme.primary}
+              />
+              <ThemedText type='body' style={styles.linkText}>
                 Open Source
               </ThemedText>
             </View>
-            <IconSymbol size={16} name="arrow.up.right" color={theme.muted} />
+            <IconSymbol size={16} name='arrow.up.right' color={theme.muted} />
           </TouchableOpacity>
         </ModernCard>
 
         {/* Legal */}
-        <ModernCard variant="elevated" style={styles.section}>
-          <ThemedText type="heading" style={styles.sectionTitle}>
+        <ModernCard variant='elevated' style={styles.section}>
+          <ThemedText type='heading' style={styles.sectionTitle}>
             Legal & Compliance
           </ThemedText>
-          
+
           {legalLinks.map((link, index) => (
             <TouchableOpacity key={index} style={styles.legalItem} onPress={link.action}>
               <View style={styles.legalLeft}>
                 <IconSymbol size={20} name={link.icon} color={theme.primary} />
                 <View style={styles.legalText}>
-                  <ThemedText type="body" style={styles.legalTitle}>
+                  <ThemedText type='body' style={styles.legalTitle}>
                     {link.title}
                   </ThemedText>
-                  <ThemedText type="caption" variant="muted" style={styles.legalDescription}>
+                  <ThemedText type='caption' variant='muted' style={styles.legalDescription}>
                     {link.description}
                   </ThemedText>
                 </View>
               </View>
-              <IconSymbol size={16} name="arrow.up.right" color={theme.muted} />
+              <IconSymbol size={16} name='arrow.up.right' color={theme.muted} />
             </TouchableOpacity>
           ))}
         </ModernCard>
 
         {/* Copyright */}
-        <ModernCard variant="surface" style={styles.section}>
-          <ThemedText type="caption" variant="muted" style={styles.copyright}>
+        <ModernCard variant='surface' style={styles.section}>
+          <ThemedText type='caption' variant='muted' style={styles.copyright}>
             © 2025 Safe Wave. All rights reserved.
           </ThemedText>
-          <ThemedText type="caption" variant="muted" style={styles.copyright}>
+          <ThemedText type='caption' variant='muted' style={styles.copyright}>
             Made with ❤️ for mental health awareness
           </ThemedText>
         </ModernCard>

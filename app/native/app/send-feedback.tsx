@@ -86,10 +86,10 @@ export default function SendFeedbackScreen() {
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       Alert.alert(
         'Feedback Sent!',
-        'Thank you for your feedback. We\'ll review it and get back to you if needed.',
+        "Thank you for your feedback. We'll review it and get back to you if needed.",
         [
           {
             text: 'OK',
@@ -108,64 +108,58 @@ export default function SendFeedbackScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingTop: insets.top + 20 }
-          ]}
+          contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+          keyboardShouldPersistTaps='handled'
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <IconSymbol size={24} name="chevron.left" color={theme.text} />
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+              <IconSymbol size={24} name='chevron.left' color={theme.text} />
             </TouchableOpacity>
-            <ThemedText type="title" style={styles.headerTitle}>
+            <ThemedText type='title' style={styles.headerTitle}>
               Send Feedback
             </ThemedText>
           </View>
 
           {/* Feedback Categories */}
-          <ModernCard variant="elevated" style={styles.section}>
-            <ThemedText type="heading" style={styles.sectionTitle}>
+          <ModernCard variant='elevated' style={styles.section}>
+            <ThemedText type='heading' style={styles.sectionTitle}>
               What type of feedback do you have?
             </ThemedText>
-            
-            {feedbackOptions.map((option) => (
+
+            {feedbackOptions.map(option => (
               <TouchableOpacity
                 key={option.id}
                 style={[
                   styles.categoryOption,
-                  selectedCategory === option.id && styles.categoryOptionSelected
+                  selectedCategory === option.id && styles.categoryOptionSelected,
                 ]}
                 onPress={() => setSelectedCategory(option.id)}
               >
                 <View style={styles.categoryLeft}>
                   <IconSymbol size={20} name={option.icon} color={option.color} />
                   <View style={styles.categoryText}>
-                    <ThemedText type="body" style={styles.categoryLabel}>
+                    <ThemedText type='body' style={styles.categoryLabel}>
                       {option.label}
                     </ThemedText>
-                    <ThemedText type="caption" variant="muted" style={styles.categoryDescription}>
+                    <ThemedText type='caption' variant='muted' style={styles.categoryDescription}>
                       {option.description}
                     </ThemedText>
                   </View>
                 </View>
-                <View style={[
-                  styles.radioButton,
-                  selectedCategory === option.id && styles.radioButtonSelected
-                ]}>
-                  {selectedCategory === option.id && (
-                    <View style={styles.radioButtonInner} />
-                  )}
+                <View
+                  style={[
+                    styles.radioButton,
+                    selectedCategory === option.id && styles.radioButtonSelected,
+                  ]}
+                >
+                  {selectedCategory === option.id && <View style={styles.radioButtonInner} />}
                 </View>
               </TouchableOpacity>
             ))}
@@ -173,16 +167,16 @@ export default function SendFeedbackScreen() {
 
           {/* Feedback Form */}
           {selectedCategory && (
-            <ModernCard variant="elevated" style={styles.section}>
+            <ModernCard variant='elevated' style={styles.section}>
               <View style={styles.formHeader}>
                 <IconSymbol size={20} name={selectedOption!.icon} color={selectedOption!.color} />
-                <ThemedText type="heading" style={styles.formTitle}>
+                <ThemedText type='heading' style={styles.formTitle}>
                   {selectedOption!.label}
                 </ThemedText>
               </View>
 
               <View style={styles.inputGroup}>
-                <ThemedText type="body" style={styles.inputLabel}>
+                <ThemedText type='body' style={styles.inputLabel}>
                   Your Feedback *
                 </ThemedText>
                 <TextInput
@@ -193,24 +187,24 @@ export default function SendFeedbackScreen() {
                   placeholderTextColor={theme.muted}
                   multiline
                   numberOfLines={6}
-                  textAlignVertical="top"
+                  textAlignVertical='top'
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <ThemedText type="body" style={styles.inputLabel}>
+                <ThemedText type='body' style={styles.inputLabel}>
                   Contact Email (Optional)
                 </ThemedText>
                 <TextInput
                   style={styles.textInput}
                   value={contactEmail}
                   onChangeText={setContactEmail}
-                  placeholder="your.email@example.com"
+                  placeholder='your.email@example.com'
                   placeholderTextColor={theme.muted}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
+                  keyboardType='email-address'
+                  autoCapitalize='none'
                 />
-                <ThemedText type="caption" variant="muted" style={styles.inputHint}>
+                <ThemedText type='caption' variant='muted' style={styles.inputHint}>
                   We'll only use this to follow up on your feedback if needed
                 </ThemedText>
               </View>
@@ -218,19 +212,20 @@ export default function SendFeedbackScreen() {
               <TouchableOpacity
                 style={[
                   styles.submitButton,
-                  (!selectedCategory || !feedbackText.trim() || isSubmitting) && styles.submitButtonDisabled
+                  (!selectedCategory || !feedbackText.trim() || isSubmitting) &&
+                    styles.submitButtonDisabled,
                 ]}
                 onPress={handleSubmit}
                 disabled={!selectedCategory || !feedbackText.trim() || isSubmitting}
               >
                 {isSubmitting ? (
-                  <ThemedText type="body" style={styles.submitButtonText}>
+                  <ThemedText type='body' style={styles.submitButtonText}>
                     Sending...
                   </ThemedText>
                 ) : (
                   <>
-                    <IconSymbol size={16} name="paperplane.fill" color={theme.background} />
-                    <ThemedText type="body" style={styles.submitButtonText}>
+                    <IconSymbol size={16} name='paperplane.fill' color={theme.background} />
+                    <ThemedText type='body' style={styles.submitButtonText}>
                       Send Feedback
                     </ThemedText>
                   </>
@@ -240,10 +235,10 @@ export default function SendFeedbackScreen() {
           )}
 
           {/* Help Text */}
-          <ModernCard variant="surface" style={styles.section}>
-            <ThemedText type="body" variant="muted" style={styles.helpText}>
-              Your feedback helps us improve Safe Wave. We read every submission and use your 
-              input to make the app better for everyone.
+          <ModernCard variant='surface' style={styles.section}>
+            <ThemedText type='body' variant='muted' style={styles.helpText}>
+              Your feedback helps us improve Safe Wave. We read every submission and use your input
+              to make the app better for everyone.
             </ThemedText>
           </ModernCard>
         </ScrollView>
