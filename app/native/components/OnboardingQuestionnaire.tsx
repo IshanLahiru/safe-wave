@@ -1537,33 +1537,33 @@ export default function OnboardingQuestionnaire() {
                     {(currentQuestion.id === 'emergency_contact_name' ||
                         currentQuestion.id === 'emergency_contact_email' ||
                         currentQuestion.id === 'emergency_contact_relationship') && (
-                            <ModernCard variant="surface" style={styles.section}>
-                                <ThemedText type="body" style={styles.emergencyNoticeText}>
+                            <ModernCard variant='outlined' style={styles.emergencyNotice}>
+                                <ThemedText style={styles.emergencyNoticeText}>
                                     ⚠️ Emergency contact information is required for your safety
                                 </ThemedText>
                             </ModernCard>
                         )}
 
                     {/* Question */}
-                    <ModernCard variant="elevated" style={styles.section}>
-                        <ThemedText type="title" style={styles.questionText}>
+                    <ThemedView style={styles.questionContainer}>
+                        <ThemedText type='title' style={styles.questionText}>
                             {currentQuestion.text}
                         </ThemedText>
 
                         {/* Show warning if on last question but not all questions are answered */}
                         {isLastQuestion && !areAllQuestionsAnswered() && (
-                            <ModernCard variant="surface" style={styles.warningCard}>
-                                <ThemedText type="body" style={styles.incompleteWarningText}>
+                            <ModernCard variant='outlined' style={styles.incompleteWarning}>
+                                <ThemedText style={styles.incompleteWarningText}>
                                     ⚠️ You must answer all {QUESTIONS.length} questions before completing the
                                     questionnaire. You have completed {getCompletedQuestionsCount()} of{' '}
                                     {QUESTIONS.length} questions.
                                 </ThemedText>
                             </ModernCard>
                         )}
+                    </ThemedView>
 
-                        {/* Answer Options */}
-                        {renderQuestion()}
-                    </ModernCard>
+                    {/* Answer Options */}
+                    {renderQuestion()}
 
                     {/* Add extra padding at bottom for keyboard */}
                     <View style={styles.keyboardSpacer} />
@@ -1620,12 +1620,6 @@ const styles = StyleSheet.create({
     },
     closeButton: {
         padding: Spacing.sm,
-    },
-    section: {
-        marginBottom: Spacing.lg,
-    },
-    warningCard: {
-        marginTop: Spacing.md,
     },
     questionTabsContainer: {
         backgroundColor: Colors.dark.surface,
@@ -1715,19 +1709,30 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        paddingHorizontal: Spacing.lg,
+        padding: Spacing.xl,
+        paddingTop: Spacing.lg,
         paddingBottom: 120, // Add space for navigation buttons
     },
     scrollContent: {
-        paddingBottom: Spacing.xxxl, // Extra padding for keyboard
+        paddingBottom: 40, // Extra padding for keyboard
     },
-
+    questionContainer: {
+        marginBottom: 25,
+        backgroundColor: 'transparent',
+        borderRadius: 0,
+        padding: 0,
+        borderWidth: 0,
+        borderColor: 'transparent',
+        width: '100%',
+    },
     questionText: {
-        fontSize: 24,
+        fontSize: 20,
         fontWeight: '700',
-        lineHeight: 32,
+        lineHeight: 28,
         textAlign: 'left',
-        marginBottom: Spacing.lg,
+        marginBottom: 24,
+        color: Colors.dark.text,
+        letterSpacing: -0.3,
     },
     optionsContainer: {
         gap: Spacing.md,
