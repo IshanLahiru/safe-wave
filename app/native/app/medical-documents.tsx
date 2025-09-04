@@ -16,7 +16,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors, Shadows, Spacing, BorderRadius } from '@/constants/Colors';
+import { Colors, Spacing, BorderRadius } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
 import { useDocumentWebSocket, DocumentUploadProgress } from '@/hooks/useDocumentWebSocket';
@@ -517,49 +517,45 @@ const wsUserId: number | null = (() => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 10 }]}
+                contentContainerStyle={[
+                    styles.scrollContent,
+                    { paddingTop: insets.top + 20 }
+                ]}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
             >
                 {/* Header */}
-                <ThemedView style={styles.header}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                        <IconSymbol size={24} name='chevron.left' color={theme.primary} />
-                        <ThemedText style={styles.backButtonText}>Back</ThemedText>
+                <View style={styles.header}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={() => router.back()}
+                    >
+                        <IconSymbol size={24} name="chevron.left" color={theme.text} />
                     </TouchableOpacity>
-
-                    <View style={styles.titleContainer}>
-                        <IconSymbol size={32} name='doc.text.fill' color={Colors.dark.primary} />
-                        <ThemedText type='title' style={styles.title}>
-                            Medical Documents
-                        </ThemedText>
-                    </View>
-
-                    <ThemedText type='body' style={styles.subtitle}>
-                        Manage your medical documents and records
+                    <ThemedText type="title" style={styles.headerTitle}>
+                        Medical Documents
                     </ThemedText>
-                </ThemedView>
+                </View>
 
                 {/* Upload Section */}
-                <ModernCard variant='elevated' style={styles.uploadSection}>
-                    <ThemedText type='heading' style={styles.uploadTitle}>
+                <ModernCard variant="elevated" style={styles.section}>
+                    <ThemedText type="heading" style={styles.sectionTitle}>
                         Upload New Document
                     </ThemedText>
 
                     {isUploading ? (
                         <View style={styles.uploadProgressContainer}>
                             <View style={styles.uploadProgressHeader}>
-                                <IconSymbol size={24} name='arrow.clockwise' color={Colors.dark.primary} />
-                                <ThemedText style={styles.uploadProgressText}>
+                                <IconSymbol size={20} name="arrow.clockwise" color={theme.primary} />
+                                <ThemedText type="body" style={styles.uploadProgressText}>
                                     {uploadMessage || 'Uploading...'}
                                 </ThemedText>
                             </View>
 
                             {currentUploadFile && (
-                                <ThemedText style={styles.uploadFileName}>
+                                <ThemedText type="caption" variant="muted" style={styles.uploadFileName}>
                                     {currentUploadFile}
                                 </ThemedText>
                             )}
@@ -577,7 +573,7 @@ const wsUserId: number | null = (() => {
                                         ]}
                                     />
                                 </View>
-                                <ThemedText style={styles.progressText}>
+                                <ThemedText type="caption" style={styles.progressText}>
                                     {Math.round(progress)}%
                                 </ThemedText>
                             </View>
@@ -586,9 +582,9 @@ const wsUserId: number | null = (() => {
                             <View style={styles.connectionStatus}>
                                 <View style={[
                                     styles.connectionIndicator,
-                                    { backgroundColor: wsConnected ? Colors.dark.success : Colors.dark.warning }
+                                    { backgroundColor: wsConnected ? theme.success : theme.warning }
                                 ]} />
-                                <ThemedText style={styles.connectionText}>
+                                <ThemedText type="caption" variant="muted" style={styles.connectionText}>
                                     {wsConnected ? 'Real-time updates' : 'Basic progress'}
                                 </ThemedText>
                             </View>
@@ -602,18 +598,21 @@ const wsUserId: number | null = (() => {
                             accessibilityState={{ disabled: isUploading }}
                             accessibilityLabel="Select Medical Document for upload"
                         >
-                            <IconSymbol size={24} name='doc.badge.plus' color={Colors.dark.primary} />
-                            <ThemedText style={styles.uploadButtonText}>
+                            <IconSymbol size={24} name="doc.badge.plus" color={theme.primary} />
+                            <ThemedText type="body" style={styles.uploadButtonText}>
                                 Select Medical Document
                             </ThemedText>
-                            <ThemedText style={styles.uploadButtonSubtext}>
+                            <ThemedText type="caption" variant="muted" style={styles.uploadButtonSubtext}>
                                 PDF, DOC, images, or text files (max 10MB)
                             </ThemedText>
                         </TouchableOpacity>
                     )}
-                    {/* Idle state info: selected file name and messages */}
+
+                    {/* Status Messages */}
                     {!isUploading && selectedName && (
                         <ThemedText
+                            type="caption"
+                            variant="muted"
                             style={styles.selectedNameText}
                             accessibilityLabel={`Selected file ${selectedName}`}
                         >
@@ -621,33 +620,37 @@ const wsUserId: number | null = (() => {
                         </ThemedText>
                     )}
                     {errorMsg && (
-                        <ThemedText style={styles.messageError} accessibilityRole="alert">
+                        <ThemedText type="body" style={styles.messageError} accessibilityRole="alert">
                             {errorMsg}
                         </ThemedText>
                     )}
                     {successMsg && (
-                        <ThemedText style={styles.messageSuccess}>
+                        <ThemedText type="body" style={styles.messageSuccess}>
                             {successMsg}
                         </ThemedText>
                     )}
                 </ModernCard>
 
                 {/* Documents List */}
-                <ModernCard variant='elevated' style={styles.documentsSection}>
-                    <ThemedText type='heading' style={styles.documentsTitle}>
+                <ModernCard variant="elevated" style={styles.section}>
+                    <ThemedText type="heading" style={styles.sectionTitle}>
                         Your Documents ({documents.length})
                     </ThemedText>
 
                     {isLoading ? (
                         <View style={styles.loadingContainer}>
-                            <IconSymbol size={24} name='arrow.clockwise' color={Colors.dark.primary} />
-                            <ThemedText style={styles.loadingText}>Loading documents...</ThemedText>
+                            <IconSymbol size={20} name="arrow.clockwise" color={theme.primary} />
+                            <ThemedText type="body" variant="muted" style={styles.loadingText}>
+                                Loading documents...
+                            </ThemedText>
                         </View>
                     ) : documents.length === 0 ? (
                         <View style={styles.emptyContainer}>
-                            <IconSymbol size={48} name='doc.text' color={Colors.dark.muted} />
-                            <ThemedText style={styles.emptyTitle}>No Medical Documents</ThemedText>
-                            <ThemedText style={styles.emptySubtitle}>
+                            <IconSymbol size={48} name="doc.text" color={theme.muted} />
+                            <ThemedText type="body" style={styles.emptyTitle}>
+                                No Medical Documents
+                            </ThemedText>
+                            <ThemedText type="caption" variant="muted" style={styles.emptySubtitle}>
                                 Upload your first medical document to get started
                             </ThemedText>
                         </View>
@@ -655,24 +658,21 @@ const wsUserId: number | null = (() => {
                         <View style={styles.documentsList}>
                             {documents.map((document) => (
                                 <View key={document.id} style={styles.documentItem}>
-                                    <View style={styles.documentInfo}>
-                                        <View style={styles.documentIcon}>
-                                            <IconSymbol
-                                                size={24}
-                                                name={getFileIcon(document.content_type) as any}
-                                                color={Colors.dark.primary}
-                                            />
-                                        </View>
-
-                                        <View style={styles.documentDetails}>
-                                            <ThemedText style={styles.documentName}>
+                                    <View style={styles.documentLeft}>
+                                        <IconSymbol
+                                            size={20}
+                                            name={getFileIcon(document.content_type) as any}
+                                            color={theme.primary}
+                                        />
+                                        <View style={styles.documentText}>
+                                            <ThemedText type="body" style={styles.documentName}>
                                                 {document.title || document.filename}
                                             </ThemedText>
-                                            <ThemedText style={styles.documentMeta}>
+                                            <ThemedText type="caption" variant="muted" style={styles.documentMeta}>
                                                 {formatFileSize(document.file_size)} • {formatDate(document.created_at)}
                                             </ThemedText>
                                             {document.description && (
-                                                <ThemedText style={styles.documentDescription}>
+                                                <ThemedText type="caption" variant="muted" style={styles.documentDescription}>
                                                     {document.description}
                                                 </ThemedText>
                                             )}
@@ -687,14 +687,14 @@ const wsUserId: number | null = (() => {
                                                 Alert.alert('Document Preview', 'Document preview functionality coming soon!');
                                             }}
                                         >
-                                            <IconSymbol size={20} name='eye' color={Colors.dark.primary} />
+                                            <IconSymbol size={16} name="eye" color={theme.primary} />
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
                                             style={styles.actionButton}
                                             onPress={() => handleDeleteDocument(document.id, document.filename)}
                                         >
-                                            <IconSymbol size={20} name='trash' color={Colors.dark.danger} />
+                                            <IconSymbol size={16} name="trash" color={theme.danger} />
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -712,66 +712,31 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.dark.background,
     },
-    scrollView: {
-        flex: 1,
-    },
     scrollContent: {
-        padding: Spacing.xl,
-        paddingBottom: 120,
+        paddingHorizontal: Spacing.lg,
+        paddingBottom: Spacing.xxxl,
     },
     header: {
+        flexDirection: 'row',
         alignItems: 'center',
         marginBottom: Spacing.xl,
-        paddingTop: Spacing.lg,
-        position: 'relative',
-        minHeight: 120,
     },
     backButton: {
-        position: 'absolute',
-        left: 0,
-        top: Spacing.lg,
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.md,
-        borderRadius: BorderRadius.full,
-        backgroundColor: Colors.dark.surface,
-        zIndex: 10,
+        marginRight: Spacing.md,
+        padding: Spacing.sm,
     },
-    backButtonText: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginLeft: Spacing.xs,
-        color: Colors.dark.text,
-        opacity: 0.8,
-    },
-    titleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Spacing.sm,
-        gap: Spacing.md,
-        marginTop: Spacing.xxl * 3,
-    },
-    title: {
+    headerTitle: {
+        flex: 1,
         fontSize: 28,
         fontWeight: '700',
-        textAlign: 'center',
-        color: Colors.dark.text,
     },
-    subtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-        opacity: 0.7,
-        color: Colors.dark.text,
+    section: {
+        marginBottom: Spacing.lg,
     },
-    uploadSection: {
-        marginBottom: Spacing.xl,
-    },
-    uploadTitle: {
+    sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        marginBottom: Spacing.lg,
+        marginBottom: Spacing.md,
         color: Colors.dark.text,
     },
     uploadButton: {
@@ -794,16 +759,14 @@ const styles = StyleSheet.create({
     },
     uploadButtonSubtext: {
         fontSize: 14,
-        color: Colors.dark.muted,
         textAlign: 'center',
     },
     uploadProgressContainer: {
-        backgroundColor: Colors.dark.card,
-        borderWidth: 2,
-        borderColor: Colors.dark.primary,
-        borderStyle: 'solid',
+        backgroundColor: Colors.dark.surface,
+        borderWidth: 1,
+        borderColor: Colors.dark.border,
         borderRadius: BorderRadius.md,
-        padding: Spacing.xl,
+        padding: Spacing.lg,
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 120,
@@ -815,14 +778,12 @@ const styles = StyleSheet.create({
     },
     uploadProgressText: {
         fontSize: 16,
-        fontWeight: '600',
-        color: Colors.dark.primary,
+        fontWeight: '500',
         marginLeft: Spacing.sm,
         textAlign: 'center',
     },
     uploadFileName: {
         fontSize: 14,
-        color: Colors.dark.muted,
         textAlign: 'center',
         marginBottom: Spacing.md,
         fontStyle: 'italic',
@@ -893,57 +854,46 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: Colors.dark.surface,
-        borderRadius: BorderRadius.md,
-        padding: Spacing.lg,
-        borderWidth: 1,
-        borderColor: Colors.dark.border,
-        ...Shadows.small,
+        paddingVertical: Spacing.md,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.dark.border,
     },
-    documentInfo: {
-        flex: 1,
+    documentLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Spacing.md,
+        flex: 1,
     },
-    documentIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: BorderRadius.md,
-        backgroundColor: Colors.dark.card,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    documentDetails: {
+    documentText: {
+        marginLeft: Spacing.md,
         flex: 1,
     },
     documentName: {
         fontSize: 16,
-        fontWeight: '600',
-        color: Colors.dark.text,
-        marginBottom: Spacing.xs,
+        fontWeight: '500',
+        marginBottom: 2,
     },
     documentMeta: {
         fontSize: 14,
-        color: Colors.dark.muted,
-        marginBottom: Spacing.xs,
+        marginBottom: 2,
     },
     documentDescription: {
         fontSize: 14,
-        color: Colors.dark.muted,
-        opacity: 0.8,
+        fontStyle: 'italic',
+        lineHeight: 18,
     },
     documentActions: {
         flexDirection: 'row',
         gap: Spacing.sm,
     },
     actionButton: {
-        width: 40,
-        height: 40,
-        borderRadius: BorderRadius.full,
-        backgroundColor: Colors.dark.card,
-        justifyContent: 'center',
+        width: 32,
+        height: 32,
+        borderRadius: BorderRadius.sm,
+        backgroundColor: Colors.dark.surface,
         alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: Colors.dark.border,
     },
     connectionStatus: {
         flexDirection: 'row',

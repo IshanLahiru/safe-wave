@@ -36,6 +36,7 @@ import { Colors, Shadows, Spacing, BorderRadius } from '@/constants/Colors';
 import { useColorSchemeSafe } from '@/hooks/useColorSchemeSafe';
 import { useUser } from '@/contexts/UserContext';
 import { apiService } from '@/services/api';
+import { isWeb, hasWindow, hasWindowEvents } from '@/utils/platform';
 
 interface Question {
     id: string;
@@ -206,18 +207,29 @@ export default function OnboardingQuestionnaire() {
         testConnection();
         monitorNetworkRequests(); // Enable network monitoring in development
 
-        // Monitor network connectivity
+        // Monitor network connectivity (web only)
         const handleOnline = () => setIsOnline(true);
         const handleOffline = () => setIsOnline(false);
 
-        if (typeof window !== 'undefined') {
+        if (hasWindowEvents) {
             window.addEventListener('online', handleOnline);
             window.addEventListener('offline', handleOffline);
-            setIsOnline(navigator.onLine);
+
+            // navigator.onLine is web-only; default to true otherwise
+            // eslint-disable-next-line no-restricted-globals
+            const onlineStatus =
+                typeof navigator !== 'undefined' && typeof (navigator as any).onLine === 'boolean'
+                    ? (navigator as any).onLine
+                    : true;
+            setIsOnline(onlineStatus);
+        } else {
+            // On native, assume online; a native-specific connectivity solution can be added if needed
+            // TODO: Use NetInfo on native if detailed connectivity is required
+            setIsOnline(true);
         }
 
         return () => {
-            if (typeof window !== 'undefined') {
+            if (hasWindowEvents) {
                 window.removeEventListener('online', handleOnline);
                 window.removeEventListener('offline', handleOffline);
             }
@@ -875,7 +887,7 @@ export default function OnboardingQuestionnaire() {
             console.log('   5. Look for POST requests to /documents/onboarding-upload');
 
             // Monitor fetch globally in development
-            if (typeof window !== 'undefined') {
+            if (isWeb && hasWindow && typeof window.fetch === 'function') {
                 const originalFetch = window.fetch;
                 window.fetch = function (input: RequestInfo | URL, init?: RequestInit) {
                     console.log('🌐 Fetch request:', {
@@ -1403,16 +1415,23 @@ export default function OnboardingQuestionnaire() {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
                 {/* Header */}
-                <ThemedView style={[styles.header, { paddingTop: insets.top + 10 }]}>
-                    <TouchableOpacity style={styles.backButton} onPress={handleBackNavigation}>
-                        <IconSymbol size={24} name='chevron.left' color={theme.primary} />
-                        <ThemedText style={styles.backButtonText}>Back</ThemedText>
+                <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={handleBackNavigation}
+                    >
+                        <IconSymbol size={24} name="chevron.left" color={theme.text} />
                     </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.closeButton} onPress={handleCloseQuestionnaire}>
-                        <IconSymbol size={24} name='xmark' color={theme.primary} />
+                    <ThemedText type="title" style={styles.headerTitle}>
+                        Onboarding
+                    </ThemedText>
+                    <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={handleCloseQuestionnaire}
+                    >
+                        <IconSymbol size={24} name="xmark" color={theme.text} />
                     </TouchableOpacity>
-                </ThemedView>
+                </View>
 
                 {/* Network Status Indicator */}
                 {!isOnline && (
@@ -1518,33 +1537,33 @@ export default function OnboardingQuestionnaire() {
                     {(currentQuestion.id === 'emergency_contact_name' ||
                         currentQuestion.id === 'emergency_contact_email' ||
                         currentQuestion.id === 'emergency_contact_relationship') && (
-                            <ModernCard variant='outlined' style={styles.emergencyNotice}>
-                                <ThemedText style={styles.emergencyNoticeText}>
+                            <ModernCard variant="surface" style={styles.section}>
+                                <ThemedText type="body" style={styles.emergencyNoticeText}>
                                     ⚠️ Emergency contact information is required for your safety
                                 </ThemedText>
                             </ModernCard>
                         )}
 
                     {/* Question */}
-                    <ThemedView style={styles.questionContainer}>
-                        <ThemedText type='title' style={styles.questionText}>
+                    <ModernCard variant="elevated" style={styles.section}>
+                        <ThemedText type="title" style={styles.questionText}>
                             {currentQuestion.text}
                         </ThemedText>
 
                         {/* Show warning if on last question but not all questions are answered */}
                         {isLastQuestion && !areAllQuestionsAnswered() && (
-                            <ModernCard variant='outlined' style={styles.incompleteWarning}>
-                                <ThemedText style={styles.incompleteWarningText}>
+                            <ModernCard variant="surface" style={styles.warningCard}>
+                                <ThemedText type="body" style={styles.incompleteWarningText}>
                                     ⚠️ You must answer all {QUESTIONS.length} questions before completing the
                                     questionnaire. You have completed {getCompletedQuestionsCount()} of{' '}
                                     {QUESTIONS.length} questions.
                                 </ThemedText>
                             </ModernCard>
                         )}
-                    </ThemedView>
 
-                    {/* Answer Options */}
-                    {renderQuestion()}
+                        {/* Answer Options */}
+                        {renderQuestion()}
+                    </ModernCard>
 
                     {/* Add extra padding at bottom for keyboard */}
                     <View style={styles.keyboardSpacer} />
@@ -1586,16 +1605,27 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: Spacing.sm,
-        paddingVertical: Spacing.sm,
-        marginBottom: Spacing.sm,
-        backgroundColor: Colors.dark.background,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.dark.primary,
-        minHeight: 2,
-        ...Shadows.small,
+        paddingHorizontal: Spacing.lg,
+        marginBottom: Spacing.xl,
+    },
+    backButton: {
+        padding: Spacing.sm,
+    },
+    headerTitle: {
+        flex: 1,
+        fontSize: 28,
+        fontWeight: '700',
+        textAlign: 'center',
+    },
+    closeButton: {
+        padding: Spacing.sm,
+    },
+    section: {
+        marginBottom: Spacing.lg,
+    },
+    warningCard: {
+        marginTop: Spacing.md,
     },
     questionTabsContainer: {
         backgroundColor: Colors.dark.surface,
@@ -1657,47 +1687,7 @@ const styles = StyleSheet.create({
     unansweredQuestionTabNumber: {
         color: Colors.dark.primary,
     },
-    backButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-        paddingHorizontal: Spacing.md,
-        borderRadius: BorderRadius.full,
-        backgroundColor: Colors.dark.surface,
-    },
-    backButtonText: {
-        fontSize: 16,
-        fontWeight: '500',
-        marginLeft: Spacing.xs,
-        color: Colors.dark.text,
-        opacity: 0.8,
-    },
-    closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: BorderRadius.full,
-        backgroundColor: Colors.dark.surface,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    titleContainer: {
-        alignItems: 'center',
-        width: '100%',
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        marginBottom: Spacing.sm,
-        textAlign: 'center',
-        color: Colors.dark.text,
-    },
-    headerSubtitle: {
-        fontSize: 16,
-        fontWeight: '400',
-        textAlign: 'center',
-        opacity: 0.7,
-        color: Colors.dark.text,
-    },
+
     progressContainer: {
         paddingHorizontal: Spacing.xl,
         paddingVertical: Spacing.lg,
@@ -1725,30 +1715,19 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
-        padding: Spacing.xl,
-        paddingTop: Spacing.lg,
+        paddingHorizontal: Spacing.lg,
         paddingBottom: 120, // Add space for navigation buttons
     },
     scrollContent: {
-        paddingBottom: 40, // Extra padding for keyboard
+        paddingBottom: Spacing.xxxl, // Extra padding for keyboard
     },
-    questionContainer: {
-        marginBottom: 25,
-        backgroundColor: 'transparent',
-        borderRadius: 0,
-        padding: 0,
-        borderWidth: 0,
-        borderColor: 'transparent',
-        width: '100%',
-    },
+
     questionText: {
-        fontSize: 20,
+        fontSize: 24,
         fontWeight: '700',
-        lineHeight: 28,
+        lineHeight: 32,
         textAlign: 'left',
-        marginBottom: 24,
-        color: Colors.dark.text,
-        letterSpacing: -0.3,
+        marginBottom: Spacing.lg,
     },
     optionsContainer: {
         gap: Spacing.md,
