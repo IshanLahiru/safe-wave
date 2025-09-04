@@ -76,12 +76,11 @@ async def get_home_content(db: Session = Depends(get_db)):
         # Get a random quote
         quote = db.query(Quote).filter(Quote.is_active == True).order_by(func.random()).first()
 
-        # Get featured articles (limit 2)
+        # Get all active articles (no limit to show all available)
         articles = (
             db.query(Article)
-            .filter(Article.is_active == True, Article.is_featured == True)
+            .filter(Article.is_active == True)
             .order_by(Article.created_at.desc())
-            .limit(2)
             .all()
         )
 
@@ -122,7 +121,19 @@ async def get_home_content(db: Session = Depends(get_db)):
                     "description": meal.description,
                     "difficulty": meal.difficulty,
                     "prep_time": meal.prep_time,
+                    "cook_time": meal.cook_time,
+                    "servings": meal.servings,
+                    "calories_per_serving": meal.calories_per_serving,
+                    "protein": meal.protein,
+                    "carbs": meal.carbs,
+                    "fat": meal.fat,
+                    "stress_reduction_benefits": meal.stress_reduction_benefits,
+                    "mood_boost_ingredients": meal.mood_boost_ingredients,
+                    "ingredients": meal.ingredients,
+                    "instructions": meal.instructions,
+                    "tips": meal.tips,
                     "image_url": meal.image_url,
+                    "video_url": meal.video_url,
                     "category": {
                         "id": meal.category.id,
                         "name": meal.category.name,
@@ -150,13 +161,23 @@ async def get_home_content(db: Session = Depends(get_db)):
                     "id": article.id,
                     "title": article.title,
                     "excerpt": article.excerpt,
+                    "content": article.content,
                     "read_time": article.read_time,
                     "image_url": article.image_url,
+                    "video_url": article.video_url,
                     "category": {
                         "id": article.category.id,
                         "name": article.category.name,
                         "color": article.category.color,
                     },
+                    "stress_reduction_tips": article.stress_reduction_tips,
+                    "practical_exercises": article.practical_exercises,
+                    "author": article.author,
+                    "author_bio": article.author_bio,
+                    "tags": article.tags,
+                    "is_featured": article.is_featured,
+                    "created_at": article.created_at.isoformat(),
+                    "updated_at": article.updated_at.isoformat() if article.updated_at else None,
                 }
                 for article in articles
             ],
@@ -747,6 +768,56 @@ async def get_videos_public(
         raise HTTPException(status_code=500, detail="Failed to fetch videos")
 
 
+@router.get("/meal-plans/{meal_plan_id}")
+async def get_meal_plan_by_id(
+    meal_plan_id: int,
+    db: Session = Depends(get_db),
+):
+    """Get a specific meal plan by ID with full details"""
+    try:
+        meal_plan = (
+            db.query(MealPlan)
+            .filter(MealPlan.id == meal_plan_id, MealPlan.is_active == True)
+            .first()
+        )
+
+        if not meal_plan:
+            raise HTTPException(status_code=404, detail="Meal plan not found")
+
+        return {
+            "id": meal_plan.id,
+            "title": meal_plan.title,
+            "description": meal_plan.description,
+            "category": {
+                "id": meal_plan.category.id,
+                "name": meal_plan.category.name,
+                "color": meal_plan.category.color,
+            },
+            "difficulty": meal_plan.difficulty,
+            "prep_time": meal_plan.prep_time,
+            "cook_time": meal_plan.cook_time,
+            "servings": meal_plan.servings,
+            "calories_per_serving": meal_plan.calories_per_serving,
+            "protein": meal_plan.protein,
+            "carbs": meal_plan.carbs,
+            "fat": meal_plan.fat,
+            "stress_reduction_benefits": meal_plan.stress_reduction_benefits,
+            "mood_boost_ingredients": meal_plan.mood_boost_ingredients,
+            "ingredients": meal_plan.ingredients,
+            "instructions": meal_plan.instructions,
+            "tips": meal_plan.tips,
+            "image_url": meal_plan.image_url,
+            "video_url": meal_plan.video_url,
+            "is_featured": meal_plan.is_featured,
+            "created_at": meal_plan.created_at.isoformat(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching meal plan {meal_plan_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch meal plan")
+
+
 @router.get("/meal-plans/public")
 async def get_meal_plans_public(
     category_id: Optional[int] = Query(None),
@@ -809,6 +880,51 @@ async def get_meal_plans_public(
     except Exception as e:
         logger.error(f"Error fetching public meal plans: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch meal plans")
+
+
+@router.get("/articles/{article_id}")
+async def get_article_by_id(
+    article_id: int,
+    db: Session = Depends(get_db),
+):
+    """Get a specific article by ID with full details"""
+    try:
+        article = (
+            db.query(Article)
+            .filter(Article.id == article_id, Article.is_active == True)
+            .first()
+        )
+
+        if not article:
+            raise HTTPException(status_code=404, detail="Article not found")
+
+        return {
+            "id": article.id,
+            "title": article.title,
+            "excerpt": article.excerpt,
+            "content": article.content,
+            "read_time": article.read_time,
+            "image_url": article.image_url,
+            "video_url": article.video_url,
+            "category": {
+                "id": article.category.id,
+                "name": article.category.name,
+                "color": article.category.color,
+            },
+            "stress_reduction_tips": article.stress_reduction_tips,
+            "practical_exercises": article.practical_exercises,
+            "author": article.author,
+            "author_bio": article.author_bio,
+            "tags": article.tags,
+            "is_featured": article.is_featured,
+            "created_at": article.created_at.isoformat(),
+            "updated_at": article.updated_at.isoformat() if article.updated_at else None,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching article {article_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch article")
 
 
 @router.get("/articles/public")

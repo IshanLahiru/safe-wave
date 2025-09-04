@@ -33,16 +33,13 @@ export default function LoginScreen() {
           setBackendStatus('offline');
         }
       } catch (error) {
-        console.error('Backend status check failed:', error);
+        console.log('Backend status check failed:', error);
         setBackendStatus('offline');
       }
     };
 
     checkBackendStatus();
   }, []);
-
-  // Note: Navigation is handled by the root layout based on user state
-  // This prevents navigation conflicts
 
   const handleLogin = async () => {
     // Clear previous error
@@ -281,7 +278,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     top: '50%',
-    transform: [{ translateY: -10 }], // Center vertically
+    transform: [{ translateY: -10 }],
     padding: 8,
     zIndex: 1,
   },

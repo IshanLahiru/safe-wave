@@ -10,16 +10,22 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
+import type { ComponentProps } from 'react';
+import { Colors, Spacing, BorderRadius } from '@/constants/Colors';
 
 interface FAQItem {
   id: string;
   question: string;
   answer: string;
   category: 'getting-started' | 'features' | 'troubleshooting' | 'privacy';
+}
+
+interface CategoryItem {
+  id: string;
+  label: string;
+  icon: ComponentProps<typeof IconSymbol>['name'];
 }
 
 const faqData: FAQItem[] = [
@@ -95,7 +101,7 @@ export default function HelpFAQScreen() {
     ? faqData 
     : faqData.filter(item => item.category === selectedCategory);
 
-  const categories = [
+  const categories: CategoryItem[] = [
     { id: 'all', label: 'All', icon: 'list.bullet' },
     { id: 'getting-started', label: 'Getting Started', icon: 'play.circle.fill' },
     { id: 'features', label: 'Features', icon: 'star.fill' },
@@ -236,7 +242,7 @@ export default function HelpFAQScreen() {
           </ThemedText>
           <ThemedText type="body" variant="muted" style={styles.resourceText}>
             For more detailed information, visit our website or contact our support team. 
-            We're here to help you make the most of Safe Wave.
+            We&apos;re here to help you make the most of Safe Wave.
           </ThemedText>
         </ModernCard>
       </ScrollView>

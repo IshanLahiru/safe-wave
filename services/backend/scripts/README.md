@@ -40,6 +40,37 @@ python scripts/migration.py rollback
 python scripts/migration.py history
 ```
 
+### `seed_content.py`
+Content seeding script that populates the database with initial stress-reduction content including categories, videos, meal plans, quotes, and articles.
+
+**Features:**
+- Creates 6 content categories (Meditation, Sleep, Stress Relief, etc.)
+- Seeds 5 featured videos with YouTube integration
+- Adds 2 meal plans with nutritional information
+- Includes 5 inspirational quotes
+- Creates 4 comprehensive articles with new schema fields
+
+**Schema Support:**
+- Supports all Article model fields including new additions:
+  - `video_url` - Optional video content for articles
+  - `author_bio` - Detailed author biography information
+  - `updated_at` - Automatic timestamp tracking
+- Handles existing content gracefully (skips if data exists)
+- Compatible with current database schema and API endpoints
+
+**Usage:**
+```bash
+python scripts/seed_content.py
+```
+
+### `seed_data.py`
+User data seeding script for creating initial demo users (currently minimal).
+
+**Usage:**
+```bash
+python scripts/seed_data.py
+```
+
 ### `update_network_ip.py`
 Network IP configuration script for cross-platform development.
 
@@ -59,9 +90,13 @@ npm run migration:run
 npm run migration:rollback
 npm run migration:history
 
-# Database commands  
+# Database commands
 npm run db:reset
 npm run db:recreate
+
+# Seeding commands
+npm run seed:content    # Seed stress-reduction content
+npm run seed:data       # Seed user data
 
 # Network configuration
 npm run update-ip

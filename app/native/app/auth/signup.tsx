@@ -22,9 +22,6 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Note: Navigation is handled by the root layout based on user state
-  // This prevents navigation conflicts
-
   const handleSignup = async () => {
     // Clear previous error
     setErrorMessage('');

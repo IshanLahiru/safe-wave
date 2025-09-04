@@ -10,11 +10,12 @@ import {
   Image,
   Alert,
   Linking,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+
 import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUser } from '@/contexts/UserContext';
@@ -73,9 +74,19 @@ interface Article {
   id: number;
   title: string;
   excerpt: string;
+  content?: string;
   read_time: number;
   image_url: string;
+  video_url?: string | null;
   category: ContentCategory;
+  stress_reduction_tips?: string[];
+  practical_exercises?: string[];
+  author?: string;
+  author_bio?: string;
+  tags?: string[];
+  is_featured?: boolean;
+  created_at?: string;
+  updated_at?: string | null;
   is_favorite?: boolean;
 }
 
@@ -87,7 +98,7 @@ interface Quote {
 }
 
 interface HomeContent {
-  featured_videos: Array<{
+  featured_videos: {
     id: number;
     title: string;
     description: string;
@@ -101,20 +112,32 @@ interface HomeContent {
     };
     stress_level: string;
     mood_boost: number;
-  }>;
-  featured_meal_plans: Array<{
+  }[];
+  featured_meal_plans: {
     id: number;
     title: string;
     description: string;
     difficulty: string;
     prep_time: number;
+    cook_time?: number;
+    servings?: number;
+    calories_per_serving?: number;
+    protein?: number;
+    carbs?: number;
+    fat?: number;
+    stress_reduction_benefits?: string[];
+    mood_boost_ingredients?: string[];
+    ingredients?: string[];
+    instructions?: string[];
+    tips?: string;
     image_url: string;
+    video_url?: string | null;
     category: {
       id: number;
       name: string;
       color: string;
     };
-  }>;
+  }[];
   daily_quote: {
     id: number;
     text: string;
@@ -125,7 +148,7 @@ interface HomeContent {
       color: string;
     };
   } | null;
-  featured_articles: Array<{
+  featured_articles: {
     id: number;
     title: string;
     excerpt: string;
@@ -136,13 +159,18 @@ interface HomeContent {
       name: string;
       color: string;
     };
-  }>;
+    stress_reduction_tips?: string[];
+    practical_exercises?: string[];
+    author?: string;
+    tags?: string[];
+  }[];
   user_progress: {
     mood_rating: number | null;
     stress_level: number | null;
     sleep_hours: number | null;
     exercise_minutes: number | null;
     meditation_minutes: number | null;
+    notes?: string;
   } | null;
 }
 
@@ -156,12 +184,9 @@ export default function HomeScreen() {
 
   // New state for enhanced functionality
   const [showAllVideos, setShowAllVideos] = useState(false);
-  const [showAllArticles, setShowAllArticles] = useState(false);
   const [showAllMealPlans, setShowAllMealPlans] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
   const [showDocumentViewer, setShowDocumentViewer] = useState(false);
-  const [userDocuments, setUserDocuments] = useState<any[]>([]);
-  const [documentsLoading, setDocumentsLoading] = useState(false);
 
   // Content lists for expanded sections
   const [contentLists, setContentLists] = useState<{
@@ -196,7 +221,6 @@ export default function HomeScreen() {
 
   // Progress tracking state
   const [showProgressModal, setShowProgressModal] = useState(false);
-  const [showProgressHistory, setShowProgressHistory] = useState(false);
   const [progressForm, setProgressForm] = useState({
     mood_rating: 5,
     stress_level: 5,
@@ -206,8 +230,15 @@ export default function HomeScreen() {
     notes: '',
   });
   const [progressSubmitting, setProgressSubmitting] = useState(false);
-  const [progressHistory, setProgressHistory] = useState<any[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
+
+  // Wellness tip modal state
+  const [showWellnessTipModal, setShowWellnessTipModal] = useState(false);
+  const [selectedWellnessTip, setSelectedWellnessTip] = useState<Article | null>(null);
+
+  // Article modal state
+  const [showArticleModal, setShowArticleModal] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [articleModalLoading, setArticleModalLoading] = useState(false);
 
   const fetchHomeContent = async () => {
     try {
@@ -255,7 +286,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     fetchHomeContent();
-    fetchUserDocuments();
   }, []);
 
   const openYouTubeVideo = (youtubeId: string) => {
@@ -279,29 +309,9 @@ export default function HomeScreen() {
     return '😢';
   };
 
-  const getStressLevelColor = (level: number) => {
-    if (level <= 3) return Colors.dark.success;
-    if (level <= 6) return Colors.dark.warning;
-    return Colors.dark.danger;
-  };
 
-  const fetchUserDocuments = async () => {
-    try {
-      setDocumentsLoading(true);
-      const response = await apiService.request('/documents/list');
-      setUserDocuments(response.documents || []);
-    } catch (err) {
-      console.error('Failed to fetch documents:', err);
-      // Don't show error for documents, just log it
-    } finally {
-      setDocumentsLoading(false);
-    }
-  };
 
-  const openDocument = (document: any) => {
-    setSelectedDocument(document);
-    setShowDocumentViewer(true);
-  };
+
 
   const closeDocumentViewer = () => {
     setShowDocumentViewer(false);
@@ -309,20 +319,6 @@ export default function HomeScreen() {
   };
 
   // Progress tracking functions
-  const openProgressModal = () => {
-    // Pre-fill with current progress if available
-    if (homeContent?.user_progress) {
-      setProgressForm({
-        mood_rating: homeContent.user_progress.mood_rating || 5,
-        stress_level: homeContent.user_progress.stress_level || 5,
-        sleep_hours: homeContent.user_progress.sleep_hours || 7,
-        exercise_minutes: homeContent.user_progress.exercise_minutes || 30,
-        meditation_minutes: homeContent.user_progress.meditation_minutes || 15,
-        notes: homeContent.user_progress.notes || '',
-      });
-    }
-    setShowProgressModal(true);
-  };
 
   const closeProgressModal = () => {
     setShowProgressModal(false);
@@ -334,6 +330,43 @@ export default function HomeScreen() {
       meditation_minutes: 15,
       notes: '',
     });
+  };
+
+  const openWellnessTipModal = (article: Article) => {
+    setSelectedWellnessTip(article);
+    setShowWellnessTipModal(true);
+  };
+
+  const closeWellnessTipModal = () => {
+    setShowWellnessTipModal(false);
+    setSelectedWellnessTip(null);
+  };
+
+  const openArticleModal = async (article: Article) => {
+    setSelectedArticle(article);
+    setShowArticleModal(true);
+
+    // If the article doesn't have full content, fetch it from the API
+    if (!article.content) {
+      setArticleModalLoading(true);
+      try {
+        const response = await apiService.request(`/content/articles/${article.id}`);
+        if (response && typeof response === 'object') {
+          setSelectedArticle(response as Article);
+        }
+      } catch (error) {
+        console.error('Failed to fetch article details:', error);
+        // Use the existing article data if API call fails
+      } finally {
+        setArticleModalLoading(false);
+      }
+    }
+  };
+
+  const closeArticleModal = () => {
+    setShowArticleModal(false);
+    setSelectedArticle(null);
+    setArticleModalLoading(false);
   };
 
   // Meal plan modal functions
@@ -384,12 +417,12 @@ export default function HomeScreen() {
       console.log('Progress updated:', response);
 
       // Update local state with the response data
-      if (homeContent && response.progress) {
+      if (homeContent && response && typeof response === 'object' && 'progress' in response) {
         const updatedContent = {
           ...homeContent,
           user_progress: {
             ...homeContent.user_progress,
-            ...response.progress,
+            ...(response as any).progress,
           },
         };
         setHomeContent(updatedContent);
@@ -412,114 +445,23 @@ export default function HomeScreen() {
     }));
   };
 
-  const fetchProgressHistory = async () => {
-    try {
-      setHistoryLoading(true);
-      // For now, we'll simulate progress history
-      // In a real app, you'd call a backend endpoint
-      const mockHistory = [
-        {
-          date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          mood_rating: 8,
-          stress_level: 3,
-          sleep_hours: 7.5,
-          exercise_minutes: 45,
-          meditation_minutes: 20,
-        },
-        {
-          date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          mood_rating: 6,
-          stress_level: 5,
-          sleep_hours: 6.5,
-          exercise_minutes: 30,
-          meditation_minutes: 15,
-        },
-        {
-          date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          mood_rating: 9,
-          stress_level: 2,
-          sleep_hours: 8.0,
-          exercise_minutes: 60,
-          meditation_minutes: 30,
-        },
-      ];
-      setProgressHistory(mockHistory);
-    } catch (err) {
-      console.error('Failed to fetch progress history:', err);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
 
-  const loadMoreContent = async (contentType: 'videos' | 'articles' | 'mealPlans') => {
-    try {
-      let endpoint = '';
-      let limit = 5;
 
-      switch (contentType) {
-        case 'videos':
-          endpoint = `/content/videos/public?limit=${limit}&featured=true`;
-          break;
-        case 'articles':
-          endpoint = `/content/articles/public?limit=${limit}&featured=true`;
-          break;
-        case 'mealPlans':
-          endpoint = `/content/meal-plans/public?limit=${limit}&featured=true`;
-          break;
-      }
 
-      if (endpoint) {
-        const response = await apiService.request(endpoint);
-        console.log(`Loaded more ${contentType}:`, response);
-
-        // Update the home content with new items
-        if (response && homeContent) {
-          const newContent = { ...homeContent };
-
-          switch (contentType) {
-            case 'videos':
-              if (response.videos) {
-                // Filter out duplicates and add new videos
-                const existingIds = new Set(homeContent.featured_videos.map(v => v.id));
-                const newVideos = response.videos.filter(v => !existingIds.has(v.id));
-                newContent.featured_videos = [...homeContent.featured_videos, ...newVideos];
-              }
-              break;
-            case 'articles':
-              if (response.articles) {
-                const existingIds = new Set(homeContent.featured_articles.map(a => a.id));
-                const newArticles = response.articles.filter(a => !existingIds.has(a.id));
-                newContent.featured_articles = [...homeContent.featured_articles, ...newArticles];
-              }
-              break;
-            case 'mealPlans':
-              if (response.meal_plans) {
-                const existingIds = new Set(homeContent.featured_meal_plans.map(m => m.id));
-                const newMeals = response.meal_plans.filter(m => !existingIds.has(m.id));
-                newContent.featured_meal_plans = [...homeContent.featured_meal_plans, ...newMeals];
-              }
-              break;
-          }
-
-          setHomeContent(newContent);
-        }
-      }
-    } catch (err) {
-      console.error(`Failed to load more ${contentType}:`, err);
-      Alert.alert('Error', `Failed to load more ${contentType}`);
-    }
-  };
 
   // Function to fetch all videos when section is expanded
   const fetchAllVideos = async () => {
     try {
       setExpandedLoading(prev => ({ ...prev, videos: true }));
       const response = await apiService.request('/content/videos/public?limit=50');
-      if (response && response.videos) {
-        setContentLists(prev => ({
-          ...prev,
-          videos: response.videos,
-        }));
+      if (response && typeof response === 'object' && 'videos' in response) {
+        const responseData = response as any;
+        if (Array.isArray(responseData.videos)) {
+          setContentLists(prev => ({
+            ...prev,
+            videos: responseData.videos,
+          }));
+        }
       }
     } catch (err) {
       console.error('Failed to fetch all videos:', err);
@@ -533,11 +475,14 @@ export default function HomeScreen() {
     try {
       setExpandedLoading(prev => ({ ...prev, mealPlans: true }));
       const response = await apiService.request('/content/meal-plans/public?limit=50');
-      if (response && response.meal_plans) {
-        setContentLists(prev => ({
-          ...prev,
-          mealPlans: response.meal_plans,
-        }));
+      if (response && typeof response === 'object' && 'meal_plans' in response) {
+        const responseData = response as any;
+        if (Array.isArray(responseData.meal_plans)) {
+          setContentLists(prev => ({
+            ...prev,
+            mealPlans: responseData.meal_plans,
+          }));
+        }
       }
     } catch (err) {
       console.error('Failed to fetch all meal plans:', err);
@@ -613,7 +558,41 @@ export default function HomeScreen() {
           </ModernCard>
         )}
 
-
+        {/* Wellness Tip of the Day */}
+        {homeContent?.featured_articles && homeContent.featured_articles.length > 0 && (
+          <TouchableOpacity
+            onPress={() => openWellnessTipModal(homeContent.featured_articles[0])}
+            activeOpacity={0.8}
+          >
+            <ModernCard variant='elevated' style={styles.wellnessTipCard}>
+              <View style={styles.wellnessTipContent}>
+                <View style={styles.wellnessTipHeader}>
+                  <IconSymbol size={24} name='lightbulb.fill' color={Colors.dark.warning} />
+                  <ThemedText type='body' style={styles.wellnessTipTitle}>
+                    Wellness Tip of the Day
+                  </ThemedText>
+                  <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
+                </View>
+                {homeContent.featured_articles[0]?.stress_reduction_tips &&
+                 homeContent.featured_articles[0].stress_reduction_tips.length > 0 && (
+                  <ThemedText type='body' style={styles.wellnessTipText}>
+                    💡 {homeContent.featured_articles[0].stress_reduction_tips[0]}
+                  </ThemedText>
+                )}
+                <View style={styles.wellnessTipFooter}>
+                  <ThemedText type='caption' style={styles.wellnessTipSource}>
+                    From: {homeContent.featured_articles[0]?.title}
+                  </ThemedText>
+                  {homeContent.featured_articles[0]?.author && (
+                    <ThemedText type='caption' style={styles.wellnessTipAuthor}>
+                      by {homeContent.featured_articles[0].author}
+                    </ThemedText>
+                  )}
+                </View>
+              </View>
+            </ModernCard>
+          </TouchableOpacity>
+        )}
 
         {/* Featured Videos - Dynamic from API */}
         <View style={styles.section}>
@@ -847,6 +826,14 @@ export default function HomeScreen() {
                             {meal.prep_time}m
                           </ThemedText>
                         </View>
+                        {meal.calories_per_serving && (
+                          <View style={styles.calories}>
+                            <IconSymbol size={16} name='flame' color={Colors.dark.warning} />
+                            <ThemedText type='caption' style={styles.caloriesText}>
+                              {meal.calories_per_serving} cal
+                            </ThemedText>
+                          </View>
+                        )}
                       </View>
                     </View>
                   </View>
@@ -947,131 +934,75 @@ export default function HomeScreen() {
               <ThemedText type='heading' style={styles.sectionTitle}>
                 Wellness Tips 📚
               </ThemedText>
-              <TouchableOpacity
-                style={styles.viewAllButton}
-                onPress={() => setShowAllArticles(!showAllArticles)}
-              >
-                <ThemedText type='caption' style={styles.viewAllButtonText}>
-                  {showAllArticles ? 'Show Less' : 'View All'}
-                </ThemedText>
-                <IconSymbol
-                  size={16}
-                  name={showAllArticles ? 'chevron.up' : 'chevron.right'}
-                  color={Colors.dark.primary}
-                />
-              </TouchableOpacity>
             </View>
             {homeContent.featured_articles.map(article => (
-              <ModernCard key={article.id} variant='elevated' style={styles.articleCard}>
-                <View style={styles.articleContent}>
-                  <View style={styles.articleImageContainer}>
-                    <Image
-                      source={{
-                        uri:
-                          article.image_url ||
-                          'https://via.placeholder.com/80x80/FF9800/FFFFFF?text=Article',
-                      }}
-                      style={styles.articleImage}
-                      resizeMode='cover'
-                      defaultSource={{
-                        uri: 'https://via.placeholder.com/80x120/FF9800/FFFFFF?text=Article',
-                      }}
-                    />
-                  </View>
-                  <View style={styles.articleInfo}>
-                    <ThemedText type='body' style={styles.articleTitle}>
-                      {article.title}
-                    </ThemedText>
-                    <ThemedText type='caption' style={styles.articleExcerpt} numberOfLines={3}>
-                      {article.excerpt}
-                    </ThemedText>
-                    <View style={styles.articleMeta}>
-                      <View style={[styles.category, { backgroundColor: article.category.color }]}>
-                        <ThemedText type='caption' style={styles.categoryText}>
-                          {article.category.name}
-                        </ThemedText>
-                      </View>
-                      <View style={styles.readTime}>
-                        <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
-                        <ThemedText type='caption' style={styles.readTimeText}>
-                          {article.read_time}m read
-                        </ThemedText>
+              <TouchableOpacity
+                key={article.id}
+                onPress={() => openArticleModal(article)}
+                activeOpacity={0.8}
+              >
+                <ModernCard variant='elevated' style={styles.articleCard}>
+                  <View style={styles.articleContent}>
+                    <View style={styles.articleImageContainer}>
+                      <Image
+                        source={{
+                          uri:
+                            article.image_url ||
+                            'https://via.placeholder.com/80x80/FF9800/FFFFFF?text=Article',
+                        }}
+                        style={styles.articleImage}
+                        resizeMode='cover'
+                        defaultSource={{
+                          uri: 'https://via.placeholder.com/80x120/FF9800/FFFFFF?text=Article',
+                        }}
+                      />
+                    </View>
+                    <View style={styles.articleInfo}>
+                      <ThemedText type='body' style={styles.articleTitle}>
+                        {article.title}
+                      </ThemedText>
+                      <ThemedText type='caption' style={styles.articleExcerpt} numberOfLines={3}>
+                        {article.excerpt}
+                      </ThemedText>
+                      {article.stress_reduction_tips && article.stress_reduction_tips.length > 0 && (
+                        <View style={styles.stressTipsPreview}>
+                          <IconSymbol size={14} name='lightbulb' color={Colors.dark.warning} />
+                          <ThemedText type='caption' style={styles.stressTipsText} numberOfLines={1}>
+                            {article.stress_reduction_tips[0]}
+                          </ThemedText>
+                        </View>
+                      )}
+                      <View style={styles.articleMeta}>
+                        <View style={[styles.category, { backgroundColor: article.category.color }]}>
+                          <ThemedText type='caption' style={styles.categoryText}>
+                            {article.category.name}
+                          </ThemedText>
+                        </View>
+                        <View style={styles.readTime}>
+                          <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                          <ThemedText type='caption' style={styles.readTimeText}>
+                            {article.read_time}m read
+                          </ThemedText>
+                        </View>
+                        {article.author && (
+                          <View style={styles.author}>
+                            <IconSymbol size={14} name='person' color={Colors.dark.muted} />
+                            <ThemedText type='caption' style={styles.authorText}>
+                              {article.author}
+                            </ThemedText>
+                          </View>
+                        )}
+                        <View style={styles.clickIndicator}>
+                          <IconSymbol size={16} name='chevron.right' color={Colors.dark.muted} />
+                        </View>
                       </View>
                     </View>
                   </View>
-                </View>
-              </ModernCard>
+                </ModernCard>
+              </TouchableOpacity>
             ))}
 
-            {/* Expanded articles view */}
-            {showAllArticles && (
-              <View style={styles.expandedSection}>
-                <ThemedText type='body' style={styles.expandedTitle}>
-                  All Articles
-                </ThemedText>
-                <View style={styles.articleGrid}>
-                  {homeContent.featured_articles.map(article => (
-                    <ModernCard
-                      key={`expanded-${article.id}`}
-                      variant='elevated'
-                      style={styles.expandedArticleCard}
-                    >
-                      <View style={styles.expandedArticleContent}>
-                        <View style={styles.expandedArticleImageContainer}>
-                          <Image
-                            source={{
-                              uri:
-                                article.image_url ||
-                                'https://via.placeholder.com/120x80/FF9800/FFFFFF?text=Article',
-                            }}
-                            style={styles.expandedArticleImage}
-                            resizeMode='cover'
-                          />
-                        </View>
-                        <View style={styles.expandedArticleInfo}>
-                          <ThemedText type='body' style={styles.expandedArticleTitle}>
-                            {article.title}
-                          </ThemedText>
-                          <ThemedText
-                            type='caption'
-                            style={styles.expandedArticleExcerpt}
-                            numberOfLines={2}
-                          >
-                            {article.excerpt}
-                          </ThemedText>
-                          <View style={styles.expandedArticleMeta}>
-                            <View
-                              style={[styles.category, { backgroundColor: article.category.color }]}
-                            >
-                              <ThemedText type='caption' style={styles.categoryText}>
-                                {article.category.name}
-                              </ThemedText>
-                            </View>
-                            <View style={styles.readTime}>
-                              <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
-                              <ThemedText type='caption' style={styles.readTimeText}>
-                                {article.read_time}m read
-                              </ThemedText>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                    </ModernCard>
-                  ))}
-                </View>
 
-                {/* Load More Button */}
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={() => loadMoreContent('articles')}
-                >
-                  <IconSymbol size={16} name='plus.circle' color={Colors.dark.primary} />
-                  <ThemedText type='caption' style={styles.loadMoreButtonText}>
-                    Load More Articles
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
         ) : (
           <View style={styles.section}>
@@ -1542,36 +1473,35 @@ export default function HomeScreen() {
                   Any notes for today? 📝
                 </ThemedText>
                 <View style={styles.notesContainer}>
-                  <ThemedText
+                  <TextInput
                     style={styles.notesInput}
-                    onTextInput={e => handleProgressChange('notes', e.nativeEvent.text)}
+                    onChangeText={(text) => handleProgressChange('notes', text)}
                     placeholder='How are you feeling? Any achievements or challenges?'
                     placeholderTextColor={Colors.dark.muted}
                     multiline
                     numberOfLines={3}
-                  >
-                    {progressForm.notes}
-                  </ThemedText>
+                    value={progressForm.notes}
+                  />
                 </View>
               </View>
             </ScrollView>
 
             <View style={styles.modalFooter}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSecondary]}
+                style={[styles.progressModalButton, styles.progressModalButtonSecondary]}
                 onPress={closeProgressModal}
               >
-                <ThemedText style={styles.modalButtonSecondaryText}>Cancel</ThemedText>
+                <ThemedText style={styles.progressModalButtonSecondaryText}>Cancel</ThemedText>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
+                style={[styles.progressModalButton, styles.progressModalButtonPrimary]}
                 onPress={updateProgress}
                 disabled={progressSubmitting}
               >
                 {progressSubmitting ? (
                   <ActivityIndicator size='small' color={Colors.dark.background} />
                 ) : (
-                  <ThemedText style={styles.modalButtonPrimaryText}>Save Progress</ThemedText>
+                  <ThemedText style={styles.progressModalButtonPrimaryText}>Save Progress</ThemedText>
                 )}
               </TouchableOpacity>
             </View>
@@ -1579,109 +1509,298 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* Progress History Modal */}
-      {showProgressHistory && (
+
+
+      {/* Wellness Tip Modal */}
+      {showWellnessTipModal && selectedWellnessTip && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <ThemedText type='heading' style={styles.modalTitle}>
-                Your Progress History
+                Wellness Tip Details
               </ThemedText>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setShowProgressHistory(false)}
-              >
-                <IconSymbol size={24} name='xmark' color={Colors.dark.muted} />
+              <TouchableOpacity style={styles.closeButton} onPress={closeWellnessTipModal}>
+                <IconSymbol size={24} name='xmark' color={Colors.dark.text} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              {historyLoading ? (
-                <View style={styles.historyLoading}>
-                  <ActivityIndicator size='large' color={Colors.dark.primary} />
-                  <ThemedText type='body' style={styles.historyLoadingText}>
-                    Loading your progress history...
-                  </ThemedText>
+              {/* Article Info */}
+              <View style={styles.wellnessTipModalHeader}>
+                <View style={styles.wellnessTipModalIcon}>
+                  <IconSymbol size={32} name='lightbulb.fill' color={Colors.dark.warning} />
                 </View>
-              ) : progressHistory.length > 0 ? (
-                progressHistory.map((entry, index) => (
-                  <View key={index} style={styles.historyEntry}>
-                    <View style={styles.historyDate}>
-                      <ThemedText type='body' style={styles.historyDateText}>
-                        {new Date(entry.date).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                <View style={styles.wellnessTipModalInfo}>
+                  <ThemedText type='title' style={styles.wellnessTipModalTitle}>
+                    {selectedWellnessTip.title}
+                  </ThemedText>
+                  {selectedWellnessTip.author && (
+                    <ThemedText type='caption' style={styles.wellnessTipModalAuthor}>
+                      by {selectedWellnessTip.author}
+                    </ThemedText>
+                  )}
+                  <View style={[styles.category, { backgroundColor: selectedWellnessTip.category.color }]}>
+                    <ThemedText type='caption' style={styles.categoryText}>
+                      {selectedWellnessTip.category.name}
+                    </ThemedText>
+                  </View>
+                </View>
+              </View>
+
+              {/* Article Excerpt */}
+              <View style={styles.wellnessTipSection}>
+                <ThemedText type='body' style={styles.wellnessTipExcerpt}>
+                  {selectedWellnessTip.excerpt}
+                </ThemedText>
+              </View>
+
+              {/* Stress Reduction Tips */}
+              {selectedWellnessTip.stress_reduction_tips && selectedWellnessTip.stress_reduction_tips.length > 0 && (
+                <View style={styles.wellnessTipSection}>
+                  <ThemedText type='body' style={styles.sectionTitle}>
+                    🌿 Stress Reduction Tips
+                  </ThemedText>
+                  {selectedWellnessTip.stress_reduction_tips.map((tip, index) => (
+                    <View key={index} style={styles.tipItem}>
+                      <View style={styles.tipBullet}>
+                        <ThemedText style={styles.tipBulletText}>💡</ThemedText>
+                      </View>
+                      <ThemedText type='body' style={styles.tipText}>
+                        {tip}
                       </ThemedText>
                     </View>
-                    <View style={styles.historyMetrics}>
-                      <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name='heart.fill' color={Colors.dark.success} />
-                        <ThemedText type='caption' style={styles.historyMetricText}>
-                          Mood: {entry.mood_rating}/10
-                        </ThemedText>
-                      </View>
-                      <View style={styles.historyMetric}>
-                        <IconSymbol
-                          size={16}
-                          name='brain.head.profile'
-                          color={getStressLevelColor(entry.stress_level)}
-                        />
-                        <ThemedText type='caption' style={styles.historyMetricText}>
-                          Stress: {entry.stress_level}/10
-                        </ThemedText>
-                      </View>
-                      <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name='bed.double.fill' color={Colors.dark.primary} />
-                        <ThemedText type='caption' style={styles.historyMetricText}>
-                          Sleep: {entry.sleep_hours}h
-                        </ThemedText>
-                      </View>
-                      <View style={styles.historyMetric}>
-                        <IconSymbol size={16} name='figure.walk' color={Colors.dark.warning} />
-                        <ThemedText type='caption' style={styles.historyMetricText}>
-                          Exercise: {entry.exercise_minutes}m
-                        </ThemedText>
-                      </View>
-                      <View style={styles.historyMetric}>
-                        <IconSymbol
-                          size={16}
-                          name='brain.head.profile'
-                          color={Colors.dark.secondary}
-                        />
-                        <ThemedText type='caption' style={styles.historyMetricText}>
-                          Meditation: {entry.meditation_minutes}m
-                        </ThemedText>
-                      </View>
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <View style={styles.historyEmpty}>
-                  <IconSymbol
-                    size={48}
-                    name='chart.line.uptrend.xyaxis'
-                    color={Colors.dark.muted}
-                  />
-                  <ThemedText type='body' style={styles.historyEmptyText}>
-                    No progress history yet
-                  </ThemedText>
-                  <ThemedText type='caption' style={styles.historyEmptySubtext}>
-                    Start tracking your daily wellness to see your progress over time
-                  </ThemedText>
+                  ))}
                 </View>
               )}
+
+              {/* Practical Exercises */}
+              {selectedWellnessTip.practical_exercises && selectedWellnessTip.practical_exercises.length > 0 && (
+                <View style={styles.wellnessTipSection}>
+                  <ThemedText type='body' style={styles.sectionTitle}>
+                    🏃‍♀️ Practical Exercises
+                  </ThemedText>
+                  {selectedWellnessTip.practical_exercises.map((exercise, index) => (
+                    <View key={index} style={styles.tipItem}>
+                      <View style={styles.tipBullet}>
+                        <ThemedText style={styles.tipBulletText}>✨</ThemedText>
+                      </View>
+                      <ThemedText type='body' style={styles.tipText}>
+                        {exercise}
+                      </ThemedText>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Tags */}
+              {selectedWellnessTip.tags && selectedWellnessTip.tags.length > 0 && (
+                <View style={styles.wellnessTipSection}>
+                  <ThemedText type='body' style={styles.sectionTitle}>
+                    🏷️ Related Topics
+                  </ThemedText>
+                  <View style={styles.tagsContainer}>
+                    {selectedWellnessTip.tags.map((tag, index) => (
+                      <View key={index} style={styles.tag}>
+                        <ThemedText type='caption' style={styles.tagText}>
+                          {tag}
+                        </ThemedText>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Read Time */}
+              <View style={styles.wellnessTipModalFooter}>
+                <View style={styles.readTimeContainer}>
+                  <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                  <ThemedText type='caption' style={styles.readTimeText}>
+                    {selectedWellnessTip.read_time} minute read
+                  </ThemedText>
+                </View>
+              </View>
             </ScrollView>
 
             <View style={styles.modalFooter}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={() => setShowProgressHistory(false)}
+                style={styles.modalButton}
+                onPress={closeWellnessTipModal}
               >
-                <ThemedText style={styles.modalButtonPrimaryText}>Close</ThemedText>
+                <ThemedText style={styles.modalButtonText}>Close</ThemedText>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      )}
+
+      {/* Article Details Modal */}
+      {showArticleModal && selectedArticle && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <ThemedText type='heading' style={styles.modalTitle}>
+                Article Details
+              </ThemedText>
+              <TouchableOpacity style={styles.closeButton} onPress={closeArticleModal}>
+                <IconSymbol size={24} name='xmark' color={Colors.dark.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {articleModalLoading ? (
+                <View style={styles.articleModalLoading}>
+                  <ActivityIndicator size='large' color={Colors.dark.primary} />
+                  <ThemedText type='body' style={styles.articleModalLoadingText}>
+                    Loading article details...
+                  </ThemedText>
+                </View>
+              ) : (
+                <>
+                  {/* Article Header */}
+                  <View style={styles.articleModalHeader}>
+                    <View style={styles.articleModalImageContainer}>
+                      <Image
+                        source={{
+                          uri: selectedArticle.image_url || 'https://via.placeholder.com/300x200/FF9800/FFFFFF?text=Article',
+                        }}
+                        style={styles.articleModalImage}
+                        resizeMode='cover'
+                      />
+                      <View style={styles.articleImageOverlay}>
+                        <View style={[styles.articleCategoryBadge, { backgroundColor: selectedArticle.category.color }]}>
+                          <ThemedText type='caption' style={styles.categoryText}>
+                            {selectedArticle.category.name}
+                          </ThemedText>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.articleModalInfo}>
+                      <ThemedText type='title' style={styles.articleModalTitle}>
+                        {selectedArticle.title}
+                      </ThemedText>
+
+                      <View style={styles.articleModalMeta}>
+                        {selectedArticle.author && (
+                          <View style={styles.articleAuthorInfo}>
+                            <IconSymbol size={16} name='person.fill' color={Colors.dark.primary} />
+                            <ThemedText type='body' style={styles.articleAuthorName}>
+                              {selectedArticle.author}
+                            </ThemedText>
+                          </View>
+                        )}
+
+                        <View style={styles.articleReadTime}>
+                          <IconSymbol size={16} name='clock' color={Colors.dark.muted} />
+                          <ThemedText type='caption' style={styles.readTimeText}>
+                            {selectedArticle.read_time} minute read
+                          </ThemedText>
+                        </View>
+
+                        {selectedArticle.created_at && (
+                          <View style={styles.articleDate}>
+                            <IconSymbol size={16} name='calendar' color={Colors.dark.muted} />
+                            <ThemedText type='caption' style={styles.articleDateText}>
+                              {new Date(selectedArticle.created_at).toLocaleDateString()}
+                            </ThemedText>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Article Content */}
+                  <View style={styles.articleSection}>
+                    <ThemedText type='body' style={styles.articleModalContent}>
+                      {selectedArticle.content || selectedArticle.excerpt}
+                    </ThemedText>
+                  </View>
+
+                  {/* Author Bio */}
+                  {selectedArticle.author_bio && (
+                    <View style={styles.articleSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        👤 About the Author
+                      </ThemedText>
+                      <ThemedText type='body' style={styles.authorBio}>
+                        {selectedArticle.author_bio}
+                      </ThemedText>
+                    </View>
+                  )}
+
+                  {/* Stress Reduction Tips */}
+                  {selectedArticle.stress_reduction_tips && selectedArticle.stress_reduction_tips.length > 0 && (
+                    <View style={styles.articleSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        🌿 Stress Reduction Tips
+                      </ThemedText>
+                      {selectedArticle.stress_reduction_tips.map((tip, index) => (
+                        <View key={index} style={styles.tipItem}>
+                          <View style={styles.tipBullet}>
+                            <ThemedText style={styles.tipBulletText}>💡</ThemedText>
+                          </View>
+                          <ThemedText type='body' style={styles.tipText}>
+                            {tip}
+                          </ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Practical Exercises */}
+                  {selectedArticle.practical_exercises && selectedArticle.practical_exercises.length > 0 && (
+                    <View style={styles.articleSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        🏃‍♀️ Practical Exercises
+                      </ThemedText>
+                      {selectedArticle.practical_exercises.map((exercise, index) => (
+                        <View key={index} style={styles.tipItem}>
+                          <View style={styles.tipBullet}>
+                            <ThemedText style={styles.tipBulletText}>✨</ThemedText>
+                          </View>
+                          <ThemedText type='body' style={styles.tipText}>
+                            {exercise}
+                          </ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* Tags */}
+                  {selectedArticle.tags && selectedArticle.tags.length > 0 && (
+                    <View style={styles.articleSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        🏷️ Related Topics
+                      </ThemedText>
+                      <View style={styles.tagsContainer}>
+                        {selectedArticle.tags.map((tag, index) => (
+                          <View key={index} style={styles.tag}>
+                            <ThemedText type='caption' style={styles.tagText}>
+                              {tag}
+                            </ThemedText>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Video Link */}
+                  {selectedArticle.video_url && (
+                    <View style={styles.articleSection}>
+                      <ThemedText type='body' style={styles.sectionTitle}>
+                        🎥 Related Video
+                      </ThemedText>
+                      <TouchableOpacity style={styles.videoLink}>
+                        <IconSymbol size={20} name='play.circle.fill' color={Colors.dark.primary} />
+                        <ThemedText type='body' style={styles.videoLinkText}>
+                          Watch Related Video
+                        </ThemedText>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </>
+              )}
+            </ScrollView>
           </View>
         </View>
       )}
@@ -1772,6 +1891,227 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     textAlign: 'center',
   },
+  wellnessTipCard: {
+    marginBottom: Spacing.lg,
+  },
+  wellnessTipContent: {
+    padding: Spacing.md,
+  },
+  wellnessTipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  wellnessTipTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: Spacing.sm,
+  },
+  wellnessTipText: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+  },
+  wellnessTipFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  wellnessTipSource: {
+    fontSize: 12,
+    opacity: 0.7,
+    flex: 1,
+  },
+  wellnessTipAuthor: {
+    fontSize: 12,
+    opacity: 0.7,
+    fontStyle: 'italic',
+  },
+
+  // Wellness tip modal styles
+  wellnessTipModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.lg,
+  },
+  wellnessTipModalIcon: {
+    marginRight: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  wellnessTipModalInfo: {
+    flex: 1,
+  },
+  wellnessTipModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  wellnessTipModalAuthor: {
+    fontSize: 14,
+    opacity: 0.7,
+    fontStyle: 'italic',
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+  },
+  wellnessTipSection: {
+    marginBottom: Spacing.lg,
+  },
+  wellnessTipExcerpt: {
+    fontSize: 16,
+    lineHeight: 24,
+    opacity: 0.9,
+  },
+  tipItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+  },
+  tipBullet: {
+    marginRight: Spacing.sm,
+    marginTop: 2,
+  },
+  tipBulletText: {
+    fontSize: 16,
+  },
+  tipText: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: Spacing.sm,
+  },
+  tag: {
+    backgroundColor: Colors.dark.primary + '20',
+    borderRadius: BorderRadius.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    marginRight: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  tagText: {
+    fontSize: 12,
+    color: Colors.dark.primary,
+    fontWeight: '500',
+  },
+  wellnessTipModalFooter: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.dark.muted + '20',
+    paddingTop: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  readTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Article modal styles
+  articleModalLoading: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.xl,
+  },
+  articleModalLoadingText: {
+    marginTop: Spacing.md,
+    textAlign: 'center',
+  },
+  articleModalHeader: {
+    marginBottom: Spacing.lg,
+  },
+  articleModalImageContainer: {
+    position: 'relative',
+    marginBottom: Spacing.md,
+  },
+  articleModalImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+  },
+  articleImageOverlay: {
+    position: 'absolute',
+    top: Spacing.sm,
+    left: Spacing.sm,
+  },
+  articleCategoryBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.sm,
+  },
+  articleModalInfo: {
+    marginBottom: Spacing.md,
+  },
+  articleModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: Spacing.md,
+    lineHeight: 28,
+    textAlign: 'center',
+  },
+  articleModalMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  articleAuthorInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  articleAuthorName: {
+    marginLeft: Spacing.xs,
+    fontWeight: '600',
+  },
+  articleReadTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  articleDate: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  articleDateText: {
+    marginLeft: Spacing.xs,
+    opacity: 0.7,
+  },
+  articleSection: {
+    marginBottom: Spacing.lg,
+  },
+  articleModalContent: {
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'center',
+  },
+  authorBio: {
+    fontSize: 15,
+    lineHeight: 22,
+    fontStyle: 'italic',
+    opacity: 0.9,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
+  },
+  videoLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.dark.primary + '20',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.sm,
+  },
+  videoLinkText: {
+    marginLeft: Spacing.sm,
+    color: Colors.dark.primary,
+    fontWeight: '600',
+  },
+  clickIndicator: {
+    marginLeft: 'auto',
+  },
   section: {
     marginBottom: Spacing.xl,
   },
@@ -1780,6 +2120,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: Spacing.md,
     color: Colors.dark.text,
+    textAlign: 'center',
   },
   wellnessCard: {
     padding: Spacing.lg,
@@ -1923,6 +2264,15 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     fontSize: 12,
   },
+  calories: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  caloriesText: {
+    marginLeft: Spacing.xs,
+    opacity: 0.7,
+    fontSize: 12,
+  },
   articleCard: {
     marginBottom: Spacing.md,
   },
@@ -1972,6 +2322,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   readTimeText: {
+    marginLeft: Spacing.xs,
+    opacity: 0.7,
+    fontSize: 12,
+  },
+  stressTipsPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xs,
+  },
+  stressTipsText: {
+    marginLeft: Spacing.xs,
+    opacity: 0.8,
+    fontSize: 12,
+    fontStyle: 'italic',
+    flex: 1,
+  },
+  author: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  authorText: {
     marginLeft: Spacing.xs,
     opacity: 0.7,
     fontSize: 12,
@@ -2084,48 +2456,87 @@ const styles = StyleSheet.create({
   modalTitle: {
     flex: 1,
     marginRight: Spacing.md,
+    textAlign: 'center',
   },
   closeButton: {
     padding: Spacing.xs,
     borderRadius: BorderRadius.sm,
     backgroundColor: Colors.dark.muted + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
   },
   modalBody: {
     padding: Spacing.lg,
   },
   documentDetails: {
     marginBottom: Spacing.lg,
+    backgroundColor: Colors.dark.card,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.dark.muted + '20',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.xs,
+    paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: Colors.dark.muted + '20',
+    marginBottom: Spacing.xs,
   },
   detailLabel: {
     opacity: 0.7,
     fontWeight: '600',
+    fontSize: 14,
+    color: Colors.dark.primary,
+    textAlign: 'center',
   },
   detailValue: {
     fontWeight: '500',
+    fontSize: 14,
+    textAlign: 'center',
+    color: Colors.dark.text,
   },
   contentSection: {
     marginTop: Spacing.lg,
+    backgroundColor: Colors.dark.background + '40',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.dark.primary,
   },
   contentTitle: {
     marginBottom: Spacing.md,
     fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.dark.primary,
+    textAlign: 'center',
   },
   contentText: {
     lineHeight: 24,
     opacity: 0.9,
+    fontSize: 15,
+    textAlign: 'justify',
+    backgroundColor: Colors.dark.card,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.sm,
   },
   summaryText: {
     lineHeight: 22,
     opacity: 0.8,
     fontStyle: 'italic',
+    fontSize: 15,
+    textAlign: 'center',
+    backgroundColor: Colors.dark.primary + '10',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.dark.primary + '30',
   },
   modalFooter: {
     padding: Spacing.lg,
@@ -2178,6 +2589,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     opacity: 0.8,
     color: Colors.dark.muted,
+    textAlign: 'center',
   },
   mealPlanSection: {
     marginBottom: Spacing.lg,
@@ -2211,6 +2623,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.muted,
     marginTop: Spacing.xs,
     lineHeight: 20,
+    textAlign: 'center',
   },
   creationDateContainer: {
     flexDirection: 'row',
@@ -2250,6 +2663,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: Spacing.sm,
     color: Colors.dark.text,
+    textAlign: 'center',
   },
   mealPlanInfoSection: {
     paddingHorizontal: Spacing.md,
@@ -2265,19 +2679,14 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     flex: 1,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
-    color: Colors.dark.text,
-  },
+
   listItem: {
     fontSize: 14,
     color: Colors.dark.text,
     marginLeft: Spacing.md,
     marginBottom: Spacing.sm,
     lineHeight: 20,
+    textAlign: 'center',
   },
 
   // Expanded section styles
@@ -2511,73 +2920,31 @@ const styles = StyleSheet.create({
     marginRight: Spacing.sm,
   },
 
-  // Progress tracking modal styles
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  modalContent: {
-    backgroundColor: Colors.dark.background,
-    borderRadius: BorderRadius.lg,
-    width: '90%',
-    maxHeight: '80%',
-    ...Shadows.large,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.muted + '20',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  closeButton: {
-    padding: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  modalBody: {
-    padding: Spacing.lg,
-    maxHeight: 400,
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    padding: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.dark.muted + '20',
-    gap: Spacing.md,
-  },
-  modalButton: {
+  // Progress tracking modal styles (removed duplicates)
+  progressModalButton: {
     flex: 1,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalButtonPrimary: {
+  progressModalButtonPrimary: {
     backgroundColor: Colors.dark.primary,
   },
-  modalButtonSecondary: {
+  progressModalButtonSecondary: {
     backgroundColor: Colors.dark.muted + '20',
+    borderWidth: 1,
+    borderColor: Colors.dark.muted + '40',
   },
-  modalButtonPrimaryText: {
+  progressModalButtonPrimaryText: {
     color: Colors.dark.background,
     fontWeight: '600',
   },
-  modalButtonSecondaryText: {
+  progressModalButtonSecondaryText: {
     color: Colors.dark.text,
     fontWeight: '600',
   },
+
 
   // Form styles
   formSection: {

@@ -41,6 +41,7 @@ const MAPPING = {
   'chevron.left': 'chevron-left',
   checkmark: 'check',
   'doc.text.fill': 'description',
+  'doc.plaintext.fill': 'description',
   'person.circle.fill': 'account-circle',
   'bell.fill': 'notifications',
   'lock.fill': 'lock',
@@ -55,6 +56,16 @@ const MAPPING = {
   xmark: 'close',
   'arrow.up.doc': 'file-upload',
   'doc.text': 'description',
+  'laptopcomputer': 'laptop',
+  'brain.head.profile': 'psychology',
+  'heart.text.square': 'favorite',
+  'paintbrush.pointed': 'brush',
+  'phone.fill': 'phone',
+  'chevron.up': 'keyboard-arrow-up',
+  'chevron.down': 'keyboard-arrow-down',
+  'list.bullet': 'list',
+  'play.circle.fill': 'play-circle-filled',
+  'wrench.fill': 'build',
 } as IconMapping;
 
 /**

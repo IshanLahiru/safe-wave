@@ -21,6 +21,8 @@
     "migration:uncommit": "python scripts/manage.py migration-uncommit",
     "db:reset": "python scripts/manage.py db-reset",
     "db:recreate": "python scripts/manage.py db-recreate",
+    "seed:content": "python scripts/seed_content.py",
+    "seed:data": "python scripts/seed_data.py",
     "alembic": "alembic",
     "alembic:upgrade": "alembic upgrade head",
     "alembic:downgrade": "alembic downgrade -1",

@@ -21,6 +21,13 @@ def seed_content():
     try:
         print("🌱 Seeding stress-reduction content...")
 
+        # Check if content already exists
+        existing_categories = db.query(ContentCategory).count()
+        if existing_categories > 0:
+            print("⚠️  Content already exists. Skipping seeding to avoid duplicates.")
+            print("💡 To re-seed, please clear the database first or use a fresh database.")
+            return
+
         # Create content categories
         categories = [
             {
@@ -313,9 +320,11 @@ def seed_content():
                 "excerpt": "Learn five powerful breathing techniques that can help you reduce stress and find calm in just a few minutes.",
                 "category_id": category_objects["Stress Relief"].id,
                 "author": "Wellness Team",
+                "author_bio": "Our wellness team consists of certified stress management specialists and mindfulness practitioners dedicated to helping you find peace and balance in your daily life.",
                 "read_time": 5,
                 "tags": ["breathing", "stress-relief", "techniques"],
                 "image_url": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400",
+                "video_url": None,  # No video for this article
                 "stress_reduction_tips": [
                     "Practice in a quiet space",
                     "Start with just 2-3 minutes",
@@ -355,9 +364,11 @@ def seed_content():
                 "excerpt": "Discover the science behind sleep and learn practical strategies to improve your sleep quality for better mental health.",
                 "category_id": category_objects["Relaxation & Sleep"].id,
                 "author": "Sleep Specialist",
+                "author_bio": "Dr. Sarah Chen is a board-certified sleep medicine physician with over 10 years of experience helping patients overcome sleep disorders and improve their rest quality for better mental health.",
                 "read_time": 8,
                 "tags": ["sleep", "mental-health", "wellness"],
                 "image_url": "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=400",
+                "video_url": "https://www.youtube.com/watch?v=nm1TxQj9IsQ",  # Example sleep hygiene video
                 "stress_reduction_tips": [
                     "Create a bedtime ritual",
                     "Use calming scents like lavender",
@@ -370,6 +381,106 @@ def seed_content():
                     "Sleep schedule optimization",
                 ],
                 "is_featured": True,
+            },
+            {
+                "title": "Mindful Eating: Transform Your Relationship with Food",
+                "content": """
+                Mindful eating is a powerful practice that can reduce stress, improve digestion, and help you develop a healthier relationship with food.
+
+                **What is Mindful Eating?**: Mindful eating involves paying full attention to the experience of eating and drinking, both inside and outside the body.
+
+                **Benefits of Mindful Eating**:
+                - Reduces stress-related eating
+                - Improves digestion
+                - Enhances satisfaction with meals
+                - Helps with weight management
+                - Increases awareness of hunger and fullness cues
+
+                **How to Practice Mindful Eating**:
+                1. Eat without distractions (no TV, phone, or reading)
+                2. Chew slowly and thoroughly
+                3. Pay attention to flavors, textures, and aromas
+                4. Notice hunger and fullness signals
+                5. Express gratitude for your food
+
+                **Mindful Eating Exercises**:
+                - The raisin meditation: Spend 5 minutes eating a single raisin mindfully
+                - Hunger scale: Rate your hunger from 1-10 before eating
+                - Gratitude practice: Thank everyone involved in bringing food to your table
+
+                Start with one mindful meal per day and gradually expand the practice.
+                """,
+                "excerpt": "Learn how mindful eating can reduce stress, improve digestion, and transform your relationship with food through simple, practical techniques.",
+                "category_id": category_objects["Healthy Eating"].id,
+                "author": "Nutritionist Maria Rodriguez",
+                "author_bio": "Maria Rodriguez is a registered dietitian and mindfulness coach with 8 years of experience helping clients develop healthy, sustainable eating habits through mindful nutrition practices.",
+                "read_time": 6,
+                "tags": ["mindful-eating", "nutrition", "stress-relief", "wellness"],
+                "image_url": "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=400",
+                "video_url": None,
+                "stress_reduction_tips": [
+                    "Start with one mindful meal per day",
+                    "Create a calm eating environment",
+                    "Put down utensils between bites",
+                    "Practice gratitude before meals",
+                ],
+                "practical_exercises": [
+                    "5-minute raisin meditation",
+                    "Hunger and fullness awareness practice",
+                    "Gratitude journaling for meals",
+                ],
+                "is_featured": False,
+            },
+            {
+                "title": "Digital Detox: Reclaiming Your Mental Space",
+                "content": """
+                In our hyper-connected world, taking regular breaks from digital devices is essential for mental health and stress reduction.
+
+                **Why Digital Detox Matters**: Constant connectivity can lead to information overload, sleep disruption, and increased anxiety levels.
+
+                **Signs You Need a Digital Detox**:
+                - Checking your phone first thing in the morning
+                - Feeling anxious when separated from devices
+                - Difficulty concentrating on single tasks
+                - Sleep problems related to screen time
+                - Comparing yourself to others on social media
+
+                **Digital Detox Strategies**:
+                1. **Phone-Free Zones**: Designate areas like the bedroom or dining room as device-free
+                2. **Scheduled Breaks**: Set specific times for checking messages and social media
+                3. **Mindful Mornings**: Start your day with meditation or journaling instead of scrolling
+                4. **Evening Wind-Down**: Stop using screens 1 hour before bedtime
+                5. **Weekend Retreats**: Take longer breaks from technology on weekends
+
+                **Alternative Activities**:
+                - Read physical books
+                - Practice meditation or yoga
+                - Spend time in nature
+                - Engage in face-to-face conversations
+                - Pursue creative hobbies
+
+                Remember, the goal isn't to eliminate technology entirely, but to use it more intentionally.
+                """,
+                "excerpt": "Discover practical strategies for taking breaks from digital devices to reduce stress, improve focus, and reclaim your mental space.",
+                "category_id": category_objects["Stress Relief"].id,
+                "author": "Digital Wellness Expert",
+                "author_bio": None,  # Testing null author_bio
+                "read_time": 7,
+                "tags": ["digital-detox", "technology", "mindfulness", "mental-health"],
+                "image_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400",
+                "video_url": "https://www.youtube.com/watch?v=VpHyLG-sc4g",  # Example digital detox video
+                "stress_reduction_tips": [
+                    "Start with short 30-minute breaks",
+                    "Use airplane mode instead of turning off devices",
+                    "Find accountability partners for digital detox",
+                    "Replace screen time with physical activities",
+                ],
+                "practical_exercises": [
+                    "Daily phone-free hour",
+                    "Weekend morning digital detox",
+                    "Mindful technology use tracking",
+                ],
+                "is_featured": False,
             },
         ]
 

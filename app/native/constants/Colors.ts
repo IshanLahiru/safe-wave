@@ -57,6 +57,9 @@ export const Gradients = {
 
 export const Shadows = {
   small: {
+    // Web-compatible shadow
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    // React Native fallback
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -64,6 +67,9 @@ export const Shadows = {
     elevation: 2,
   },
   medium: {
+    // Web-compatible shadow
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+    // React Native fallback
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -71,6 +77,9 @@ export const Shadows = {
     elevation: 4,
   },
   large: {
+    // Web-compatible shadow
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+    // React Native fallback
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
@@ -78,6 +87,9 @@ export const Shadows = {
     elevation: 8,
   },
   glow: {
+    // Web-compatible shadow
+    boxShadow: '0 0 8px rgba(14, 165, 233, 0.3)',
+    // React Native fallback
     shadowColor: '#0EA5E9',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,

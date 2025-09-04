@@ -5,16 +5,15 @@ import {
   TouchableOpacity,
   View,
   Linking,
-  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
+import type { ComponentProps } from 'react';
+import { Colors, Spacing, BorderRadius } from '@/constants/Colors';
 
 const APP_VERSION = '2.0.0';
 const BUILD_NUMBER = '2025.01.04';
@@ -22,7 +21,7 @@ const BUILD_NUMBER = '2025.01.04';
 interface TeamMember {
   name: string;
   role: string;
-  icon: string;
+  icon: ComponentProps<typeof IconSymbol>['name'];
 }
 
 const teamMembers: TeamMember[] = [
@@ -35,7 +34,7 @@ const teamMembers: TeamMember[] = [
 interface LegalLink {
   title: string;
   description: string;
-  icon: string;
+  icon: ComponentProps<typeof IconSymbol>['name'];
   action: () => void;
 }
 

@@ -18,6 +18,12 @@ class EmailService:
 
     def send_email(self, to_email: str, subject: str, body: str) -> bool:
         """Send email using configured SMTP settings"""
+        # Check if email is configured
+        if not self.smtp_username or not self.smtp_password:
+            logger.warning(f"Email not configured - skipping email to {to_email}")
+            logger.info(f"Would have sent email with subject: {subject}")
+            return False
+
         try:
             # Create message
             msg = MIMEMultipart()
@@ -28,8 +34,8 @@ class EmailService:
             # Add body
             msg.attach(MIMEText(body, "plain"))
 
-            # Send email
-            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+            # Send email with timeout and better error handling
+            with smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=10) as server:
                 server.starttls()
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
@@ -37,6 +43,15 @@ class EmailService:
             logger.info(f"Email sent successfully to {to_email}")
             return True
 
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"SMTP authentication failed for {to_email}: {e}")
+            return False
+        except smtplib.SMTPConnectError as e:
+            logger.error(f"SMTP connection failed for {to_email}: {e}")
+            return False
+        except smtplib.SMTPException as e:
+            logger.error(f"SMTP error sending email to {to_email}: {e}")
+            return False
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {e}")
             return False

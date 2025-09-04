@@ -11,20 +11,17 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { ModernCard } from '@/components/ui/ModernCard';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
+import { Colors, Spacing } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 
 export default function PrivacySecurityScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsetsSafe();
-  const { user } = useUser();
   const theme = Colors.dark;
 
   // Privacy settings state
-  const [dataSharing, setDataSharing] = useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 

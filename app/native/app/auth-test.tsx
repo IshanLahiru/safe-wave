@@ -1,10 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AuthTest } from '@/components/AuthTest';
-import { ConnectionTest } from '@/components/ConnectionTest';
 
 export default function AuthTestScreen() {
   return (
@@ -16,7 +15,6 @@ export default function AuthTestScreen() {
         </ThemedView>
 
         <ThemedView style={styles.content}>
-          <ConnectionTest />
           <ThemedView style={styles.separator} />
           <AuthTest />
         </ThemedView>

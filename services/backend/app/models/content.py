@@ -134,11 +134,13 @@ class Article(Base):
 
     # Article metadata
     author = Column(String, nullable=True)
+    author_bio = Column(Text, nullable=True)
     read_time = Column(Integer, nullable=True)  # Minutes
     tags = Column(JSON, nullable=True)
 
     # Media
     image_url = Column(String, nullable=True)
+    video_url = Column(String, nullable=True)
 
     # Stress reduction specific
     stress_reduction_tips = Column(JSON, nullable=True)
@@ -148,6 +150,7 @@ class Article(Base):
     is_featured = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
     category = relationship("ContentCategory", back_populates="articles")
