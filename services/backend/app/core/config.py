@@ -1,63 +1,230 @@
 import os
 import secrets
-from typing import Optional
+import sys
+from typing import Optional, List
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator, model_validator
 
 
 class Settings(BaseSettings):
-    # Database Configuration
-    POSTGRES_DB: str = "safewave"
-    POSTGRES_USER: str = "user"
-    POSTGRES_PASSWORD: str = "password"
-    POSTGRES_PORT: int = 5433
-    DATABASE_URL: str = "postgresql://user:password@localhost:5433/safewave"
+    """
+    Application settings with environment variable support.
 
-    # JWT
-    SECRET_KEY: str = secrets.token_urlsafe(32)  # Generate secure random key if not provided
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # 15 minutes for security
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # 7 days for refresh tokens
+    All sensitive values (passwords, API keys, secrets) must be provided via environment variables.
+    Non-sensitive values have reasonable defaults but can be overridden.
+    """
 
-    # API Configuration
-    API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Safe Wave API"
-    HOST: str = "0.0.0.0"
-    PORT: int = 9000
-    API_PORT: int = 9000  # For docker-compose compatibility
+    # ===== DATABASE CONFIGURATION =====
+    # Database connection details - REQUIRED in production
+    POSTGRES_DB: str = Field(
+        default="safewave",
+        description="PostgreSQL database name"
+    )
+    POSTGRES_USER: str = Field(
+        default="user",
+        description="PostgreSQL username"
+    )
+    POSTGRES_PASSWORD: str = Field(
+        ...,  # Required, no default for security
+        description="PostgreSQL password - REQUIRED"
+    )
+    POSTGRES_HOST: str = Field(
+        default="localhost",
+        description="PostgreSQL host address"
+    )
+    POSTGRES_PORT: int = Field(
+        default=5433,
+        description="PostgreSQL port number"
+    )
 
+    # Constructed from individual components or provided directly
+    DATABASE_URL: Optional[str] = Field(
+        default=None,
+        description="Complete database URL - if not provided, will be constructed from individual components"
+    )
+
+    # ===== JWT CONFIGURATION =====
+    # JWT secret key - REQUIRED and must be secure
+    SECRET_KEY: str = Field(
+        ...,  # Required, no default for security
+        description="JWT secret key - REQUIRED, must be cryptographically secure"
+    )
+    ALGORITHM: str = Field(
+        default="HS256",
+        description="JWT algorithm"
+    )
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=15,
+        description="Access token expiration time in minutes"
+    )
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
+        default=7,
+        description="Refresh token expiration time in days"
+    )
+
+    # ===== API CONFIGURATION =====
+    API_V1_STR: str = Field(
+        default="/api/v1",
+        description="API version 1 prefix"
+    )
+    PROJECT_NAME: str = Field(
+        default="Safe Wave API",
+        description="Project name for documentation"
+    )
+    HOST: str = Field(
+        default="0.0.0.0",
+        description="Host address to bind the server"
+    )
+    PORT: int = Field(
+        default=9000,
+        description="Port number for the API server"
+    )
+    API_PORT: int = Field(
+        default=9000,
+        description="API port for docker-compose compatibility"
+    )
+
+    # Environment and debug settings
+    ENVIRONMENT: str = Field(
+        default="development",
+        description="Environment: development, staging, production"
+    )
+    DEBUG: bool = Field(
+        default=False,
+        description="Enable debug mode - should be False in production"
+    )
+
+    # ===== CORS CONFIGURATION =====
+    CORS_ORIGINS: str = Field(
+        default="http://localhost:3000,http://localhost:8081,http://localhost:8082",
+        description="Allowed CORS origins - comma-separated list, update for production domains"
+    )
+
+    # ===== AI/LLM CONFIGURATION =====
     # OpenAI (Legacy - being replaced by OpenRouter)
-    OPENAI_API_KEY: Optional[str] = None
-    USE_LOCAL_MODELS: bool = False  # Use local models if available (free)
-    COST_OPTIMIZATION: bool = True  # Enable cost optimization features
+    OPENAI_API_KEY: Optional[str] = Field(
+        default=None,
+        description="OpenAI API key - optional, legacy support"
+    )
+    USE_LOCAL_MODELS: bool = Field(
+        default=False,
+        description="Use local models if available (free)"
+    )
+    COST_OPTIMIZATION: bool = Field(
+        default=True,
+        description="Enable cost optimization features"
+    )
 
     # OpenRouter Configuration (Primary LLM provider)
-    OPENROUTER_API_KEY: Optional[str] = None
-    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
-    OPENROUTER_MODEL: str = "openai/gpt-3.5-turbo"  # Default model (free tier)
-    OPENROUTER_MAX_TOKENS: int = 1000
-    OPENROUTER_TEMPERATURE: float = 0.3
+    OPENROUTER_API_KEY: Optional[str] = Field(
+        default=None,
+        description="OpenRouter API key - required for LLM features"
+    )
+    OPENROUTER_BASE_URL: str = Field(
+        default="https://openrouter.ai/api/v1",
+        description="OpenRouter API base URL"
+    )
+    OPENROUTER_MODEL: str = Field(
+        default="openai/gpt-3.5-turbo",
+        description="Default OpenRouter model (free tier available)"
+    )
+    OPENROUTER_MAX_TOKENS: int = Field(
+        default=1000,
+        description="Maximum tokens for OpenRouter requests"
+    )
+    OPENROUTER_TEMPERATURE: float = Field(
+        default=0.3,
+        description="Temperature for OpenRouter requests (0.0-1.0)"
+    )
 
-    # SMTP Email Settings
-    SMTP_SERVER: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USERNAME: Optional[str] = None
-    SMTP_PASSWORD: Optional[str] = None
-    FROM_EMAIL: str = "noreply@safewave.com"
+    # ===== EMAIL CONFIGURATION =====
+    # SMTP settings - required for email functionality
+    SMTP_SERVER: str = Field(
+        default="smtp.gmail.com",
+        description="SMTP server hostname"
+    )
+    SMTP_PORT: int = Field(
+        default=587,
+        description="SMTP server port (587 for TLS, 465 for SSL)"
+    )
+    SMTP_USERNAME: Optional[str] = Field(
+        default=None,
+        description="SMTP username - required for email functionality"
+    )
+    SMTP_PASSWORD: Optional[str] = Field(
+        default=None,
+        description="SMTP password or app password - required for email functionality"
+    )
+    FROM_EMAIL: str = Field(
+        default="noreply@safewave.com",
+        description="Default from email address"
+    )
+    SMTP_USE_TLS: bool = Field(
+        default=True,
+        description="Use TLS for SMTP connection"
+    )
 
-    # Local File Storage Configuration
-    UPLOAD_BASE_DIR: str = "uploads"
-    AUDIO_UPLOAD_DIR: str = "uploads/audio"
-    DOCUMENT_UPLOAD_DIR: str = "uploads/documents"
-    MAX_FILE_SIZE: int = 100 * 1024 * 1024  # 100MB
-    ALLOWED_AUDIO_FORMATS: list = ["mp3", "wav", "m4a", "aac", "ogg", "flac", "webm"]
-    ALLOWED_DOCUMENT_FORMATS: list = ["pdf", "doc", "docx", "txt", "rtf"]
+    # ===== FILE STORAGE CONFIGURATION =====
+    # Local file storage paths
+    UPLOAD_BASE_DIR: str = Field(
+        default="uploads",
+        description="Base directory for file uploads"
+    )
+    AUDIO_UPLOAD_DIR: str = Field(
+        default="uploads/audio",
+        description="Directory for audio file uploads"
+    )
+    DOCUMENT_UPLOAD_DIR: str = Field(
+        default="uploads/documents",
+        description="Directory for document uploads"
+    )
 
-    # Audio Processing
-    AUDIO_CHUNK_SIZE: int = 8192  # Bytes per chunk for streaming
-    ENABLE_AUDIO_STREAMING: bool = True
-    ENABLE_TRANSCRIPTION: bool = True
-    ENABLE_LLM_ANALYSIS: bool = True
+    # File size and format restrictions
+    MAX_FILE_SIZE: int = Field(
+        default=100 * 1024 * 1024,  # 100MB
+        description="Maximum file size in bytes"
+    )
+    ALLOWED_AUDIO_FORMATS: List[str] = Field(
+        default=["mp3", "wav", "m4a", "aac", "ogg", "flac", "webm"],
+        description="Allowed audio file formats"
+    )
+    ALLOWED_DOCUMENT_FORMATS: List[str] = Field(
+        default=["pdf", "doc", "docx", "txt", "rtf"],
+        description="Allowed document file formats"
+    )
+
+    # ===== AUDIO PROCESSING CONFIGURATION =====
+    AUDIO_CHUNK_SIZE: int = Field(
+        default=8192,
+        description="Bytes per chunk for audio streaming"
+    )
+    ENABLE_AUDIO_STREAMING: bool = Field(
+        default=True,
+        description="Enable real-time audio streaming"
+    )
+    ENABLE_TRANSCRIPTION: bool = Field(
+        default=True,
+        description="Enable audio transcription features"
+    )
+    ENABLE_LLM_ANALYSIS: bool = Field(
+        default=True,
+        description="Enable LLM analysis of transcriptions"
+    )
+
+    # ===== SECURITY CONFIGURATION =====
+    # Rate limiting
+    RATE_LIMIT_PER_MINUTE: int = Field(
+        default=60,
+        description="API rate limit per minute per IP"
+    )
+
+    # Session security
+    SESSION_TIMEOUT_MINUTES: int = Field(
+        default=30,
+        description="Session timeout in minutes"
+    )
 
     class Config:
         env_file = ".env"
@@ -65,19 +232,164 @@ class Settings(BaseSettings):
         case_sensitive = False
         extra = "ignore"  # Ignore extra environment variables
 
+    @field_validator('SECRET_KEY')
+    @classmethod
+    def validate_secret_key(cls, v):
+        """Validate that SECRET_KEY is secure and not a default value."""
+        if not v:
+            raise ValueError("SECRET_KEY is required and cannot be empty")
+
+        # Check for common insecure values
+        insecure_values = [
+            "your-secret-key-change-in-production",
+            "dev_jwt_key_change_in_production_minimum_32_chars",
+            "secret",
+            "password",
+            "123456",
+            "changeme"
+        ]
+
+        if v.lower() in [val.lower() for val in insecure_values]:
+            raise ValueError(f"SECRET_KEY cannot be a default or insecure value: {v}")
+
+        if len(v) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+
+        return v
+
+    @field_validator('POSTGRES_PASSWORD')
+    @classmethod
+    def validate_postgres_password(cls, v):
+        """Validate PostgreSQL password."""
+        if not v:
+            raise ValueError("POSTGRES_PASSWORD is required")
+        if len(v) < 8:
+            raise ValueError("POSTGRES_PASSWORD must be at least 8 characters long")
+        return v
+
+    @model_validator(mode='before')
+    @classmethod
+    def construct_database_url(cls, values):
+        """Construct DATABASE_URL from components if not provided."""
+        if isinstance(values, dict):
+            database_url = values.get('DATABASE_URL')
+            if database_url:
+                return values
+
+            # Construct from individual components
+            user = values.get('POSTGRES_USER', 'user')
+            password = values.get('POSTGRES_PASSWORD')
+            host = values.get('POSTGRES_HOST', 'localhost')
+            port = values.get('POSTGRES_PORT', 5433)
+            db = values.get('POSTGRES_DB', 'safewave')
+
+            if password:
+                values['DATABASE_URL'] = f"postgresql://{user}:{password}@{host}:{port}/{db}"
+
+        return values
+
+    @field_validator('ENVIRONMENT')
+    @classmethod
+    def validate_environment(cls, v):
+        """Validate environment setting."""
+        allowed_envs = ['development', 'staging', 'production']
+        if v.lower() not in allowed_envs:
+            raise ValueError(f"ENVIRONMENT must be one of: {allowed_envs}")
+        return v.lower()
+
+    @field_validator('CORS_ORIGINS')
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from string to list."""
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
+
+    def get_cors_origins_list(self) -> List[str]:
+        """Get CORS origins as a list."""
+        if isinstance(self.CORS_ORIGINS, str):
+            return [origin.strip() for origin in self.CORS_ORIGINS.split(',') if origin.strip()]
+        return self.CORS_ORIGINS
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Handle old default values gracefully
-        if self.SECRET_KEY == "your-secret-key-change-in-production":
-            print("⚠️  WARNING: Using default SECRET_KEY. Please set a secure value in production!")
-            self.SECRET_KEY = secrets.token_urlsafe(32)
-            print("✅ Generated new secure SECRET_KEY")
+        # Create upload directories if they don't exist
+        self._create_upload_directories()
 
-        # Generate a secure secret key if none provided
-        if not self.SECRET_KEY or self.SECRET_KEY == secrets.token_urlsafe(32):
-            self.SECRET_KEY = secrets.token_urlsafe(32)
-            print("⚠️  WARNING: Generated new SECRET_KEY. This will invalidate all existing tokens!")
+        # Validate production settings
+        if self.ENVIRONMENT == 'production':
+            self._validate_production_settings()
+
+        # Print configuration summary (without sensitive values)
+        self._print_config_summary()
+
+    def _create_upload_directories(self):
+        """Create upload directories if they don't exist."""
+        directories = [
+            self.UPLOAD_BASE_DIR,
+            self.AUDIO_UPLOAD_DIR,
+            self.DOCUMENT_UPLOAD_DIR
+        ]
+
+        for directory in directories:
+            Path(directory).mkdir(parents=True, exist_ok=True)
+
+    def _validate_production_settings(self):
+        """Validate critical settings for production environment."""
+        errors = []
+
+        # Check that debug is disabled
+        if self.DEBUG:
+            errors.append("DEBUG must be False in production")
+
+        # Check that sensitive values are not defaults
+        if not self.SMTP_USERNAME and not self.SMTP_PASSWORD:
+            print("⚠️  WARNING: Email functionality disabled - SMTP credentials not configured")
+
+        if not self.OPENROUTER_API_KEY and not self.OPENAI_API_KEY:
+            print("⚠️  WARNING: LLM functionality disabled - No AI API keys configured")
+
+        # Check CORS origins for production
+        localhost_origins = [origin for origin in self.CORS_ORIGINS if 'localhost' in origin]
+        if localhost_origins:
+            print(f"⚠️  WARNING: Localhost CORS origins in production: {localhost_origins}")
+
+        if errors:
+            raise ValueError(f"Production validation failed: {'; '.join(errors)}")
+
+    def _print_config_summary(self):
+        """Print configuration summary without sensitive information."""
+        print("🔧 Safe Wave API Configuration:")
+        print(f"   Environment: {self.ENVIRONMENT}")
+        print(f"   Debug Mode: {self.DEBUG}")
+        print(f"   API Port: {self.PORT}")
+        print(f"   Database: {self.POSTGRES_DB}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}")
+        print(f"   Upload Directory: {self.UPLOAD_BASE_DIR}")
+        print(f"   CORS Origins: {len(self.CORS_ORIGINS)} configured")
+
+        # Feature availability
+        features = []
+        if self.SMTP_USERNAME and self.SMTP_PASSWORD:
+            features.append("Email")
+        if self.OPENROUTER_API_KEY or self.OPENAI_API_KEY:
+            features.append("LLM Analysis")
+        if self.ENABLE_TRANSCRIPTION:
+            features.append("Audio Transcription")
+
+        print(f"   Features: {', '.join(features) if features else 'Basic functionality only'}")
 
 
-settings = Settings()
+def get_settings() -> Settings:
+    """Get application settings with proper error handling."""
+    try:
+        return Settings()
+    except Exception as e:
+        print(f"❌ Configuration Error: {e}")
+        print("\n💡 Please check your environment variables and .env file")
+        print("   See .env.example for required variables")
+        sys.exit(1)
+
+
+# Global settings instance
+settings = get_settings()
