@@ -1,25 +1,302 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalDependencies": [
+    ".env",
+    ".env.local",
+    ".env.production",
+    "docker-compose.yml"
+  ],
   "tasks": {
+    "setup": {
+      "cache": false,
+      "interactive": true,
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "DOCKER_HOST"
+      ]
+    },
+    "setup:quick": {
+      "cache": false,
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "REDIS_URL"
+      ]
+    },
+    "setup:dev": {
+      "cache": false,
+      "interactive": true,
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "DOCKER_HOST"
+      ]
+    },
+    "setup:production": {
+      "cache": false,
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "REDIS_URL"
+      ]
+    },
+    "setup:validate": {
+      "cache": false,
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "REDIS_URL"
+      ]
+    },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "NODE_ENV",
+        "EXPO_PUBLIC_API_URL",
+        "DATABASE_URL",
+        "REDIS_URL"
+      ]
     },
     "build": {
       "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "package.json",
+        "tsconfig.json",
+        "pyproject.toml",
+        "poetry.lock",
+        "Dockerfile"
+      ],
       "outputs": [
         "dist/**",
         "build/**",
         ".next/**",
-        "!.next/cache/**"
+        "!.next/cache/**",
+        "app.zip",
+        "__pycache__/**",
+        ".venv/**"
+      ],
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL"
+      ]
+    },
+    "build:backend": {
+      "inputs": [
+        "app/**",
+        "pyproject.toml",
+        "poetry.lock",
+        "alembic/**",
+        "scripts/**",
+        "Dockerfile"
+      ],
+      "outputs": [
+        "__pycache__/**",
+        ".venv/**",
+        "dist/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "REDIS_URL",
+        "OPENAI_API_KEY"
+      ]
+    },
+    "build:frontend": {
+      "dependsOn": ["^build:backend"],
+      "inputs": [
+        "app/**",
+        "components/**",
+        "assets/**",
+        "package.json",
+        "tsconfig.json",
+        "app.json"
+      ],
+      "outputs": [
+        "dist/**",
+        ".expo/**"
+      ],
+      "env": [
+        "NODE_ENV",
+        "EXPO_PUBLIC_API_URL"
       ]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["build:backend"],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "components/**",
+        ".eslintrc.*",
+        ".flake8",
+        "pyproject.toml",
+        "mypy.ini"
+      ],
+      "outputs": [
+        ".eslintcache"
+      ]
+    },
+    "lint:backend": {
+      "inputs": [
+        "app/**",
+        "scripts/**",
+        ".flake8",
+        "pyproject.toml",
+        "mypy.ini"
+      ],
+      "outputs": [
+        ".mypy_cache/**"
+      ]
+    },
+    "lint:frontend": {
+      "inputs": [
+        "app/**",
+        "components/**",
+        ".eslintrc.*",
+        "package.json"
+      ],
+      "outputs": [
+        ".eslintcache"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["build"],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "tests/**",
+        "test/**",
+        "__tests__/**",
+        "*.test.*",
+        "*.spec.*",
+        "jest.config.*",
+        "pytest.ini",
+        "pyproject.toml"
+      ],
+      "outputs": [
+        "coverage/**",
+        ".coverage",
+        ".pytest_cache/**",
+        "test-results/**"
+      ],
+      "env": [
+        "NODE_ENV",
+        "DATABASE_URL",
+        "TEST_DATABASE_URL"
+      ]
+    },
+    "test:backend": {
+      "dependsOn": ["build:backend"],
+      "inputs": [
+        "app/**",
+        "tests/**",
+        "pyproject.toml",
+        "pytest.ini"
+      ],
+      "outputs": [
+        "coverage/**",
+        ".coverage",
+        ".pytest_cache/**",
+        "test-results/**",
+        "htmlcov/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "TEST_DATABASE_URL",
+        "REDIS_URL"
+      ]
+    },
+    "test:frontend": {
+      "dependsOn": ["build:frontend"],
+      "inputs": [
+        "app/**",
+        "components/**",
+        "__tests__/**",
+        "*.test.*",
+        "*.spec.*",
+        "jest.config.*"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
+    },
+    "type-check": {
+      "dependsOn": ["^build:backend"],
+      "inputs": [
+        "src/**",
+        "app/**",
+        "components/**",
+        "tsconfig.json",
+        "pyproject.toml",
+        "mypy.ini"
+      ],
+      "outputs": [
+        ".mypy_cache/**"
+      ]
+    },
+    "format": {
+      "cache": false,
+      "inputs": [
+        "src/**",
+        "app/**",
+        "components/**",
+        "scripts/**",
+        ".prettierrc*",
+        "pyproject.toml"
+      ]
+    },
+    "format:check": {
+      "inputs": [
+        "src/**",
+        "app/**",
+        "components/**",
+        "scripts/**",
+        ".prettierrc*",
+        "pyproject.toml"
+      ]
+    },
+    "deploy:backend": {
+      "dependsOn": ["test:backend", "lint:backend"],
+      "inputs": [
+        "app/**",
+        "pyproject.toml",
+        "poetry.lock",
+        "Dockerfile",
+        "docker-compose.yml",
+        "alembic/**"
+      ],
+      "outputs": [
+        "deployment/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "REDIS_URL",
+        "OPENAI_API_KEY",
+        "DOCKER_REGISTRY"
+      ]
+    },
+    "deploy:frontend": {
+      "dependsOn": ["test:frontend", "lint:frontend"],
+      "inputs": [
+        "app/**",
+        "components/**",
+        "assets/**",
+        "package.json",
+        "app.json"
+      ],
+      "outputs": [
+        "deployment/**",
+        "dist/**"
+      ],
+      "env": [
+        "EXPO_PUBLIC_API_URL",
+        "EAS_PROJECT_ID"
+      ]
     },
     "clean": {
       "cache": false
@@ -27,47 +304,81 @@
     "update-ip": {
       "cache": false
     },
-    "format": {
-      "cache": false
-    },
-    "format:check": {
-      "cache": false
-    },
     "migration:new": {
       "cache": false,
       "interactive": true
     },
     "migration:run": {
-      "cache": false
+      "cache": false,
+      "inputs": [
+        "alembic/**",
+        "app/models/**"
+      ],
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "migration:rollback": {
       "cache": false,
-      "interactive": true
+      "interactive": true,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "migration:history": {
-      "cache": false
+      "cache": false,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "migration:current": {
-      "cache": false
+      "cache": false,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "migration:status": {
-      "cache": false
+      "cache": false,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "migration:recreate": {
       "cache": false,
-      "interactive": true
+      "interactive": true,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "migration:uncommit": {
       "cache": false,
-      "interactive": true
+      "interactive": true,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "db:reset": {
       "cache": false,
-      "interactive": true
+      "interactive": true,
+      "env": [
+        "DATABASE_URL"
+      ]
     },
     "db:recreate": {
       "cache": false,
-      "interactive": true
+      "interactive": true,
+      "env": [
+        "DATABASE_URL"
+      ]
+    },
+    "kill:port": {
+      "cache": false
+    },
+    "kill:all": {
+      "cache": false
+    },
+    "kill:list": {
+      "cache": false
     }
   }
 }

@@ -300,7 +300,7 @@ npm run migration:new "Fixed migration"
 Required environment variables in `.env`:
 
 ```env
-DATABASE_URL=postgresql://user:password@localhost:5432/safewave
+DATABASE_URL=postgresql://user:password@localhost:5433/safewave
 ```
 
 The scripts automatically read from:

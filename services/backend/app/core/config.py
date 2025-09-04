@@ -270,21 +270,49 @@ class Settings(BaseSettings):
     @model_validator(mode='before')
     @classmethod
     def construct_database_url(cls, values):
-        """Construct DATABASE_URL from components if not provided."""
+        """
+        Construct DATABASE_URL with environment-aware host and port detection.
+        Handles Docker internal networking vs local development scenarios.
+        """
         if isinstance(values, dict):
             database_url = values.get('DATABASE_URL')
             if database_url:
                 return values
 
-            # Construct from individual components
+            # Get basic connection components
             user = values.get('POSTGRES_USER', 'user')
             password = values.get('POSTGRES_PASSWORD')
-            host = values.get('POSTGRES_HOST', 'localhost')
-            port = values.get('POSTGRES_PORT', 5433)
             db = values.get('POSTGRES_DB', 'safewave')
+            
+            if not password:
+                return values
 
-            if password:
-                values['DATABASE_URL'] = f"postgresql://{user}:{password}@{host}:{port}/{db}"
+            # Environment-aware host and port configuration
+            environment = values.get('ENVIRONMENT', 'development').lower()
+            
+            # Detect if running in Docker
+            is_docker = (
+                os.path.exists('/.dockerenv') or
+                os.environ.get('DOCKER_CONTAINER') or
+                os.environ.get('POSTGRES_HOST') == 'postgres'
+            )
+            
+            if is_docker:
+                # Docker internal networking
+                host = 'postgres'
+                port = 5432
+                print(f"🐳 Docker environment detected - using internal networking: {host}:{port}")
+            else:
+                # Local development or production with external access
+                host = values.get('POSTGRES_HOST', 'localhost')
+                port = values.get('POSTGRES_PORT', 5433)
+                print(f"🏠 Local/Production environment - using external access: {host}:{port}")
+
+            database_url = f"postgresql://{user}:{password}@{host}:{port}/{db}"
+            values['DATABASE_URL'] = database_url
+            
+            # Log database configuration (without password)
+            print(f"🔧 Constructed DATABASE_URL: postgresql://{user}:***@{host}:{port}/{db}")
 
         return values
 
@@ -388,14 +416,162 @@ class Settings(BaseSettings):
         print(f"   Features: {features_str}")
 
 
+    def validate_database_connection(self, max_retries: int = 3) -> bool:
+        """
+        Validate database connection with retry logic and exponential backoff.
+        
+        Args:
+            max_retries: Maximum number of retry attempts
+            
+        Returns:
+            bool: True if connection successful, False otherwise
+        """
+        import time
+        from sqlalchemy import create_engine, text, pool
+        
+        for attempt in range(max_retries):
+            try:
+                # Create a test engine with minimal configuration
+                test_engine = create_engine(
+                    self.DATABASE_URL,
+                    poolclass=pool.NullPool,
+                    connect_args={
+                        'connect_timeout': 10,
+                        'application_name': 'safewave_health_check'
+                    }
+                )
+                
+                # Test connection with a simple query
+                with test_engine.connect() as conn:
+                    result = conn.execute(text("SELECT 1 as health_check"))
+                    result.fetchone()
+                    
+                print(f"✅ Database connection validated successfully")
+                test_engine.dispose()
+                return True
+                
+            except Exception as e:
+                print(f"⚠️  Database connection attempt {attempt + 1}/{max_retries} failed: {e}")
+                if attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    print(f"🕐 Waiting {wait_time} seconds before retry...")
+                    time.sleep(wait_time)
+                else:
+                    print("❌ All database connection attempts failed")
+                    
+        return False
+    
+    def get_database_info(self) -> dict:
+        """
+        Get database connection information for diagnostics.
+        
+        Returns:
+            dict: Database connection details (without sensitive info)
+        """
+        if not self.DATABASE_URL:
+            return {"status": "not_configured", "error": "DATABASE_URL not set"}
+            
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(self.DATABASE_URL)
+            
+            return {
+                "status": "configured",
+                "host": parsed.hostname or "unknown",
+                "port": parsed.port or "unknown",
+                "database": parsed.path.lstrip('/') if parsed.path else "unknown",
+                "username": parsed.username or "unknown",
+                "scheme": parsed.scheme or "unknown"
+            }
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+    
+    def validate_configuration_consistency(self) -> List[str]:
+        """
+        Validate configuration consistency across different deployment scenarios.
+        
+        Returns:
+            List[str]: List of configuration warnings/errors
+        """
+        issues = []
+        
+        # Check port consistency
+        if hasattr(self, 'POSTGRES_PORT'):
+            expected_port = 5433  # Standard external port
+            if self.POSTGRES_PORT != expected_port:
+                issues.append(
+                    f"Port mismatch: POSTGRES_PORT is {self.POSTGRES_PORT}, "
+                    f"expected {expected_port} for external access"
+                )
+        
+        # Check Docker vs local configuration alignment
+        db_info = self.get_database_info()
+        if db_info["status"] == "configured":
+            host = db_info["host"]
+            port = db_info["port"]
+            
+            # Detect Docker environment
+            is_docker = (
+                os.path.exists('/.dockerenv') or
+                os.environ.get('DOCKER_CONTAINER') or
+                host == 'postgres'
+            )
+            
+            if is_docker and port != 5432:
+                issues.append(
+                    f"Docker configuration: Using port {port}, "
+                    f"but Docker internal should use 5432"
+                )
+            elif not is_docker and port == 5432:
+                issues.append(
+                    f"Local configuration: Using port {port}, "
+                    f"but local development should use 5433"
+                )
+        
+        # Check production readiness
+        if self.ENVIRONMENT == 'production':
+            if 'localhost' in str(self.DATABASE_URL):
+                issues.append(
+                    "Production environment using localhost database - "
+                    "consider using a managed database service"
+                )
+                
+        return issues
+
+
 def get_settings() -> Settings:
-    """Get application settings with proper error handling."""
+    """Get application settings with comprehensive error handling and validation."""
     try:
-        return Settings()
+        settings_instance = Settings()
+        
+        # Validate configuration consistency
+        config_issues = settings_instance.validate_configuration_consistency()
+        if config_issues:
+            print("⚠️  Configuration warnings:")
+            for issue in config_issues:
+                print(f"   - {issue}")
+        
+        # Validate database connection if not in test mode
+        if not os.environ.get('TESTING'):
+            print("🔍 Validating database connection...")
+            if not settings_instance.validate_database_connection(max_retries=1):
+                print("⚠️  Database connection validation failed")
+                print("💡 The application will start, but database operations may fail")
+        
+        return settings_instance
+        
     except Exception as e:
         print(f"❌ Configuration Error: {e}")
-        print("\n💡 Please check your environment variables and .env file")
-        print("   See .env.example for required variables")
+        print("\n💡 Troubleshooting:")
+        print("   1. Check your environment variables and .env file")
+        print("   2. Verify database credentials are correct")
+        print("   3. Ensure database server is running and accessible")
+        print("   4. See .env.example for required variables")
+        
+        # In development, provide more helpful debug info
+        if os.environ.get('DEBUG', '').lower() == 'true':
+            print(f"\n🐛 Debug info: {type(e).__name__}: {e}")
+            
         sys.exit(1)
 
 

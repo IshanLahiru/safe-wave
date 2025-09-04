@@ -1,124 +1,366 @@
-# Backend Scripts
+# Safe Wave Backend - Cross-Platform Setup Automation
 
-This directory contains Python helper scripts for managing the Safe Wave backend.
+This directory contains comprehensive cross-platform setup automation scripts that resolve Windows compatibility issues and provide enterprise-grade deployment automation for the Safe Wave backend.
 
-## Scripts Overview
+## 🌐 Cross-Platform Support
 
-### `manage.py`
-Database lifecycle management script for complex operations.
+### Supported Platforms
+- **Windows 10/11** - PowerShell (.ps1) and Command Prompt (.bat)  
+- **macOS** - Intel and Apple Silicon (M1/M2/M3)
+- **Linux** - Ubuntu, CentOS, Arch, and other major distributions
 
-**Commands:**
-- `db-reset` - Drop schema, recreate schema, run migrations
-- `db-recreate` - Drop database, create database, run migrations  
-- `migration-uncommit` - Remove last migration revision
-- `migration-recreate` - Delete last migration and regenerate it
+### Platform Detection
+Scripts automatically detect the operating system and architecture, providing platform-specific optimizations and error handling.
 
-**Usage:**
+## 🚀 Quick Start
+
+### Universal Setup (Recommended)
 ```bash
-python scripts/manage.py db-reset
-python scripts/manage.py db-recreate
-python scripts/manage.py migration-uncommit
-python scripts/manage.py migration-recreate "Updated user model"
+# Unix/Linux/macOS
+./scripts/setup.sh
+
+# Windows PowerShell  
+.\scripts\setup.ps1
+
+# Windows Command Prompt
+scripts\setup.bat
+
+# Cross-platform Python
+python scripts/setup.py
 ```
 
-### `migration.py`
-Migration management script for Alembic operations.
-
-**Commands:**
-- `new <message>` - Create a new migration with autogenerate
-- `run` - Apply all pending migrations (upgrade to head)
-- `rollback` - Rollback last migration (downgrade one step)
-- `history` - Show migration history
-- `current` - Show current migration head
-- `status` - Show migration status
-
-**Usage:**
-```bash
-python scripts/migration.py new "Add user table"
-python scripts/migration.py run
-python scripts/migration.py rollback
-python scripts/migration.py history
-```
-
-### `seed_content.py`
-Content seeding script that populates the database with initial stress-reduction content including categories, videos, meal plans, quotes, and articles.
-
-**Features:**
-- Creates 6 content categories (Meditation, Sleep, Stress Relief, etc.)
-- Seeds 5 featured videos with YouTube integration
-- Adds 2 meal plans with nutritional information
-- Includes 5 inspirational quotes
-- Creates 4 comprehensive articles with new schema fields
-
-**Schema Support:**
-- Supports all Article model fields including new additions:
-  - `video_url` - Optional video content for articles
-  - `author_bio` - Detailed author biography information
-  - `updated_at` - Automatic timestamp tracking
-- Handles existing content gracefully (skips if data exists)
-- Compatible with current database schema and API endpoints
-
-**Usage:**
-```bash
-python scripts/seed_content.py
-```
-
-### `seed_data.py`
-User data seeding script for creating initial demo users (currently minimal).
-
-**Usage:**
-```bash
-python scripts/seed_data.py
-```
-
-### `update_network_ip.py`
-Network IP configuration script for cross-platform development.
-
-**Usage:**
-```bash
-python scripts/update_network_ip.py
-```
-
-## NPM Script Integration
-
-All scripts are integrated with npm scripts in `package.json`:
-
-```bash
-# Migration commands
-npm run migration:new "message"
-npm run migration:run
-npm run migration:rollback
-npm run migration:history
-
-# Database commands
-npm run db:reset
-npm run db:recreate
-
-# Seeding commands
-npm run seed:content    # Seed stress-reduction content
-npm run seed:data       # Seed user data
-
-# Network configuration
-npm run update-ip
-```
-
-## Turbo Integration
-
-All commands work with Turborepo from the root directory:
-
+### Workspace-Level Commands
 ```bash
 # From project root
-npm run migration:new "Add user table"
-npm run db:reset
+npm run setup              # Full interactive setup
+npm run setup:quick        # Quick setup (minimal prompts)
+npm run setup:dev          # Development setup
+npm run setup:production   # Production setup
+npm run setup:validate     # Validation only
 ```
 
-## Requirements
+### Poetry Integration
+```bash
+# From backend directory  
+poetry run setup           # Full setup
+poetry run setup-quick     # Quick setup
+poetry run setup-dev       # Development setup
+poetry run setup-env       # Environment setup only
+```
 
-- Python 3.8+
-- Alembic installed
-- PostgreSQL (for database operations)
-- Valid `.env` file with `DATABASE_URL`
+## 📋 Available Scripts
 
-## Documentation
+### Setup Scripts
 
-See `docs/DATABASE_MANAGEMENT.md` for comprehensive documentation on database management workflows and best practices.
+| Script | Platform | Description |
+|--------|----------|-------------|
+| `setup.py` | Cross-platform | Master setup orchestrator with comprehensive validation |
+| `setup.sh` | Unix/Linux/macOS | Shell wrapper with dependency validation |
+| `setup.ps1` | Windows PowerShell | PowerShell wrapper with Windows-specific optimizations |
+| `setup.bat` | Windows CMD | Batch file wrapper for Command Prompt users |
+
+### Environment Configuration
+
+| Script | Platform | Description |
+|--------|----------|-------------|
+| `setup_env.py` | Cross-platform | Enhanced environment configuration with platform detection |
+| `setup_env.sh` | Unix/Linux/macOS | Shell-based environment setup |
+| `setup_env.ps1` | Windows PowerShell | PowerShell environment setup |
+| `setup_env.bat` | Windows CMD | Batch file environment setup |
+
+### Port Management
+
+| Script | Platform | Description |
+|--------|----------|-------------|
+| `kill_port.py` | Cross-platform | Enhanced port process killer with Docker integration |
+| `kill_port.sh` | Unix/Linux/macOS | Shell-based port management |
+| `kill_port.ps1` | Windows PowerShell | PowerShell port management |
+| `kill_port.bat` | Windows CMD | Batch file port management |
+
+### Deployment Automation
+
+| Script | Platform | Description |
+|--------|----------|-------------|
+| `deploy.ps1` | Windows PowerShell | Complete deployment automation for Windows |
+
+## 🔧 Setup Options
+
+### Interactive Setup (Default)
+```bash
+./scripts/setup.sh
+```
+- Full system validation
+- Interactive confirmations
+- Comprehensive error handling
+- Step-by-step progress tracking
+
+### Quick Setup
+```bash
+./scripts/setup.sh --quick
+```
+- Minimal prompts
+- Assumes sensible defaults
+- Faster execution
+- Suitable for CI/CD
+
+### Development Setup
+```bash
+./scripts/setup.sh --dev
+```
+- Installs development dependencies
+- Enables development tools
+- Configures development environment
+- Sets up debugging tools
+
+### Production Setup
+```bash
+./scripts/setup.sh --production
+```
+- Production-optimized installation
+- Minimal dependencies
+- Security-focused configuration
+- Performance optimizations
+
+### Validation Only
+```bash
+./scripts/setup.sh --validate-only
+```
+- System validation without changes
+- Dependency checking
+- Configuration verification
+- Health checks
+
+## 🐳 Docker Integration
+
+The setup automation includes comprehensive Docker support:
+
+### Docker Container Management
+- Automatic Docker Desktop detection
+- Container health checking
+- Port conflict resolution
+- Database initialization
+
+### Docker Compose Integration
+- PostgreSQL database setup
+- Redis cache configuration
+- Network configuration
+- Volume management
+
+## 🔑 Environment Configuration
+
+### Secure Defaults
+- Cryptographically secure random values
+- JWT secret generation
+- Database password generation
+- Best practice configurations
+
+### Platform-Specific Optimizations
+- **Windows**: PowerShell execution policies, Windows Defender exclusions
+- **macOS**: Homebrew integration, Apple Silicon compatibility
+- **Linux**: Package manager detection, distribution-specific handling
+
+## 🛠️ Port Management
+
+### Cross-Platform Process Detection
+```bash
+# Kill processes on default backend port (9000)
+poetry run kill-port
+
+# Kill processes on specific port
+poetry run kill-port 8080
+
+# Kill all backend-related processes
+poetry run kill-ports-all
+
+# List processes without killing
+poetry run kill-ports-list
+```
+
+### Enhanced Features
+- Docker container integration
+- Process hierarchy detection
+- Graceful vs. force termination
+- Interactive process selection
+- Comprehensive error handling
+
+## 🏗️ Architecture
+
+### Master Setup Orchestrator
+The `setup.py` script serves as the universal entry point:
+
+1. **Platform Detection** - Automatic OS and architecture detection
+2. **Dependency Validation** - Comprehensive system requirements checking
+3. **Environment Setup** - Secure configuration file generation
+4. **Dependency Installation** - Poetry-managed Python dependencies
+5. **Database Setup** - Docker container orchestration
+6. **Migration Execution** - Database schema management
+7. **Service Startup** - Development server initialization
+
+### Platform Wrappers
+Platform-specific wrappers provide:
+- Native user experience
+- Platform-specific error messages
+- Installation guidance
+- Dependency management
+- Shell integration
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+#### Python Version Issues
+```bash
+# Check Python version
+python --version
+python3 --version
+
+# Install Python 3.9+ from python.org
+```
+
+#### Poetry Installation Issues
+```bash
+# Windows PowerShell
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
+
+# Unix/Linux/macOS  
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+#### Docker Issues
+```bash
+# Check Docker status
+docker --version
+docker info
+
+# Start Docker Desktop (Windows/macOS)
+# Or start Docker daemon (Linux)
+```
+
+#### Permission Issues
+```bash
+# Windows: Run as Administrator
+# Unix/Linux: Use sudo if needed
+# macOS: Check System Preferences > Security & Privacy
+```
+
+### Platform-Specific Tips
+
+#### Windows
+- Use PowerShell for best experience
+- Run as Administrator if permission issues occur
+- Ensure Docker Desktop is installed and running
+- Windows Defender may need exclusions for development folders
+
+#### macOS
+- Install Xcode Command Line Tools: `xcode-select --install`
+- Use Homebrew for package management: `brew install python poetry`
+- For Apple Silicon, ensure proper Docker emulation settings
+
+#### Linux
+- Install build essentials: `sudo apt install build-essential python3-dev`
+- Ensure user is in docker group: `sudo usermod -aG docker $USER`
+- May need to install python3-venv: `sudo apt install python3-venv`
+
+## 🧪 Testing
+
+### Validation Commands
+```bash
+# Test setup validation
+./scripts/setup.sh --validate-only
+
+# Test environment creation
+poetry run setup-env --force
+
+# Test port management
+poetry run kill-ports-list
+```
+
+### Integration Testing
+```bash
+# Full setup test (development)
+./scripts/setup.sh --dev --background
+
+# Production setup test
+./scripts/setup.sh --production --validate-only
+```
+
+## 📚 Integration with Existing Workflows
+
+### Poetry Scripts
+All scripts are integrated into Poetry for easy access:
+```bash
+poetry run setup           # Full setup
+poetry run setup-quick     # Quick setup
+poetry run kill-port       # Port management
+```
+
+### Turborepo Tasks
+Integrated with Turborepo for monorepo workflows:
+```bash
+turbo run setup --filter=backend
+turbo run setup:dev --filter=backend
+```
+
+### NPM Scripts
+Available at both workspace and package levels:
+```bash
+# Workspace level
+npm run setup
+npm run setup:backend
+
+# Package level (from backend directory)
+npm run setup
+npm run setup:dev
+```
+
+## 🔐 Security Considerations
+
+### Secure Defaults
+- Random secret generation using cryptographically secure methods
+- Environment variable validation
+- File permission checking
+- Secure database credentials
+
+### Platform Security
+- Windows: PowerShell execution policy handling
+- macOS: Keychain integration considerations
+- Linux: File permission and ownership management
+
+## 📈 Performance Optimizations
+
+### Caching
+- Poetry dependency caching
+- Docker layer optimization
+- Turborepo task caching
+
+### Parallel Execution
+- Concurrent dependency installation
+- Parallel container startup
+- Background process management
+
+## 🤝 Contributing
+
+### Adding Platform Support
+1. Create platform-specific wrapper script
+2. Update master orchestrator for platform detection
+3. Add platform-specific optimizations
+4. Update documentation and tests
+
+### Extending Functionality
+1. Add new setup stages to orchestrator
+2. Implement platform-specific variants
+3. Update integration points (Poetry, Turborepo, NPM)
+4. Add comprehensive error handling
+
+---
+
+## 📞 Support
+
+For issues with cross-platform setup automation:
+
+1. **Check the troubleshooting section above**
+2. **Run validation**: `./scripts/setup.sh --validate-only`
+3. **Review logs** for specific error messages
+4. **Check platform-specific requirements**
+
+The cross-platform setup automation is designed to handle most common scenarios automatically while providing clear guidance when manual intervention is needed.
