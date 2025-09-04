@@ -49,6 +49,7 @@ redis = "5.0.1"
 
 # Container management
 docker = "7.0.0"
+psycopg = "^3.2.9"
 
 [tool.poetry.group.dev.dependencies]
 # Code formatting and linting

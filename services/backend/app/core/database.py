@@ -41,7 +41,7 @@ engine = create_engine(
         "connect_timeout": 10,
         "application_name": "safewave_api",
         # PostgreSQL-specific optimizations
-        "options": "-c default_transaction_isolation=read_committed -c statement_timeout=30000"
+        "options": "-c statement_timeout=30000"
     }
 )
 

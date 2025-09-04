@@ -9,10 +9,10 @@ export const API_CONFIG = {
   // Fallback URLs for different environments and platforms
   FALLBACK_URLS: [
     'http://localhost:9000',
-    'http://127.0.0.1:9000',
-    'http://192.168.31.14:9000', // Local network IP
-    'http://10.0.2.2:9000', // Android emulator
-    'http://10.0.3.2:9000', // Genymotion
+    'http://10.111.222.0:9000',
+    'http://10.111.222.0:9000', // Local network IP
+    'http://10.111.222.0:9000', // Android emulator
+    'http://10.111.222.0:9000', // Genymotion
   ],
 };
 
@@ -42,7 +42,7 @@ function getDynamicBaseUrl(): string {
 
   // For mobile development, try to detect the best IP
   // This will be determined at runtime
-  return 'http://192.168.31.14:9000'; // Default fallback
+  return 'http://10.111.222.0:9000'; // Default fallback
 }
 
 // Function to get the current backend URL with fallback
