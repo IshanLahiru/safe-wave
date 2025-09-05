@@ -10,31 +10,43 @@
     "setup:production": "python scripts/setup.py --production",
     "setup:validate": "python scripts/setup.py --validate-only",
     "setup:env": "python scripts/setup_env.py",
-    "dev": "poetry run python main.py",
-    "start": "poetry run python main.py",
+
+    "dev": "poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+    "start": "poetry run gunicorn main:app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --timeout 120 --workers 2",
+
     "build": "poetry install --no-dev && poetry build",
     "build:backend": "poetry install --no-dev && poetry build",
+
     "test": "poetry run pytest",
     "test:backend": "poetry run pytest --cov=app --cov-report=html --cov-report=term-missing",
     "test:unit": "poetry run pytest tests/unit",
     "test:integration": "poetry run pytest tests/integration",
     "test:watch": "poetry run pytest --watch",
+
     "type-check": "poetry run mypy .",
+    "typecheck": "poetry run mypy app",
+
     "update-ip": "poetry run python scripts/update_network_ip.py",
-    "format": "poetry run black . && poetry run isort .",
+
+    "format": "poetry run black app",
     "format:check": "poetry run black --check . && poetry run isort --check-only .",
-    "lint": "poetry run flake8 . && poetry run mypy .",
+
+    "lint": "poetry run flake8 app",
     "lint:backend": "poetry run flake8 . && poetry run mypy .",
     "lint:fix": "poetry run black . && poetry run isort . && poetry run flake8 .",
     "quality": "npm run lint && npm run type-check && npm run test",
+
     "install": "poetry install",
     "install:dev": "poetry install --with dev,test",
     "install:prod": "poetry install --no-dev",
+
     "clean": "find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true && rm -rf .pytest_cache .coverage htmlcov .mypy_cache",
     "clean:cache": "poetry cache clear --all pypi",
+
     "deps:update": "poetry update",
     "deps:check": "poetry check",
     "deps:show": "poetry show --tree",
+
     "migration:new": "poetry run python scripts/migration.py new",
     "migration:run": "poetry run python scripts/migration.py run",
     "migration:rollback": "poetry run python scripts/migration.py rollback",
@@ -43,25 +55,39 @@
     "migration:status": "poetry run python scripts/migration.py status",
     "migration:recreate": "poetry run python scripts/manage.py migration-recreate",
     "migration:uncommit": "poetry run python scripts/manage.py migration-uncommit",
+
+    "migrate": "poetry run alembic upgrade head",
+    "migrate:down": "poetry run alembic downgrade -1",
+    "revision": "poetry run alembic revision -m \"init\"",
+
     "db:reset": "poetry run python scripts/manage.py db-reset",
     "db:recreate": "poetry run python scripts/manage.py db-recreate",
-    "db:seed": "poetry run python scripts/seed_data.py",
+
+    "seed": "poetry run python scripts/seed_data.py",
     "seed:content": "poetry run python scripts/seed_content.py",
     "seed:data": "poetry run python scripts/seed_data.py",
+
     "alembic": "poetry run alembic",
     "alembic:upgrade": "poetry run alembic upgrade head",
     "alembic:downgrade": "poetry run alembic downgrade -1",
     "alembic:history": "poetry run alembic history --verbose",
     "alembic:current": "poetry run alembic current --verbose",
-    "docker:build": "docker build -t safe-wave-backend .",
-    "docker:up": "poetry run python scripts/docker_manager.py up",
-    "docker:down": "poetry run python scripts/docker_manager.py down",
-    "docker:stop": "poetry run python scripts/docker_manager.py stop",
-    "docker:restart": "poetry run python scripts/docker_manager.py restart",
-    "docker:status": "poetry run python scripts/docker_manager.py status",
-    "docker:logs": "poetry run python scripts/docker_manager.py logs",
-    "deploy:backend": "npm run build && npm run docker:build",
-    "deploy:prod": "poetry install --no-dev && docker build -t safe-wave-backend:prod .",
+
+    "docker:build": "docker compose build",
+    "docker:build:nocache": "docker compose build --no-cache",
+    "docker:build:dev": "docker build --build-arg POETRY_WITH_DEV=true -t safe-wave-backend:dev .",
+    "docker:build:prod": "docker build -t safe-wave-backend:latest .",
+    "docker:up": "docker compose up --build",
+    "docker:up:detached": "docker compose up --build -d",
+    "docker:down": "docker compose down",
+    "docker:restart": "docker compose restart api",
+    "docker:logs": "docker compose logs -f api",
+    "docker:ps": "docker compose ps",
+    "docker:shell": "docker compose exec api bash",
+    "docker:prune": "docker system prune -f",
+
+    "deploy:backend": "npm run docker:build:prod",
+
     "health:check": "poetry run python -c 'import requests; print(requests.get(\"http://localhost:8000/health\").status_code)'",
     "kill:port": "python scripts/kill_port.py",
     "kill:port:force": "python scripts/kill_port.py --force",
