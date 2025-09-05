@@ -174,11 +174,11 @@ class Settings(BaseSettings):
         description="Base directory for file uploads"
     )
     AUDIO_UPLOAD_DIR: str = Field(
-        default="uploads/audio",
+        default="audio",
         description="Directory for audio file uploads"
     )
     DOCUMENT_UPLOAD_DIR: str = Field(
-        default="uploads/documents",
+        default="documents",
         description="Directory for document uploads"
     )
 

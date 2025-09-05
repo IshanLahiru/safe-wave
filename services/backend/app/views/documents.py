@@ -4,6 +4,7 @@ import uuid
 from typing import Dict, List, Any, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, WebSocket, WebSocketDisconnect, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 
@@ -230,6 +231,41 @@ async def delete_document(
     except Exception as e:
         logger.error(f"Failed to delete document: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete document")
+
+
+@router.get("/{document_id}/download")
+async def download_document(
+    document_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Download a specific document file"""
+    try:
+        document = document_controller.get_document_by_id(db, current_user, document_id)
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+
+        file_path = os.path.join(settings.UPLOAD_BASE_DIR, document.file_path)
+        if not os.path.exists(file_path):
+            logger.error(f"File not found on disk: {file_path}")
+            raise HTTPException(status_code=404, detail="File not found on server")
+
+        def file_iterator():
+            with open(file_path, "rb") as f:
+                while chunk := f.read(8192):
+                    yield chunk
+
+        return StreamingResponse(
+            file_iterator(),
+            media_type=document.content_type,
+            headers={"Content-Disposition": f"attachment; filename={document.filename}"}
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to download document {document_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to download document")
 
 
 @router.post("/onboarding-upload")

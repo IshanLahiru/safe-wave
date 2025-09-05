@@ -51,7 +51,7 @@ async def upload_document(
         safe_filename = f"{unique_id}_{file.filename}"
 
         # Create upload directory if it doesn't exist
-        upload_dir = os.path.join(settings.UPLOAD_DIR, "documents")
+        upload_dir = settings.DOCUMENT_UPLOAD_DIR # Use DOCUMENT_UPLOAD_DIR directly
         os.makedirs(upload_dir, exist_ok=True)
 
         # Save file
