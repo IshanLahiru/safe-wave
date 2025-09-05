@@ -58,11 +58,34 @@ def is_private_ip(ip):
 
 
 def get_ip_windows():
-    """Get network IP on Windows using ipconfig"""
+    """Get network IP on Windows using PowerShell first, ipconfig as a last resort with adapter exclusions"""
+    # Preferred: robust PowerShell detection with active adapter + default gateway + virtual adapter exclusions
     try:
-        print("🔍 Using Windows ipconfig method...")
+        print("🔍 Using Windows PowerShell method (preferred)...")
+        ps_command = (
+            "$ErrorActionPreference='SilentlyContinue';"
+            "$ips=Get-NetIPConfiguration -Detailed | "
+            "Where-Object { $_.NetAdapter.Status -eq 'Up' -and $_.IPv4DefaultGateway -ne $null -and $_.InterfaceAlias -notmatch 'vEthernet|Hyper-V|WSL|Docker|VirtualBox|VMware|Tailscale|Loopback' } | "
+            "ForEach-Object { $alias=$_.InterfaceAlias; foreach($a in $_.IPv4Address){ $ip=$a.IPAddress; if ($ip -match '^(192\\.168\\.|10\\.|172\\.(1[6-9]|2[0-9]|3[0-1])\\.)'){ "
+            "[pscustomobject]@{ IP=$ip; Alias=$alias; Pri=(if($ip -match '^192\\.168\\.'){1}elseif($ip -match '^10\\.'){2}else{3}); AliasPri=(if($alias -match 'Wi-?Fi|WLAN'){0}else{1}) }}}; "
+            "$best=$ips | Sort-Object AliasPri,Pri | Select-Object -First 1; if($best){$best.IP}"
+        )
+        result = subprocess.run(
+            ["powershell", "-NoProfile", "-Command", ps_command],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode == 0:
+            ip = result.stdout.strip()
+            if ip and is_private_ip(ip) and is_valid_ip(ip):
+                print(f"🌐 Found network IP (PowerShell): {ip}")
+                return ip
+    except Exception as e:
+        print(f"⚠️  Error with PowerShell method: {e}")
 
-        # Try different encodings for Windows
+    # Fallback: ipconfig parsing with exclusions and gateway requirement
+    try:
+        print("🔍 Falling back to Windows ipconfig parsing...")
         encodings = ["utf-8", "cp1252", "cp850", "latin1"]
         result = None
 
@@ -82,57 +105,72 @@ def get_ip_windows():
 
         lines = result.stdout.split("\n")
 
-        # Look for IPv4 addresses, prioritizing 192.168.x.x
-        found_ips = []
+        # Track state per adapter
+        candidates = []           # (alias_pref, pri, ip, adapter)
+        fallback_candidates = []  # without requiring gateway
         current_adapter = ""
+        is_virtual = False
+        is_disconnected = False
+        has_gateway = False
 
-        for line in lines:
-            line_stripped = line.strip()
+        for raw in lines:
+            line = raw.strip()
 
-            # Track current network adapter
-            if "adapter" in line.lower() and ":" in line:
-                current_adapter = line.strip()
+            # Start of a new adapter section
+            if "adapter" in raw.lower() and ":" in raw:
+                current_adapter = raw.strip()
+                is_virtual = bool(re.search(r"(vEthernet|Hyper-V|WSL|Docker|VirtualBox|VMware|Tailscale|Loopback)", current_adapter, re.IGNORECASE))
+                is_disconnected = False
+                has_gateway = False
                 continue
 
-            # Look for IPv4 addresses
-            if any(keyword in line for keyword in ["IPv4 Address", "IP Address", "IPv4-Adresse"]):
-                # Extract IP from lines like "   IPv4 Address. . . . . . . . . . . : 192.168.1.100"
-                ip_match = re.search(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", line)
+            # Media state
+            if "Media State" in raw and "disconnected" in raw:
+                is_disconnected = True
+
+            # Default gateway on same line (common case)
+            if "Default Gateway" in raw:
+                if re.search(r"(\d{1,3}\.){3}\d{1,3}", raw):
+                    has_gateway = True
+
+            # IPv4 address lines
+            if any(keyword in raw for keyword in ["IPv4 Address", "IP Address", "IPv4-Adresse"]):
+                ip_match = re.search(r"(\d{1,3}\.){3}\d{1,3}", raw)
                 if ip_match:
-                    ip = ip_match.group(1)
-                    if ip != "127.0.0.1" and is_private_ip(ip):
-                        print(f"   📡 Found IP {ip} on {current_adapter}")
-                        found_ips.append(ip)
+                    ip = ip_match.group(0)
+                    if ip == "127.0.0.1" or not is_private_ip(ip):
+                        continue
 
-        # Prioritize 192.168.x.x addresses
-        for ip in found_ips:
-            if ip.startswith("192.168."):
-                print(f"🌐 Found network IP (Windows): {ip}")
-                return ip
+                    # Priority: 192.168.* (1) > 10.* (2) > 172.16-31.* (3)
+                    if ip.startswith("192.168."):
+                        pri = 1
+                    elif ip.startswith("10."):
+                        pri = 2
+                    elif ip.startswith("172.") and 16 <= int(ip.split(".")[1]) <= 31:
+                        pri = 3
+                    else:
+                        pri = 99
 
-        # Return first private IP found
-        if found_ips:
-            ip = found_ips[0]
-            print(f"🌐 Found network IP (Windows): {ip}")
-            return ip
+                    alias_pref = 0 if re.search(r"(Wi-?Fi|WLAN)", current_adapter, re.IGNORECASE) else 1
+
+                    # Primary candidates must be non-virtual, connected, and have a gateway
+                    if not is_virtual and not is_disconnected and has_gateway:
+                        candidates.append((alias_pref, pri, ip, current_adapter))
+                    # Fallback set (non-virtual, connected) in case gateway isn't detectable
+                    if not is_virtual and not is_disconnected:
+                        fallback_candidates.append((alias_pref, pri, ip, current_adapter))
+
+        # Prefer primary candidates, then fallback
+        for pool_name, pool in [("primary", candidates), ("fallback", fallback_candidates)]:
+            if pool:
+                pool_sorted = sorted(pool, key=lambda t: (t[0], t[1]))
+                best_ip = pool_sorted[0][2]
+                best_adapter = pool_sorted[0][3]
+                print(f"🌐 Found network IP (Windows {pool_name}): {best_ip} on {best_adapter}")
+                return best_ip
 
     except Exception as e:
         print(f"⚠️  Error getting IP via Windows ipconfig: {e}")
-
-    # Try PowerShell as alternative
-    try:
-        print("🔍 Trying Windows PowerShell method...")
-        ps_command = "Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.IPAddress -like '192.168.*' -or $_.IPAddress -like '10.*' -or ($_.IPAddress -like '172.*' -and [int]($_.IPAddress.Split('.')[1]) -ge 16 -and [int]($_.IPAddress.Split('.')[1]) -le 31)} | Select-Object -First 1 -ExpandProperty IPAddress"
-        result = subprocess.run(
-            ["powershell", "-Command", ps_command], capture_output=True, text=True
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            ip = result.stdout.strip()
-            if is_private_ip(ip):
-                print(f"🌐 Found network IP (PowerShell): {ip}")
-                return ip
-    except Exception as e:
-        print(f"⚠️  Error with PowerShell method: {e}")
 
     return None
 
