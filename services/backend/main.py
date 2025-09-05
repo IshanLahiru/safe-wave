@@ -1,5 +1,6 @@
 import logging
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,12 +32,31 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """FastAPI lifespan context: handles startup and shutdown."""
+    logger.info("🚀 Starting Safe Wave API...")
+
+    # Create upload directories if they don't exist
+    os.makedirs(settings.AUDIO_UPLOAD_DIR, exist_ok=True)
+    os.makedirs(settings.DOCUMENT_UPLOAD_DIR, exist_ok=True)
+
+    logger.info(f"📁 Audio upload directory: {settings.AUDIO_UPLOAD_DIR}")
+    logger.info(f"📁 Document upload directory: {settings.DOCUMENT_UPLOAD_DIR}")
+    logger.info("✅ Application startup complete!")
+    try:
+        yield
+    finally:
+        logger.info("🛑 Shutting down Safe Wave API...")
+        logger.info("✅ Application shutdown complete!")
+
 app = FastAPI(
     title="Safe Wave API",
     description="Backend API for Safe Wave mental health application with audio analysis and document management",
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS middleware
@@ -49,27 +69,10 @@ app.add_middleware(
 )
 
 
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    """Initialize application on startup"""
-    logger.info("🚀 Starting Safe Wave API...")
-
-    # Create upload directories if they don't exist
-    os.makedirs(settings.AUDIO_UPLOAD_DIR, exist_ok=True)
-    os.makedirs(settings.DOCUMENT_UPLOAD_DIR, exist_ok=True)
-
-    logger.info(f"📁 Audio upload directory: {settings.AUDIO_UPLOAD_DIR}")
-    logger.info(f"📁 Document upload directory: {settings.DOCUMENT_UPLOAD_DIR}")
-    logger.info("✅ Application startup complete!")
+# Startup handled via FastAPI lifespan context
 
 
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    logger.info("🛑 Shutting down Safe Wave API...")
-    logger.info("✅ Application shutdown complete!")
+# Shutdown handled via FastAPI lifespan context
 
 
 # Global exception handler

@@ -306,7 +306,7 @@ class Settings(BaseSettings):
             else:
                 # Local development or production with external access
                 host = values.get('POSTGRES_HOST', 'localhost')
-                port = values.get('POSTGRES_PORT', 5433)
+                port = values.get('POSTGRES_PORT', 5432)
                 print(f"🏠 Local/Production environment - using external access: {host}:{port}")
 
             database_url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db}"
@@ -498,7 +498,7 @@ class Settings(BaseSettings):
         
         # Check port consistency
         if hasattr(self, 'POSTGRES_PORT'):
-            expected_port = 5433  # Standard external port
+            expected_port = 5432  # Standard external port
             if self.POSTGRES_PORT != expected_port:
                 issues.append(
                     f"Port mismatch: POSTGRES_PORT is {self.POSTGRES_PORT}, "
@@ -526,7 +526,7 @@ class Settings(BaseSettings):
             elif not is_docker and port == 5432:
                 issues.append(
                     f"Local configuration: Using port {port}, "
-                    f"but local development should use 5433"
+                    f"but local development should use 5432"
                 )
         
         # Check production readiness
