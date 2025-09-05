@@ -21,6 +21,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, Spacing, BorderRadius, Shadows } from '@/constants/Colors';
 import { apiService } from '@/services/api';
+import { API_CONFIG } from '@/services/config';
 
 const { width } = Dimensions.get('window');
 
@@ -245,19 +246,9 @@ export default function HomeScreen() {
       setError(null);
       console.log('Fetching home content...');
 
-      // Test the API endpoint first
-      console.log('Testing API endpoint...');
-      const testResponse = await fetch('http://192.168.31.14:9000/content/home-content');
-      console.log('Test response status:', testResponse.status);
-
-      if (!testResponse.ok) {
-        throw new Error(`HTTP ${testResponse.status}: ${testResponse.statusText}`);
-      }
-
-      const testData = await testResponse.json();
-      console.log('Test data received:', testData);
-
+      // Using apiService directly; removed temporary test fetch
       // Now use the apiService
+      console.log('Requesting home content via ApiService:', `${API_CONFIG.BASE_URL}/content/home-content`);
       const response = await apiService.request<HomeContent>('/content/home-content');
       console.log('Home content received via apiService:', response);
       setHomeContent(response);
@@ -512,7 +503,7 @@ export default function HomeScreen() {
                 Welcome back, {user?.name?.split(' ')[0] || 'Friend'}! 🌟
               </ThemedText>
               <ThemedText type='body' style={styles.welcomeSubtitle}>
-                Let's make today a peaceful one
+                Let’s make today a peaceful one
               </ThemedText>
             </View>
           </View>
@@ -533,7 +524,7 @@ export default function HomeScreen() {
             <View style={styles.quoteContent}>
               <IconSymbol size={24} name='quote.bubble.fill' color={Colors.dark.primary} />
               <ThemedText type='body' style={styles.quoteText}>
-                "{homeContent.daily_quote.text}"
+                &ldquo;{homeContent.daily_quote.text}&rdquo;
               </ThemedText>
               <ThemedText type='caption' style={styles.quoteAuthor}>
                 — {homeContent.daily_quote.author}
@@ -545,7 +536,7 @@ export default function HomeScreen() {
             <View style={styles.quoteContent}>
               <IconSymbol size={24} name='quote.bubble.fill' color={Colors.dark.primary} />
               <ThemedText type='body' style={styles.quoteText}>
-                "Peace comes from within. Do not seek it without."
+                &ldquo;Peace comes from within. Do not seek it without.&rdquo;
               </ThemedText>
               <ThemedText type='caption' style={styles.quoteAuthor}>
                 — Buddha
@@ -1304,7 +1295,7 @@ export default function HomeScreen() {
               {/* Mood Rating */}
               <View style={styles.formSection}>
                 <ThemedText type='body' style={styles.formLabel}>
-                  How's your mood today? {getMoodEmoji(progressForm.mood_rating)}
+                  How’s your mood today? {getMoodEmoji(progressForm.mood_rating)}
                 </ThemedText>
                 <View style={styles.ratingContainer}>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(rating => (
