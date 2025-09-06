@@ -261,12 +261,29 @@ class Settings(BaseSettings):
     @field_validator('POSTGRES_PASSWORD')
     @classmethod
     def validate_postgres_password(cls, v):
-        """Validate PostgreSQL password."""
-        if not v:
+        """Validate and sanitize PostgreSQL password (handles CRLF/BOM/quotes)."""
+        if v is None:
             raise ValueError("POSTGRES_PASSWORD is required")
+        v = str(v).strip().strip('"').strip("'").replace('\r', '')
         if len(v) < 8:
             raise ValueError("POSTGRES_PASSWORD must be at least 8 characters long")
         return v
+
+    @field_validator('POSTGRES_USER', 'POSTGRES_DB', 'POSTGRES_HOST')
+    @classmethod
+    def sanitize_postgres_fields(cls, v):
+        """Sanitize common Postgres fields to avoid CRLF/quotes from .env on Windows."""
+        if v is None:
+            return v
+        return str(v).strip().strip('"').strip("'").replace('\r', '')
+
+    @field_validator('DATABASE_URL')
+    @classmethod
+    def sanitize_database_url(cls, v):
+        """Sanitize DATABASE_URL if provided to remove CRLF and extra whitespace."""
+        if not v:
+            return v
+        return str(v).strip().replace('\r', '')
 
     @model_validator(mode='before')
     @classmethod
