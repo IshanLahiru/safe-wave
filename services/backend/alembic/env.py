@@ -87,20 +87,20 @@ def get_database_url_with_fallback() -> str:
         
         if env_type == 'docker':
             # In Docker, use internal service name and standard PostgreSQL port
-            host = 'postgres'
+            host = 'db'
             port = 5432
         else:
             # Local development or production
             host = settings.POSTGRES_HOST
             port = settings.POSTGRES_PORT
             
-        database_url = f"postgresql://{user}:{password}@{host}:{port}/{db}"
-        print(f"🔧 Constructed DATABASE_URL for {env_type}: postgresql://{user}:***@{host}:{port}/{db}")
+        database_url = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db}"
+        print(f"🔧 Constructed DATABASE_URL for {env_type}: postgresql+psycopg://{user}:***@{host}:{port}/{db}")
     
     return database_url
 
 
-def validate_database_connection(url: str, max_retries: int = 3) -> bool:
+def validate_database_connection(url: str, max_retries: int = 10) -> bool:
     """
     Validate database connection with retry logic.
     
@@ -132,7 +132,7 @@ def validate_database_connection(url: str, max_retries: int = 3) -> bool:
         except Exception as e:
             print(f"⚠️  Database connection attempt {attempt + 1}/{max_retries} failed: {e}")
             if attempt < max_retries - 1:
-                wait_time = 2 ** attempt  # Exponential backoff
+                wait_time = min(2 ** attempt, 10)  # Exponential backoff with cap
                 print(f"🕐 Waiting {wait_time} seconds before retry...")
                 time.sleep(wait_time)
             else:
