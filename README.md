@@ -1,316 +1,185 @@
-# SafeWave - Mental Health Platform
+# SafeWave — Mental Health Monitoring App (Monorepo)
 
-> **AI-Powered Mental Health Monitoring & Support Platform**  
-> *Enterprise-grade monorepo with 95% performance optimization improvements*
+This is a full-stack, end-to-end project that integrates a React Native mobile application with a FastAPI backend. The mobile app allows users to record short audio check-ins. These recordings are sent to the backend, where speech is transcribed locally using Vosk (offline speech recognition). The backend can then optionally apply AI-based analysis to detect potential risk signals in the content. In addition, the system delivers supportive resources such as videos and articles to the user.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/safewave/releases)
-[![Backend](https://img.shields.io/badge/backend-FastAPI%202.0.0-green.svg)](services/backend/)
-[![Frontend](https://img.shields.io/badge/frontend-React%20Native-blue.svg)](app/native/)
-[![Architecture](https://img.shields.io/badge/architecture-Monorepo-orange.svg)](docs/ARCHITECTURE.md)
-[![Performance](https://img.shields.io/badge/performance-95%25%20improved-brightgreen.svg)](services/backend/PERFORMANCE_OPTIMIZATIONS.md)
+All components—the mobile app, backend, and supporting services—are maintained within a single monorepo, ensuring seamless local development and deployment.
 
-## 🎯 Project Overview
+What’s inside
+- Mobile app: React Native 0.79.6 + Expo Router (TypeScript)
+- Backend API: FastAPI (Python 3.11), SQLAlchemy ORM, Alembic migrations
+- Database: PostgreSQL 15 (via Docker)
+- Speech-to-text: Vosk small English model bundled in repo
+- Auth: JWT (access + refresh) with token blacklist
+- Content: Articles, videos, quotes, meal plans + seeding scripts
 
-SafeWave is a comprehensive mental health platform that combines real-time audio analysis, AI-powered risk assessment, and personalized content delivery to provide proactive mental health support. Built as a production-ready monorepo with enterprise-grade architecture and recently optimized for 95% better performance.
-
-### **Core Capabilities**
-- 🎤 **Real-time Audio Analysis** - Offline transcription + AI mental health assessment
-- 📱 **Cross-Platform Mobile App** - React Native with performance-optimized UI
-- 🤖 **AI-Powered Insights** - OpenRouter/OpenAI integration for risk assessment
-- 📊 **Content Management** - Articles, videos, meal plans, and wellness content
-- 🔒 **Enterprise Security** - JWT authentication with token management
-- 📈 **Performance Optimized** - 95% response time improvement with database indexing
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│                 │    │                  │    │                 │
-│   React Native  │◄──►│   FastAPI 2.0.0  │◄──►│   PostgreSQL    │
-│   Mobile App    │    │   Backend API    │    │   + Indexes     │
-│                 │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│                 │    │                  │    │                 │
-│   Audio Files   │    │  AI/LLM Services │    │   File Storage  │
-│   Processing    │    │  (OpenRouter)    │    │   (Local/Cloud) │
-│                 │    │                  │    │                 │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-```
-
-### **Data Flow Architecture**
-
-```
-User Audio Recording → Vosk Transcription → LLM Analysis → Risk Assessment → Care Alerts
-         │                     │                │               │              │
-         ▼                     ▼                ▼               ▼              ▼
-   File Storage          Text Processing    AI Insights    User Dashboard   Email Notifications
-```
-
-## 🚀 Technology Stack
-
-### **Backend (FastAPI 2.0.0)**
-- **Framework**: FastAPI with Uvicorn ASGI server
-- **Database**: PostgreSQL with SQLAlchemy ORM + Alembic migrations
-- **Authentication**: JWT tokens with bcrypt password hashing
-- **AI Integration**: OpenRouter API (primary) + OpenAI (legacy)
-- **Audio Processing**: Vosk offline speech recognition
-- **Performance**: GZip compression, database indexes, connection pooling
-
-### **Frontend (React Native + Expo)**
-- **Framework**: React Native 0.79.6 with Expo Router
-- **Language**: TypeScript for type safety
-- **State Management**: React Context + Hooks
-- **Performance**: FlatList virtualization, React.memo optimization
-- **UI**: Custom components with smooth animations
-
-### **Infrastructure & DevOps**
-- **Monorepo**: Turborepo for task orchestration and caching
-- **Containerization**: Docker Compose with performance-tuned PostgreSQL
-- **Cross-Platform**: Automated setup scripts (Windows, macOS, Linux)
-- **Migration System**: Alembic database migrations with rollback support
-- **Performance Monitoring**: Request timing, database statistics, health checks
-
-## 📊 Performance Metrics
-
-### **Recent Optimization Results**
-- **API Response Time**: 95% improvement (seconds → ~35ms)
-- **Database Queries**: 10-100x faster with strategic indexing
-- **Memory Usage**: 70% reduction with FlatList virtualization
-- **Touch Response**: 85% faster touch response (16-32ms)
-
-### **Architecture Improvements**
-- ✅ Database indexes on all frequently queried columns
-- ✅ Connection pooling with performance monitoring
-- ✅ Response compression and caching headers
-- ✅ Critical pagination fixes for content endpoints
-- ✅ Native-driver animations for 60fps performance
-
-## 🗂️ Monorepo Structure
-
+Repo structure
 ```
 safe-wave/
-├── 📱 app/native/                 # React Native mobile application
-│   ├── app/                       # Expo Router pages and navigation
-│   ├── components/                # Reusable UI components
-│   ├── services/                  # API integration and configuration
-│   └── README.md                  # Mobile app documentation
-│
-├── 🔧 services/backend/           # FastAPI backend service
-│   ├── app/                       # Application source code
-│   │   ├── models/                # Database models (SQLAlchemy)
-│   │   ├── views/                 # API endpoints and routes
-│   │   ├── controllers/           # Business logic layer
-│   │   ├── services/              # External service integrations
-│   │   └── core/                  # Configuration and database setup
-│   ├── alembic/                   # Database migrations
-│   ├── scripts/                   # Setup and deployment automation
-│   ├── docs/                      # Backend-specific documentation
-│   └── README.md                  # Backend documentation
-│
-├── 📚 docs/                       # Comprehensive project documentation
-├── 🐳 docker-compose.yml          # Container orchestration
-├── 🔧 turbo.json                  # Turborepo task configuration
-└── 📋 package.json                # Monorepo workspace configuration
+├─ app/native/                 # React Native + Expo app (TypeScript)
+│  ├─ app/                     # Expo Router routes (tabs, auth, etc.)
+│  ├─ components/             # UI + audio recorder/player
+│  ├─ services/               # API client and config
+│  └─ README.md
+├─ services/backend/          # FastAPI backend
+│  ├─ app/                    # models, views (routers), controllers, core config
+│  ├─ alembic/                # DB migrations
+│  ├─ models/                 # Vosk speech model (small en-US) already included
+│  ├─ scripts/                # seed scripts and utilities
+│  ├─ Dockerfile
+│  ├─ docker-compose.yml
+│  └─ env.example
+├─ package.json               # turborepo scripts to run both services
+└─ README.md                  # you are here
 ```
 
-## 🚀 Quick Start Guide
+Ports and URLs (local dev)
+- Backend API base: http://localhost:8000
+- API docs (Swagger): http://localhost:8000/docs
+- Health: http://localhost:8000/health
+- File serving: http://localhost:8000/uploads
 
-### **Prerequisites**
-- **Node.js** 18+ and npm 10+
-- **Python** 3.9+ with Poetry
-- **Docker** and Docker Compose
-- **PostgreSQL** (or use Docker)
+Quick start
 
-### **1. Clone and Setup**
-```bash
-# Clone the repository
-git clone https://github.com/your-org/safe-wave.git
-cd safe-wave
+Option A — Run backend with Docker (recommended for DB)
+1) Copy environment:
+   cp services/backend/env.example services/backend/.env
+   Then open services/backend/.env and change SECRET_KEY, POSTGRES_* and any API keys. Do not commit real secrets.
+2) Start DB + API:
+   npm run docker:up
+   This runs docker-compose in services/backend/ and exposes FastAPI on :8000 and Postgres on :5432.
+3) (Optional) Seed demo content:
+   From the repo root:
+   cd services/backend && npm run seed:content
 
-# Install dependencies
-npm install
+Option B — Run backend locally (no Docker)
+1) Install Poetry if you don’t have it.
+2) Install backend deps:
+   cd services/backend
+   poetry install
+3) Create a .env based on env.example and set POSTGRES_* to your local DB.
+4) Start dev server (uvicorn reload):
+   npm run dev:backend      # or inside backend: poetry run uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-# Setup backend environment (cross-platform)
-npm run setup:backend
-```
+Run the mobile app
+1) Install dependencies:
+   cd app/native
+   npm install
+2) Point the app to your backend:
+   npm run update-ip
+   This script tries to update the dev IP used by the app. You can also check app/native/services/config.ts for API_CONFIG and getDynamicBaseUrl().
+3) Start Expo:
+   npx expo start
+   Then press i for iOS simulator, a for Android, or open Expo Go on your device and scan the QR.
 
-### **2. Start Development Environment**
-```bash
-# Start all services (recommended)
-npm run dev:all
+Minimum prerequisites
+- Node.js 18+ and npm
+- Python 3.11 + Poetry (if running backend without Docker)
+- Docker Desktop (if using Docker option)
 
-# Or start individual services
-npm run dev:backend    # FastAPI server on :9000
-npm run dev:frontend   # Expo dev server on :8081
-```
+Environment variables (backend)
+Create services/backend/.env from env.example and set at least:
+- POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+- SECRET_KEY (at least 32 chars, not a default like “changeme”)
+- BACKEND_CORS_ORIGINS or CORS_ORIGINS for your dev hosts
+- Optional: OPENROUTER_API_KEY or OPENAI_API_KEY for AI analysis
+Notes:
+- The example file contains placeholder API keys. Replace them with your own before you run analysis features.
+- The app builds DATABASE_URL automatically from the POSTGRES_* fields when not provided.
 
-### **3. Access the Application**
-- **API Documentation**: http://localhost:9000/docs
-- **Backend API**: http://localhost:9000
-- **Mobile App**: Use Expo Go app with QR code
-- **Health Check**: http://localhost:9000/health/performance
+Database and migrations
+- Alembic migrations live in services/backend/alembic/
+- Useful scripts (run from repo root):
+  - Create new migration: npm run migration:new
+  - Apply latest migrations: npm run migration:run
+  - View migration history: npm run migration:history
+- If you use Docker, the api container runs alembic upgrade head on start.
 
-## 📋 Available Commands
+Vosk speech model
+- We use the small English model (vosk-model-small-en-us-0.15).
+- The repo already includes a model under services/backend/models/.
+- If you change or remove the model, update services accordingly. If no model is present, the service will log a message telling you to download one.
 
-### **Development Workflow**
-```bash
-# Setup and environment
-npm run setup                    # Complete backend setup
-npm run setup:quick             # Quick setup with defaults
-npm run setup:dev               # Development setup
+API overview (major routes)
+Auth (prefix /auth)
+- POST /auth/signup — create user (returns access + refresh tokens)
+- POST /auth/login — login (returns access + refresh)
+- POST /auth/refresh — exchange refresh for new access + refresh
 
-# Development servers
-npm run dev:all                 # Start all services
-npm run dev:backend             # Backend only
-npm run dev:frontend            # Frontend only
+Health (prefix /health)
+- GET /health/ — basic status
+- GET /health/performance — DB pool and performance metrics
+- GET /health/database-stats — DB statistics and recommendations
 
-# Code quality
-npm run lint:all                # Lint all code
-npm run format:all              # Format all code
-npm run test:all                # Run all tests
-```
+Audio (prefix /audio, requires Bearer token)
+- POST /audio/upload — multipart/form-data with an audio file
+- POST /audio/{id}/transcribe — run transcription (Vosk)
+- POST /audio/{id}/analyze — run LLM analysis on the transcription
+- GET  /audio/list — list my uploads
+- GET  /audio/{id} — single record
+- GET  /audio/{id}/stream — streaming bytes
+- GET  /audio/{id}/status — current processing status
 
-### **Database Management**
-```bash
-# Migrations
-npm run migration:new "message" # Create new migration
-npm run migration:run           # Apply pending migrations
-npm run migration:history       # View migration history
-npm run db:reset                # Reset database schema
+Documents (prefix /documents, requires Bearer token)
+- POST /documents/upload — upload a document (pdf/doc/txt/etc.)
+- GET  /documents/list — list my documents
+- GET  /documents/{id} — single document meta
+- GET  /documents/{id}/download — download the file
 
-# Health checks
-npm run health:check            # Backend health status
-```
+Content (prefix /content)
+- Auth-free “public” endpoints:
+  - GET /content/home-content?featured_limit=5 — homepage content
+  - GET /content/videos/public
+  - GET /content/articles/public
+  - GET /content/meal-plans/public
+  - GET /content/quotes/public
+- Auth-required variants exist for personalized content too.
 
-### **Docker Operations**
-```bash
-npm run docker:up               # Start containers
-npm run docker:down             # Stop containers
-npm run docker:logs             # View logs
-npm run docker:ps               # Container status
-```
+Example: sign up and upload audio
+1) Sign up:
+   curl -X POST http://localhost:8000/auth/signup \
+     -H "Content-Type: application/json" \
+     -d '{"email":"student@example.com","password":"Password123!","name":"Student"}'
+   Save the access_token from the response.
+2) Upload an audio file (replace PATH_TO_FILE and TOKEN):
+   curl -X POST http://localhost:8000/audio/upload \
+     -H "Authorization: Bearer TOKEN" \
+     -F "file=@PATH_TO_FILE" \
+     -F "description=first check-in" \
+     -F "mood_rating=6"
+3) Kick off transcription (if not automatic):
+   curl -X POST http://localhost:8000/audio/123/transcribe \
+     -H "Authorization: Bearer TOKEN"
+4) Start analysis:
+   curl -X POST http://localhost:8000/audio/123/analyze \
+     -H "Authorization: Bearer TOKEN"
 
-## 🔗 Integration Patterns
+Frontend notes (app/native)
+- The app tries to detect a good dev base URL automatically. See app/native/services/config.ts for API_CONFIG and the fallback list. If your machine IP is different, run npm run update-ip inside app/native or edit the config file directly.
+- On web, it uses http://localhost:8000 by default.
 
-### **Authentication Flow**
-```
-Mobile App → Login Request → JWT Token → Authenticated API Calls
-     ↓           ↓              ↓              ↓
-User Input → Password Hash → Token Storage → Auto-refresh
-```
+Useful root scripts (package.json)
+- npm run dev:all         # run dev for both workspaces
+- npm run dev:backend     # backend only
+- npm run dev:frontend    # mobile app only
+- npm run docker:up       # start backend containers (from services/backend)
+- npm run docker:down     # stop backend containers
+- Seeding content: cd services/backend && npm run seed:content
+- npm run migration:*     # alembic helpers (run, history, etc.)
 
-### **Audio Analysis Pipeline**
-```
-Record Audio → Upload File → Vosk Transcription → LLM Analysis → Risk Assessment
-     ↓             ↓             ↓                 ↓               ↓
-Local Storage → File API → Background Process → AI Service → Care Notifications
-```
+Security and privacy basics
+- Always change SECRET_KEY in your .env (min 32 chars).
+- Never commit real API keys. The example values are placeholders.
+- Audio files are stored on disk in the backend uploads/ folder; protect the server and restrict CORS for production.
 
-### **Content Management**
-```
-CMS Admin → Content API → Performance Cache → Mobile App → User Experience
-     ↓          ↓              ↓               ↓              ↓
-Articles → Database → 5min Cache → FlatList → Smooth Scrolling
-```
+Common troubleshooting
+- API says DB is unavailable
+  - Make sure Docker is running (if using Option A).
+  - Check that POSTGRES_* in .env match docker-compose values.
+- Mobile app can’t reach the API
+  - Ensure your phone/emulator can reach your machine’s IP on port 8000.
+  - Run npm run update-ip in app/native.
+- Vosk errors about missing model
+  - Verify services/backend/models/vosk-model-small-en-us-0.15 exists. If not, download a model and update the path.
 
-## 📖 Documentation
-
-### **Getting Started**
-- [📱 Mobile App Setup](app/native/README.md) - React Native development guide
-- [🔧 Backend Setup](services/backend/README.md) - FastAPI development guide
-- [🐳 Docker Guide](DOCKER_MANAGEMENT_README.md) - Container management
-- [🗂️ Cross-Platform Scripts](services/backend/scripts/README.md) - Setup automation
-
-### **Architecture & Development**
-- [⚡ Performance Optimizations](services/backend/PERFORMANCE_OPTIMIZATIONS.md) - 95% improvement details
-- [🗄️ Database Management](services/backend/docs/DATABASE_MANAGEMENT.md) - Migration workflows
-- [🔧 Configuration Guide](services/backend/CONFIG.md) - Environment setup
-- [🏗️ Architecture Decisions](docs/ARCHITECTURE.md) - System design principles
-
-### **Operations & Deployment**
-- [🚀 Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
-- [🔍 Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [🛡️ Security Guide](docs/SECURITY.md) - Security best practices
-- [📊 Monitoring](docs/MONITORING.md) - Performance and health monitoring
-
-## 🤝 Development Workflow
-
-### **Team Collaboration**
-1. **Feature Development**: Create feature branch from `main`
-2. **Code Quality**: Run linting, formatting, and tests
-3. **Documentation**: Update relevant documentation
-4. **Performance**: Monitor performance impact
-5. **Integration**: Test with full stack running
-
-### **Code Standards**
-- **TypeScript** for all frontend code with strict type checking
-- **Python** with type hints and comprehensive docstrings
-- **Database** migrations for all schema changes
-- **Testing** comprehensive test coverage for critical paths
-- **Performance** monitor and optimize database queries
-
-## 📈 Performance Monitoring
-
-### **Key Metrics**
-- **API Response Time**: Target <50ms for cached content
-- **Database Query Time**: Target <10ms for indexed queries
-- **Mobile App Performance**: Target 60fps animations
-- **Memory Usage**: Monitor and optimize for low-end devices
-
-### **Monitoring Endpoints**
-- `/health/performance` - Comprehensive performance metrics
-- `/health/database-stats` - Database connection and query statistics
-- `/health` - Basic health check and system status
-
-## 🛡️ Security & Compliance
-
-### **Security Features**
-- **Authentication**: JWT tokens with secure refresh mechanism
-- **Password Security**: Bcrypt hashing with salt
-- **API Security**: Rate limiting and CORS configuration
-- **Data Protection**: Secure file upload and storage
-- **Environment Security**: All secrets in environment variables
-
-### **Privacy Considerations**
-- **Audio Data**: Local processing with secure storage
-- **User Data**: GDPR-compliant data handling
-- **AI Processing**: Secure API communication
-- **Care Notifications**: Encrypted email notifications
-
-## 🎯 Business Value
-
-### **For Healthcare Organizations**
-- **Proactive Monitoring**: Early detection of mental health risks
-- **Automated Workflows**: Reduce manual monitoring overhead
-- **Scalable Architecture**: Handle thousands of concurrent users
-- **Integration Ready**: API-first design for EHR integration
-
-### **For Development Teams**
-- **Modern Stack**: Latest technologies with best practices
-- **High Performance**: Optimized for speed and scalability
-- **Cross-Platform**: Single codebase for multiple platforms
-- **Maintainable**: Clear architecture and comprehensive documentation
-
-## 📞 Support & Contributing
-
-### **Getting Help**
-- 📖 Check the comprehensive documentation in `/docs`
-- 🔍 Use troubleshooting guides for common issues
-- 💬 Review existing GitHub issues and discussions
-- 📧 Contact the development team for complex issues
-
-### **Contributing**
-1. Review [Contributing Guidelines](docs/CONTRIBUTING.md)
-2. Follow established coding standards and architecture patterns
-3. Include tests and documentation for new features
-4. Ensure performance benchmarks are met
-
----
-
-**Built with ❤️ by the SafeWave Development Team**
-
-*Last updated: 2025-01 - Version 2.0.0 with 95% performance improvements*
+License
+Academic/learning use. For production, harden security, secrets management, and infra before deploying.
