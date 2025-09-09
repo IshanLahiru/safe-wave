@@ -41,6 +41,14 @@ function AppContent() {
     }
   }, [shouldRedirectToLogin, router]);
 
+  // Handle redirection to login when needed
+  useEffect(() => {
+    if (shouldRedirectToLogin) {
+      console.log('🔄 Redirecting to login screen...');
+      router.replace('/auth/login');
+    }
+  }, [shouldRedirectToLogin, router]);
+
   // Force redirect to login if no user and not loading
   useEffect(() => {
     if (!isLoading && !user && !shouldRedirectToLogin) {

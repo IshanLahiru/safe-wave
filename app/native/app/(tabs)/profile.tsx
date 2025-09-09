@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert, View } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Alert, View, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSafeAreaInsetsSafe } from '@/hooks/useSafeAreaInsetsSafe';
@@ -20,7 +20,23 @@ export default function ProfileScreen() {
     router.push('/onboarding-questionnaire');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Web has limited Alert support; use window.confirm for deterministic behavior
+    if (Platform.OS === 'web') {
+      const confirmed =
+        typeof window !== 'undefined'
+          ? window.confirm('Are you sure you want to sign out?')
+          : true;
+
+      if (confirmed) {
+        console.log('Logout confirmed (web)');
+        await logout();
+        router.replace('/auth/login');
+      }
+      return;
+    }
+
+    // Native platforms use Alert with async onPress to ensure full cleanup before navigating
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       {
         text: 'Cancel',
@@ -29,9 +45,10 @@ export default function ProfileScreen() {
       {
         text: 'Sign Out',
         style: 'destructive',
-        onPress: () => {
-          console.log('Logout confirmed');
-          logout();
+        onPress: async () => {
+          console.log('Logout confirmed (native)');
+          await logout();
+          router.replace('/auth/login');
         },
       },
     ]);

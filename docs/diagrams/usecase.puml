@@ -1,0 +1,205 @@
+@startuml
+!pragma layout smetana
+title SafeWave - Use Case Diagram
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Mobile User" as User
+actor "Care Person" as Care
+actor "Emergency Contact" as Emergency
+actor "OpenRouter/LLM" as LLM
+actor "Vosk STT" as Vosk
+
+rectangle "SafeWave Backend API" as System {
+  usecase "Sign Up" as UC_Signup
+  usecase "Log In" as UC_Login
+  usecase "Refresh Token" as UC_Refresh
+  usecase "Logout" as UC_Logout
+  usecase "Complete Onboarding" as UC_Onboarding
+
+  usecase "Upload Audio" as UC_Upload
+  usecase "Transcribe Audio" as UC_Transcribe
+  usecase "Analyze Audio" as UC_Analyze
+  usecase "List My Audios" as UC_ListAudios
+  usecase "View Audio Details" as UC_ViewAudio
+  usecase "Stream Audio" as UC_StreamAudio
+  usecase "Get Audio Status" as UC_AudioStatus
+  usecase "Delete Audio" as UC_DeleteAudio
+  usecase "Serve Audio File" as UC_FileServe
+
+  usecase "Upload Document" as UC_DocUpload
+  usecase "List My Documents" as UC_DocList
+  usecase "Download Document" as UC_DocDownload
+  usecase "View Document Meta" as UC_DocMeta
+
+  usecase "View Home Content (Public)" as UC_HomeContent
+  usecase "Browse Videos (Public)" as UC_VideosPublic
+  usecase "Browse Articles (Public)" as UC_ArticlesPublic
+  usecase "Browse Meal Plans (Public)" as UC_MealsPublic
+  usecase "Browse Quotes (Public)" as UC_QuotesPublic
+
+  usecase "Check Health" as UC_Health
+  usecase "View Performance Metrics" as UC_Perf
+  usecase "View DB Stats" as UC_DBStats
+
+  usecase "Send Immediate Voice Alert" as UC_ImmediateAlert
+  usecase "Fallback: Analyze Onboarding Answers" as UC_OnboardingAnalysis
+}
+
+' Associations
+User --> UC_Signup
+User --> UC_Login
+User --> UC_Refresh
+User --> UC_Logout
+User --> UC_Onboarding
+
+User --> UC_Upload
+User --> UC_Transcribe
+User --> UC_Analyze
+User --> UC_ListAudios
+User --> UC_ViewAudio
+User --> UC_StreamAudio
+User --> UC_AudioStatus
+User --> UC_DeleteAudio
+User --> UC_FileServe
+
+User --> UC_DocUpload
+User --> UC_DocList
+User --> UC_DocDownload
+User --> UC_DocMeta
+
+User --> UC_HomeContent
+User --> UC_VideosPublic
+User --> UC_ArticlesPublic
+User --> UC_MealsPublic
+User --> UC_QuotesPublic
+
+User --> UC_Health
+User --> UC_Perf
+User --> UC_DBStats
+
+' Include/extend relationships
+UC_Upload .> UC_Transcribe : <<include>>
+UC_Transcribe .> UC_Analyze : <<include>>
+UC_Analyze .> UC_ImmediateAlert : <<include>> when high-risk
+UC_Analyze .> UC_OnboardingAnalysis : <<extend>> on failure
+UC_Transcribe <.. Vosk : <<uses>>
+UC_Analyze <.. LLM : <<optional>>
+
+UC_ImmediateAlert --> Care
+UC_ImmediateAlert --> Emergency
+
+note right of UC_Upload
+ POST /audio/upload
+end note
+
+note right of UC_Transcribe
+ POST /audio/{id}/transcribe
+ Auto-triggered after upload
+end note
+
+note right of UC_Analyze
+ POST /audio/{id}/analyze
+ Auto-triggered after transcription
+end note
+
+note right of UC_ListAudios
+ GET /audio/list
+end note
+
+note right of UC_ViewAudio
+ GET /audio/{id}
+end note
+
+note right of UC_StreamAudio
+ GET /audio/{id}/stream
+end note
+
+note right of UC_AudioStatus
+ GET /audio/{id}/status
+end note
+
+note right of UC_DeleteAudio
+ DELETE /audio/{id}
+end note
+
+note right of UC_FileServe
+ GET /audio/file/{audio_id}
+end note
+
+note right of UC_DocUpload
+ POST /documents/upload
+end note
+
+note right of UC_DocList
+ GET /documents/list
+end note
+
+note right of UC_DocDownload
+ GET /documents/{id}/download
+end note
+
+note right of UC_DocMeta
+ GET /documents/{id}
+end note
+
+note right of UC_HomeContent
+ GET /content/home-content
+end note
+
+note right of UC_VideosPublic
+ GET /content/videos/public
+end note
+
+note right of UC_ArticlesPublic
+ GET /content/articles/public
+end note
+
+note right of UC_MealsPublic
+ GET /content/meal-plans/public
+end note
+
+note right of UC_QuotesPublic
+ GET /content/quotes/public
+end note
+
+note right of UC_Health
+ GET /health/
+end note
+
+note right of UC_Perf
+ GET /health/performance
+end note
+
+note right of UC_DBStats
+ GET /health/database-stats
+end note
+
+note bottom of UC_Signup
+ POST /auth/signup
+end note
+
+note bottom of UC_Login
+ POST /auth/login
+end note
+
+note bottom of UC_Refresh
+ POST /auth/refresh
+end note
+
+note bottom of UC_Logout
+ POST /auth/logout
+end note
+
+note bottom of UC_Onboarding
+ POST /auth/complete-onboarding
+end note
+
+legend right
+ <<include>>  mandatory subflow
+ <<extend>>   conditional extension
+ <<uses>>     uses external service
+ <<optional>> optional integration
+endlegend
+
+@enduml

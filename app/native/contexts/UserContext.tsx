@@ -219,6 +219,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         } else {
           console.log('❌ No tokens found, user needs to login');
           setUser(null);
+          setShouldRedirectToLogin(true);
           console.log('🚪 Redirecting to login screen due to missing tokens');
         }
       } catch (error) {

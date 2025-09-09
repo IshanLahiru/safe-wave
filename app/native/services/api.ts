@@ -397,16 +397,22 @@ class ApiService {
               return retryResponse.json();
             } else {
               console.error('❌ Request retry failed after token refresh:', retryResponse.status);
+              // If retry fails, clear tokens and re-throw the error to trigger logout
+              await this.clearTokens();
+              throw new Error(errorData.detail || `HTTP error! status: ${retryResponse.status}`);
             }
           } catch (refreshError) {
             console.error('❌ Token refresh failed:', refreshError);
             // Refresh failed, clear tokens and throw original error
             await this.clearTokens();
+            throw new Error(ERROR_MESSAGES.UNAUTHORIZED); // Re-throw as unauthorized to trigger logout
           }
         }
 
         switch (response.status) {
           case 401:
+            // For 401, always clear tokens to ensure a fresh login
+            await this.clearTokens();
             throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
           case 422:
             throw new Error(errorData.detail || ERROR_MESSAGES.VALIDATION_ERROR);
@@ -658,7 +664,7 @@ class ApiService {
 
   // Test connection to find working backend URL
   async testConnection(): Promise<{ working: boolean; url?: string; error?: string }> {
-    const { FALLBACK_URLS } = await import('./config');
+    const { FALLBACK_URLS } = API_CONFIG; // Use API_CONFIG directly
 
     for (const url of FALLBACK_URLS) {
       try {
@@ -973,7 +979,7 @@ class ApiService {
   // Test onboarding analysis (for testing purposes)
   async testOnboardingAnalysis(): Promise<any> {
     try {
-      const response = await this.makeRequest('/audio/test/onboarding-analysis', {
+      const response = await this.request('/audio/test/onboarding-analysis', {
         method: 'POST',
       });
       return response;
