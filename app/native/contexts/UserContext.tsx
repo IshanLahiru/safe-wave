@@ -70,6 +70,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         console.log('❌ No tokens found, redirecting to login');
         setUser(null);
         setShouldRedirectToLogin(true);
+        setIsLoading(false); // Ensure loading is false for redirection
         return false;
       }
 
@@ -89,6 +90,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           await apiService.clearTokens();
           setUser(null);
           setShouldRedirectToLogin(true);
+          setIsLoading(false); // Ensure loading is false for redirection
           return false;
         }
       }
@@ -97,6 +99,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       await apiService.clearTokens();
       setUser(null);
       setShouldRedirectToLogin(true);
+      setIsLoading(false); // Ensure loading is false for redirection
       return false;
     }
   }, []);
@@ -109,6 +112,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         console.log('🚫 User logged out via API service, clearing user state');
         setUser(null);
         setShouldRedirectToLogin(true);
+        setIsLoading(false); // Ensure loading is false for redirection
       }
     };
 
@@ -129,11 +133,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             console.log('🕐 Periodic validation failed, redirecting to login');
             setUser(null);
             setShouldRedirectToLogin(true);
+            setIsLoading(false); // Ensure loading is false for redirection
           }
         } catch (error) {
           console.log('🕐 Periodic validation error, redirecting to login:', error);
           setUser(null);
           setShouldRedirectToLogin(true);
+          setIsLoading(false); // Ensure loading is false for redirection
         }
       }, 60000); // Check every minute
 
@@ -213,6 +219,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
               await apiService.clearTokens();
               setUser(null);
               setShouldRedirectToLogin(true);
+              setIsLoading(false); // Ensure loading is false for redirection
             }
             console.log('🚪 Redirecting to login screen due to invalid tokens');
           }
@@ -220,6 +227,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           console.log('❌ No tokens found, user needs to login');
           setUser(null);
           setShouldRedirectToLogin(true);
+          setIsLoading(false); // Ensure loading is false for redirection
           console.log('🚪 Redirecting to login screen due to missing tokens');
         }
       } catch (error) {
@@ -227,6 +235,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         // Clear any invalid tokens and ensure user is null
         await apiService.clearTokens();
         setUser(null);
+        setShouldRedirectToLogin(true); // Explicitly set for consistency
+        setIsLoading(false); // Ensure loading is false for redirection
         console.log('🚪 Redirecting to login screen due to authentication error');
       } finally {
         clearTimeout(timeoutId);
@@ -317,12 +327,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       console.error('❌ Login error:', error);
-      // Clear any partial state
+      // Clear any partial state and force redirect
       await apiService.clearTokens();
       setUser(null);
+      setShouldRedirectToLogin(true);
+      setIsLoading(false); // Ensure loading is false for redirection
+      console.log('🚪 Login failed, setting shouldRedirectToLogin to true');
       return false;
     } finally {
       setIsLoading(false);
+      console.log('🏁 Login process finished, isLoading set to false');
     }
   };
 
@@ -349,12 +363,20 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       };
 
       setUser(transformedUser);
+      setShouldRedirectToLogin(false); // Ensure we don't redirect after successful signup
+      console.log('🚪 Signup successful, setting shouldRedirectToLogin to false');
       return true;
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('❌ Signup error:', error);
+      await apiService.clearTokens(); // Clear any partial state
+      setUser(null); // Clear user state
+      setShouldRedirectToLogin(true); // Ensure redirection on signup failure
+      setIsLoading(false); // Ensure loading is false for redirection
+      console.log('🚪 Signup failed, setting shouldRedirectToLogin to true');
       return false;
     } finally {
       setIsLoading(false);
+      console.log('🏁 Signup process finished, isLoading set to false');
     }
   };
 
@@ -372,6 +394,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       await apiService.clearTokens();
       setUser(null);
       setShouldRedirectToLogin(true);
+      setIsLoading(false); // Ensure loading is false for redirection
       console.log('✅ User logged out successfully, redirecting to login');
     }
   };
@@ -430,8 +453,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       setUser(updatedUser);
     } catch (error) {
-      console.error('Onboarding completion error:', error);
-      throw error;
+      console.error('❌ Onboarding completion error:', error);
+      // Optionally, set an error state here to display a user-friendly message
+      // For now, just log and prevent app crash
     }
   };
 
@@ -457,8 +481,9 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       // Update local user state
       setUser({ ...user, ...updates });
     } catch (error) {
-      console.error('User update error:', error);
-      throw error;
+      console.error('❌ User update error:', error);
+      // Optionally, set an error state here to display a user-friendly message
+      // For now, just log and prevent app crash
     }
   };
 
@@ -483,7 +508,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       setUser(transformedUser);
     } catch (error) {
-      console.error('User refresh error:', error);
+      console.error('❌ User refresh error:', error);
+      // If refresh fails, it likely means tokens are invalid, so force logout
+      await apiService.clearTokens();
+      setUser(null);
+      setShouldRedirectToLogin(true);
+      setIsLoading(false); // Ensure loading is false for redirection
+      console.log('🚪 User refresh failed, setting shouldRedirectToLogin to true');
     }
   };
 

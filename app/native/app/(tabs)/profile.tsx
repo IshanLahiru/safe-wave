@@ -31,7 +31,7 @@ export default function ProfileScreen() {
       if (confirmed) {
         console.log('Logout confirmed (web)');
         await logout();
-        router.replace('/auth/login');
+        // Redirection is now handled by UserContext and _layout.tsx
       }
       return;
     }
@@ -48,7 +48,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           console.log('Logout confirmed (native)');
           await logout();
-          router.replace('/auth/login');
+          // Redirection is now handled by UserContext and _layout.tsx
         },
       },
     ]);

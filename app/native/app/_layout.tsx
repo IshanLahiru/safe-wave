@@ -2,7 +2,6 @@ import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
 import { useEffect } from 'react';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
@@ -33,45 +32,27 @@ function AppContent() {
     }
   }, [segments, user, isLoading, validateTokens]);
 
-  // Handle redirection to login when needed
-  useEffect(() => {
-    if (shouldRedirectToLogin) {
-      console.log('🔄 Redirecting to login screen...');
-      router.replace('/auth/login');
-    }
-  }, [shouldRedirectToLogin, router]);
 
-  // Handle redirection to login when needed
+  // Handle navigation based on authentication state
   useEffect(() => {
-    if (shouldRedirectToLogin) {
-      console.log('🔄 Redirecting to login screen...');
-      router.replace('/auth/login');
-    }
-  }, [shouldRedirectToLogin, router]);
+    if (!isLoading) {
+      if (user && !shouldRedirectToLogin) {
+        console.log('🚀 _layout.tsx: User authenticated, checking navigation path...');
+        console.log('📊 _layout.tsx: User onboarding status:', user.isOnboardingComplete);
 
-  // Force redirect to login if no user and not loading
-  useEffect(() => {
-    if (!isLoading && !user && !shouldRedirectToLogin) {
-      console.log('🚫 No user found, forcing redirect to login');
-      router.replace('/auth/login');
-    }
-  }, [isLoading, user, shouldRedirectToLogin, router]);
-
-  // Handle navigation after successful authentication
-  useEffect(() => {
-    if (user && !isLoading) {
-      console.log('🚀 User authenticated, checking navigation path...');
-      console.log('📊 User onboarding status:', user.isOnboardingComplete);
-
-      if (user.isOnboardingComplete) {
-        console.log('🏠 User onboarding complete, navigating to home');
-        router.replace('/(tabs)');
-      } else {
-        console.log('📝 User onboarding incomplete, navigating to onboarding');
-        router.replace('/onboarding-questionnaire');
+        if (user.isOnboardingComplete) {
+          console.log('🏠 _layout.tsx: User onboarding complete, navigating to home');
+          router.replace('/(tabs)');
+        } else {
+          console.log('📝 _layout.tsx: User onboarding incomplete, navigating to onboarding');
+          router.replace('/onboarding-questionnaire');
+        }
+      } else if (!user || shouldRedirectToLogin) {
+        console.log('🚫 _layout.tsx: User not authenticated or redirecting, navigating to login');
+        router.replace('/auth/login');
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, shouldRedirectToLogin, router]);
 
   // Validate tokens on app focus/navigation
   useEffect(() => {
@@ -119,12 +100,20 @@ function AppContent() {
   return (
     <ThemeProvider value={DarkTheme}>
       <Stack screenOptions={{ headerShown: false }}>
-        {/* Always include all screens to prevent navigation errors */}
-        <Stack.Screen name='(tabs)' />
-        <Stack.Screen name='onboarding-questionnaire' />
-        <Stack.Screen name='medical-documents' />
-        <Stack.Screen name='auth/login' />
-        <Stack.Screen name='auth/signup' />
+        {user && !shouldRedirectToLogin ? (
+          // Authenticated routes
+          <>
+            <Stack.Screen name='(tabs)' />
+            <Stack.Screen name='onboarding-questionnaire' />
+            <Stack.Screen name='medical-documents' />
+          </>
+        ) : (
+          // Authentication routes (show if no user or if redirection is explicitly requested)
+          <>
+            <Stack.Screen name='auth/login' />
+            <Stack.Screen name='auth/signup' />
+          </>
+        )}
         <Stack.Screen name='+not-found' />
       </Stack>
       <StatusBar style='light' />

@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ModernInput } from '@/components/ui/ModernInput';
-import { GradientButton } from '@/components/ui/GradientButton';
-import { ModernCard } from '@/components/ui/ModernCard';
 import { useUser } from '@/contexts/UserContext';
 import { Colors, Spacing, BorderRadius } from '@/constants/Colors';
-import apiService from '@/services/api';
 import { API_CONFIG } from '@/services/config';
 
 export default function LoginScreen() {
@@ -92,9 +89,10 @@ export default function LoginScreen() {
       }
     } catch (error) {
       console.error('💥 Login error caught:', error);
-      let errorMsg = 'Network error. Please check your connection.';
+      let errorMsg = 'An unexpected error occurred. Please try again.'; // Generic message
 
       if (error instanceof Error) {
+        console.error('Login error details:', error.message); // Log full error for debugging
         if (error.message.includes('Network request failed')) {
           errorMsg =
             'Cannot connect to server. Please check your internet connection and if the backend is running.';
@@ -104,9 +102,8 @@ export default function LoginScreen() {
           errorMsg = 'Invalid credentials. Please check your email and password.';
         } else if (error.message.includes('500')) {
           errorMsg = 'Server error. Please try again later.';
-        } else {
-          errorMsg = error.message;
         }
+        // For any other specific errors, the generic message will be used.
       }
 
       setErrorMessage(errorMsg);
